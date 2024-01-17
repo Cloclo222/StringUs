@@ -16,39 +16,10 @@
 *******************************************************************************/
 
 #include <Dynamixel2Arduino.h>
-
-
-//OpenRB does not require the DIR control pin.
-#define DXL_SERIAL Serial1
-#define DEBUG_SERIAL Serial
-const int DXL_DIR_PIN = -1;
-const float DXL_PROTOCOL_VERSION = 2.0;
-Dynamixel2Arduino dxl(DXL_SERIAL, DXL_DIR_PIN);
-using namespace ControlTableItem;
-
-
-#define moteur_gauche 1
-#define moteur_droit 2
-#define UP 180
-#define DOWN 0
-
+#include <scara.h>
 
 void setup() {
   
-  
-  DEBUG_SERIAL.begin(57600); // Use UART port of DYNAMIXEL Shield to debug.
-  dxl.begin(57600); // Set Port baudrate to 57600bps. This has to match with DYNAMIXEL baudrate.
-  dxl.setPortProtocolVersion(DXL_PROTOCOL_VERSION); // Set Port Protocol Version. This has to match with DYNAMIXEL protocol version.
-  dxl.ping(moteur_gauche); // Get DYNAMIXEL information
-  dxl.ping(moteur_droit); 
-
-  //Motor parameter initilization
-  dxl.torqueOff(moteur_gauche);
-  dxl.torqueOff(moteur_droit);
-  dxl.setOperatingMode(moteur_gauche, OP_POSITION);
-  dxl.setOperatingMode(moteur_droit, OP_POSITION);
-  dxl.torqueOn(moteur_gauche);
-  dxl.torqueOn(moteur_droit);
 }
 
 void loop() {
