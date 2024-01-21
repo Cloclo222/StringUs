@@ -1,29 +1,35 @@
-#ifndef __SCARA_H__
-#define __SCARA_H__
+#ifndef __Scara_H__
+#define __Scara_H__
+
+#include <Dynamixel2Arduino.h>
+#include "Arduino.h"
+
+
+//Nos variables
 #define moteur_gauche 1
 #define moteur_droit 2
 #define UP 180
 #define DOWN 0
-#define DXL_SERIAL Serial1
-#define DEBUG_SERIAL Serial
+
 using namespace ControlTableItem;
+#define DXL_SERIAL   Serial1
 
 class Scara
 {
-public:
-    Dynamixel2Arduino dxl(DXL_SERIAL, DXL_DIR_PIN);
-
 private:
-    const int DXL_DIR_PIN = -1;
+    Dynamixel2Arduino _dxl; //Si variable définit avec un "_" à l'avant, c'est un objet!
     const float DXL_PROTOCOL_VERSION = 2.0;
 
+    const int Pos_default[2] = {0, 0};
+    int Pos_current[2] = {0, 0};
+
 public:
-    Scara(DXL_SERIAL, DXL_DIR_PIN);
+    Scara();
     ~Scara();
     void init();
     void update();
-    void setPos(float jointPos[2]);
-    float *getPos();
+    void setPos(int jointPos[2]);
+    int* getPos(); 
     void move(float cmd[2]);
     bool buildInvJacobienne();
     void printPosition();
