@@ -26,7 +26,8 @@ private:
 public:
     Scara();
     ~Scara();
-    void init();
+    void init_com();
+    void init_moteur();
     void update();
     void setPos(int jointPos[2]);
     int* getPos(); 

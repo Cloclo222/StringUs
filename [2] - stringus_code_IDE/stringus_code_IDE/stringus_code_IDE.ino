@@ -6,7 +6,7 @@ using namespace ControlTableItem;
 Scara _scara; //Si variable définit avec un "_" à l'avant, c'est un objet!
 
 void setup() {
-  _scara.init();
+
 }
 
 void loop() {
@@ -18,6 +18,6 @@ void loop() {
   dxl.setGoalPosition(moteur_droit, 1000);*/
   int pos[2] = {1000,1000};
   _scara.setPos(pos);
-  Serial1.println("test");
+  Serial2.println("test");
   delay(3000);
 }

@@ -1,22 +1,30 @@
 #include "Scara.h"
 
 Scara::Scara() : _dxl(Serial1, -1)
-{}
+{
+  this->init_com();
+  this->init_moteur();
+}
 
 Scara::~Scara() {}
 
-void Scara::init()
+void Scara::init_com()
 {
-    Serial1.println("Initialisation des moteurs du Scara");
-        //Serial.begin(57600); // Use UART port of DYNAMIXEL Shield to debug.
+        Serial2.begin(57600); // Use UART port of DYNAMIXEL Shield to debug.
         _dxl.begin(57600); // Set Port baudrate to 57600bps. This has to match with DYNAMIXEL baudrate.
+         Serial2.println("Initialisation de la communication complétée");
+}
+
+void Scara::init_moteur()
+{
+    Serial2.println("Initialisation des moteurs du Scara");
         _dxl.setPortProtocolVersion(DXL_PROTOCOL_VERSION); // Set Port Protocol Version. This has to match with DYNAMIXEL protocol version.
         _dxl.ping(moteur_gauche); // Get DYNAMIXEL information
         _dxl.ping(moteur_droit); 
         this->setSpeed(30);
         this->setAcceleration(30);
 
-    Serial1.println("Init: moteur 1 (gauche)");
+    Serial2.println("Init: moteur 1 (gauche)");
         _dxl.setID(moteur_gauche, 1);
         _dxl.ledOn(moteur_gauche);
         _dxl.torqueOff(moteur_gauche);
@@ -26,14 +34,14 @@ void Scara::init()
         //if(this->getPos() != 0)
             //this->
     
-    Serial1.println("Init: moteur 2 (droit)");
+    Serial2.println("Init: moteur 2 (droit)");
         _dxl.setID(moteur_droit, 1);
         _dxl.ledOn(moteur_droit);
         _dxl.torqueOff(moteur_droit);
         _dxl.setOperatingMode(moteur_droit, OP_POSITION);
         _dxl.torqueOn(moteur_droit);  
 
-    Serial1.println("Initialisation completee");
+    Serial2.println("Initialisation completee");
 
 }
 
@@ -59,10 +67,10 @@ return false;
 
 void Scara::printPosition()
 {
-    Serial1.print("Moteur_gauche: ");
-    Serial1.print(Pos_current[0]);
-    Serial1.print("\tMoteur_droit: ");
-    Serial1.println(Pos_current[1]);
+    Serial2.print("Moteur_gauche: ");
+    Serial2.print(Pos_current[0]);
+    Serial2.print("\tMoteur_droit: ");
+    Serial2.println(Pos_current[1]);
 }
 
 void Scara::sendDefaultPos()
@@ -80,12 +88,14 @@ int* Scara::getPos()
 
 void Scara::setSpeed(uint8_t speedLimit)
 {
+    using namespace ControlTableItem;
     _dxl.writeControlTableItem(PROFILE_VELOCITY, moteur_droit, speedLimit);
     _dxl.writeControlTableItem(PROFILE_VELOCITY, moteur_gauche, speedLimit);
 }
 
 void Scara::setAcceleration(uint8_t AccelLimit)
 {
+    using namespace ControlTableItem;
     _dxl.writeControlTableItem(PROFILE_ACCELERATION, moteur_droit, AccelLimit);
     _dxl.writeControlTableItem(PROFILE_ACCELERATION, moteur_gauche, AccelLimit);
 }
