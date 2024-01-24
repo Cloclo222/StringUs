@@ -38,6 +38,7 @@ public:
     void setSpeed(uint8_t speedLimit);
     void setAcceleration(uint8_t AccelLimit);
     int* getSpeedAccel();
+    void homing();
 };
 
 #endif //__SCARA_H__

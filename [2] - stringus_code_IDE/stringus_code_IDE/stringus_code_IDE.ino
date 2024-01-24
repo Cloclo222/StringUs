@@ -12,24 +12,24 @@ Scara _scara(_dxl);
 
 void setup() {
     Serial.begin(115200);
-
     _dxl.begin(57600);
+    Serial.println("Baudrate init.");
 
    _scara.init_com();
+   Serial.println("Comunication init.");
    _scara.init_moteur();
+   Serial.println("Moteur init.");
+   delay(2000);
+
+   int pos[2] = {1000, -1000};
+   _scara.setPos(pos);
+
+   delay(2000);
+   _scara.homing();
 }
 
 void loop() {
 
-  int pos[2] = {1000,0};
-  _scara.setPos(pos);
-  delay(3000);
-  printData();
-  pos[0] = 0;
-  pos[1] = 1000;
-  _scara.setPos(pos);
-  delay(3000);
-  printData();
 }
 
 void printData() {

@@ -1,4 +1,4 @@
-#include "Scara.h"
+#include "scara.h"
 
 
 Scara::Scara(Dynamixel2Arduino &dxl) : _dxl(dxl) {}
@@ -51,6 +51,8 @@ void Scara::setPos(int jointPos[2])
 {
     _dxl.setGoalPosition(moteur_gauche, jointPos[0]);
     _dxl.setGoalPosition(moteur_droit, jointPos[1]);
+    Pos_current[0] = jointPos[0];
+    Pos_current[1] = jointPos[1];
 }
 
 // Helper method for cartiesian movement, only done with first 2 joints
@@ -69,8 +71,6 @@ void Scara::sendDefaultPos()
 
 int* Scara::getPos()
 {
-    Pos_current[0] = _dxl.getPresentPosition(moteur_gauche);
-    Pos_current[1] = _dxl.getPresentPosition(moteur_droit);
     return Pos_current;
 }
 
@@ -94,4 +94,14 @@ void Scara::setAcceleration(uint8_t AccelLimit)
 int* Scara::getSpeedAccel()
 {
     return SpeedAccel;
+}
+
+void Scara::homing(){
+    if(_dxl.getPresentPosition(moteur_gauche) >= Pos_default[0]){
+        _dxl.setGoalPosition(moteur_gauche, Pos_default[0]);
+    }
+
+     if(_dxl.getPresentPosition(moteur_droit) <= Pos_default[1]){
+        _dxl.setGoalPosition(moteur_droit, Pos_default[1]);
+    }
 }
