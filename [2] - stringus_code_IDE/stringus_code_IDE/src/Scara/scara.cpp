@@ -1,30 +1,27 @@
 #include "Scara.h"
 
-Scara::Scara() : _dxl(Serial1, -1)
-{
-  this->init_com();
-  this->init_moteur();
-}
+
+Scara::Scara(Dynamixel2Arduino &dxl) : _dxl(dxl) {}
 
 Scara::~Scara() {}
 
 void Scara::init_com()
 {
-        Serial2.begin(57600); // Use UART port of DYNAMIXEL Shield to debug.
-        _dxl.begin(57600); // Set Port baudrate to 57600bps. This has to match with DYNAMIXEL baudrate.
-         Serial2.println("Initialisation de la communication complétée");
+        
+        //Serial.begin(115200);  // initialise Serial DEBUG_SERIAL port
+        //while (!Serial);
+        _dxl.setPortProtocolVersion(DXL_PROTOCOL_VERSION); // Set Port Protocol Version. This has to match with DYNAMIXEL protocol version.
+        _dxl.ping(moteur_gauche); // Get DYNAMIXEL information
+        _dxl.ping(moteur_droit); 
 }
 
 void Scara::init_moteur()
 {
-    Serial2.println("Initialisation des moteurs du Scara");
-        _dxl.setPortProtocolVersion(DXL_PROTOCOL_VERSION); // Set Port Protocol Version. This has to match with DYNAMIXEL protocol version.
-        _dxl.ping(moteur_gauche); // Get DYNAMIXEL information
-        _dxl.ping(moteur_droit); 
+    //DEBUG_SERIAL.println("Initialisation des moteurs du Scara");
         this->setSpeed(30);
         this->setAcceleration(30);
 
-    Serial2.println("Init: moteur 1 (gauche)");
+    //DEBUG_SERIAL.println("Init: moteur 1 (gauche)");
         _dxl.setID(moteur_gauche, 1);
         _dxl.ledOn(moteur_gauche);
         _dxl.torqueOff(moteur_gauche);
@@ -34,20 +31,19 @@ void Scara::init_moteur()
         //if(this->getPos() != 0)
             //this->
     
-    Serial2.println("Init: moteur 2 (droit)");
+    //DEBUG_SERIAL.println("Init: moteur 2 (droit)");
         _dxl.setID(moteur_droit, 1);
         _dxl.ledOn(moteur_droit);
         _dxl.torqueOff(moteur_droit);
         _dxl.setOperatingMode(moteur_droit, OP_POSITION);
         _dxl.torqueOn(moteur_droit);  
 
-    Serial2.println("Initialisation completee");
-
+    //DEBUG_SERIAL.println("Initialisation completee");
 }
 
 void Scara::update()
 {
-    
+
 }
 
 // Switch to joint mode to cartesian and move in m/s {x, y}
@@ -63,14 +59,6 @@ void Scara::setPos(int jointPos[2])
 bool Scara::buildInvJacobienne()
 {
 return false;
-}
-
-void Scara::printPosition()
-{
-    Serial2.print("Moteur_gauche: ");
-    Serial2.print(Pos_current[0]);
-    Serial2.print("\tMoteur_droit: ");
-    Serial2.println(Pos_current[1]);
 }
 
 void Scara::sendDefaultPos()
@@ -91,6 +79,8 @@ void Scara::setSpeed(uint8_t speedLimit)
     using namespace ControlTableItem;
     _dxl.writeControlTableItem(PROFILE_VELOCITY, moteur_droit, speedLimit);
     _dxl.writeControlTableItem(PROFILE_VELOCITY, moteur_gauche, speedLimit);
+    this->SpeedAccel[0] = speedLimit;
+
 }
 
 void Scara::setAcceleration(uint8_t AccelLimit)
@@ -98,4 +88,10 @@ void Scara::setAcceleration(uint8_t AccelLimit)
     using namespace ControlTableItem;
     _dxl.writeControlTableItem(PROFILE_ACCELERATION, moteur_droit, AccelLimit);
     _dxl.writeControlTableItem(PROFILE_ACCELERATION, moteur_gauche, AccelLimit);
+    this->SpeedAccel[1] = AccelLimit;
+}
+
+int* Scara::getSpeedAccel()
+{
+    return SpeedAccel;
 }

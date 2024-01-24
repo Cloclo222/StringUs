@@ -4,7 +4,6 @@
 #include <Dynamixel2Arduino.h>
 #include "Arduino.h"
 
-
 //Nos variables
 #define moteur_gauche 1
 #define moteur_droit 2
@@ -17,14 +16,15 @@ using namespace ControlTableItem;
 class Scara
 {
 private:
-    Dynamixel2Arduino _dxl; //Si variable définit avec un "_" à l'avant, c'est un objet!
+    Dynamixel2Arduino &_dxl;
     const float DXL_PROTOCOL_VERSION = 2.0;
-
     const int Pos_default[2] = {0, 0};
     int Pos_current[2] = {0, 0};
+    int SpeedAccel[2] = {0, 0};
 
 public:
-    Scara();
+
+    Scara(Dynamixel2Arduino &dxl);
     ~Scara();
     void init_com();
     void init_moteur();
@@ -37,6 +37,7 @@ public:
     void sendDefaultPos();
     void setSpeed(uint8_t speedLimit);
     void setAcceleration(uint8_t AccelLimit);
+    int* getSpeedAccel();
 };
 
 #endif //__SCARA_H__
