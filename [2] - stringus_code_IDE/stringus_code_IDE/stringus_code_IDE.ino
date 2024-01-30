@@ -30,19 +30,19 @@ void setup() {
 void loop() {
 
    delay(3000);
-   int pos[2] = {0, 360};
+   int pos[2] = {0, 0};
    _scara.setPos(pos);
 
    delay(3000);
-   int pos1[2] = {30, 330};
+   int pos1[2] = {30, 30};
    _scara.setPos(pos1);
 
    delay(3000);
-   int pos2[2] = {60, 300};
+   int pos2[2] = {60, 60};
    _scara.setPos(pos2);
 
    delay(3000);
-   int pos3[2] = {90, 271};
+   int pos3[2] = {90, 90};
    _scara.setPos(pos3);
 }
 

@@ -17,20 +17,22 @@ void Scara::init_com()
 
 void Scara::init_moteur()
 {
-
-    _dxl.writeControlTableItem(MIN_POSITION_LIMIT, moteur_gauche, limit_moteur_gauche[0]);
-    _dxl.writeControlTableItem(MAX_POSITION_LIMIT, moteur_gauche, limit_moteur_gauche[1]);
-    _dxl.ledOn(moteur_gauche);
     _dxl.torqueOff(moteur_gauche);
     _dxl.setOperatingMode(moteur_gauche, OP_POSITION);
-    _dxl.torqueOn(moteur_gauche);  
-    
-    
-    _dxl.writeControlTableItem(MIN_POSITION_LIMIT, moteur_droit, limit_moteur_droit[0]);
-    _dxl.writeControlTableItem(MAX_POSITION_LIMIT, moteur_droit, limit_moteur_droit[1]);
-    _dxl.ledOn(moteur_droit);
+    _dxl.writeControlTableItem(MIN_POSITION_LIMIT, moteur_gauche, 0);
+    _dxl.writeControlTableItem(MAX_POSITION_LIMIT, moteur_gauche, 4095);
+    _dxl.writeControlTableItem(DRIVE_MODE, moteur_gauche, 0);
+    _dxl.writeControlTableItem(HOMING_OFFSET, moteur_gauche, 1024);
+    _dxl.ledOn(moteur_gauche);
+    _dxl.torqueOn(moteur_gauche); 
+
     _dxl.torqueOff(moteur_droit);
     _dxl.setOperatingMode(moteur_droit, OP_POSITION);
+    _dxl.writeControlTableItem(MIN_POSITION_LIMIT, moteur_droit, 0);
+    _dxl.writeControlTableItem(MAX_POSITION_LIMIT, moteur_droit, 4095);
+    _dxl.writeControlTableItem(DRIVE_MODE, moteur_droit, 0);
+    _dxl.writeControlTableItem(HOMING_OFFSET, moteur_droit, 1024);
+    _dxl.ledOn(moteur_droit);
     _dxl.torqueOn(moteur_droit);  
 }
 
