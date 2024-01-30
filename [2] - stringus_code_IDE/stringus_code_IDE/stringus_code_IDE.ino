@@ -23,7 +23,7 @@ void setup() {
     delay(2000);
     _scara.homing();
 
-    _scara.setSpeed(100); //Limit a 100
+    _scara.setSpeed(100); //Limite à 100
     _scara.setAcceleration(0); //No-limit
 }
 
