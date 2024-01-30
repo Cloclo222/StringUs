@@ -17,8 +17,6 @@ void Scara::init_com()
 
 void Scara::init_moteur()
 {
-    this->setSpeed(300);
-    this->setAcceleration(50);
 
     _dxl.writeControlTableItem(MIN_POSITION_LIMIT, moteur_gauche, limit_moteur_gauche[0]);
     _dxl.writeControlTableItem(MAX_POSITION_LIMIT, moteur_gauche, limit_moteur_gauche[1]);
@@ -91,6 +89,10 @@ int* Scara::getSpeedAccel()
 }
 
 void Scara::homing(){
+
+    this->setSpeed(20);
+    this->setAcceleration(0);
+
     if(_dxl.getPresentPosition(moteur_gauche) >= Pos_default[0]){
         _dxl.setGoalPosition(moteur_gauche, Pos_default[0], UNIT_DEGREE);
     }
