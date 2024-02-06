@@ -17,28 +17,23 @@ void Scara::init_com()
 
 void Scara::init_moteur()
 {
-    //DEBUG_SERIAL.println("Initialisation des moteurs du Scara");
-        this->setSpeed(30);
-        this->setAcceleration(30);
+    _dxl.torqueOff(moteur_gauche);
+    _dxl.setOperatingMode(moteur_gauche, OP_POSITION);
+    _dxl.writeControlTableItem(MIN_POSITION_LIMIT, moteur_gauche, 0);
+    _dxl.writeControlTableItem(MAX_POSITION_LIMIT, moteur_gauche, 4095);
+    _dxl.writeControlTableItem(DRIVE_MODE, moteur_gauche, 0);
+    _dxl.writeControlTableItem(HOMING_OFFSET, moteur_gauche, 0);
+    _dxl.ledOn(moteur_gauche);
+    _dxl.torqueOn(moteur_gauche); 
 
-    //DEBUG_SERIAL.println("Init: moteur 1 (gauche)");
-        _dxl.setID(moteur_gauche, 1);
-        _dxl.ledOn(moteur_gauche);
-        _dxl.torqueOff(moteur_gauche);
-        _dxl.setOperatingMode(moteur_gauche, OP_POSITION);
-        _dxl.torqueOn(moteur_gauche);  
-        
-        //if(this->getPos() != 0)
-            //this->
-    
-    //DEBUG_SERIAL.println("Init: moteur 2 (droit)");
-        _dxl.setID(moteur_droit, 1);
-        _dxl.ledOn(moteur_droit);
-        _dxl.torqueOff(moteur_droit);
-        _dxl.setOperatingMode(moteur_droit, OP_POSITION);
-        _dxl.torqueOn(moteur_droit);  
-
-    //DEBUG_SERIAL.println("Initialisation completee");
+    _dxl.torqueOff(moteur_droit);
+    _dxl.setOperatingMode(moteur_droit, OP_POSITION);
+    _dxl.writeControlTableItem(MIN_POSITION_LIMIT, moteur_droit, 0);
+    _dxl.writeControlTableItem(MAX_POSITION_LIMIT, moteur_droit, 4095);
+    _dxl.writeControlTableItem(DRIVE_MODE, moteur_droit, 0);
+    _dxl.writeControlTableItem(HOMING_OFFSET, moteur_droit, 0);
+    _dxl.ledOn(moteur_droit);
+    _dxl.torqueOn(moteur_droit);  
 }
 
 void Scara::update()
@@ -49,8 +44,8 @@ void Scara::update()
 // Switch to joint mode to cartesian and move in m/s {x, y}
 void Scara::setPos(int jointPos[2])
 {
-    _dxl.setGoalPosition(moteur_gauche, jointPos[0]);
-    _dxl.setGoalPosition(moteur_droit, jointPos[1]);
+    _dxl.setGoalPosition(moteur_gauche, jointPos[0], UNIT_DEGREE);
+    _dxl.setGoalPosition(moteur_droit, jointPos[1], UNIT_DEGREE);
     Pos_current[0] = jointPos[0];
     Pos_current[1] = jointPos[1];
 }
@@ -80,7 +75,6 @@ void Scara::setSpeed(uint8_t speedLimit)
     _dxl.writeControlTableItem(PROFILE_VELOCITY, moteur_droit, speedLimit);
     _dxl.writeControlTableItem(PROFILE_VELOCITY, moteur_gauche, speedLimit);
     this->SpeedAccel[0] = speedLimit;
-
 }
 
 void Scara::setAcceleration(uint8_t AccelLimit)
@@ -97,11 +91,15 @@ int* Scara::getSpeedAccel()
 }
 
 void Scara::homing(){
+
+    this->setSpeed(20);
+    this->setAcceleration(0);
+
     if(_dxl.getPresentPosition(moteur_gauche) >= Pos_default[0]){
-        _dxl.setGoalPosition(moteur_gauche, Pos_default[0]);
+        _dxl.setGoalPosition(moteur_gauche, Pos_default[0], UNIT_DEGREE);
     }
 
-     if(_dxl.getPresentPosition(moteur_droit) <= Pos_default[1]){
-        _dxl.setGoalPosition(moteur_droit, Pos_default[1]);
+     if(_dxl.getPresentPosition(moteur_droit) >= Pos_default[1]){
+        _dxl.setGoalPosition(moteur_droit, Pos_default[1], UNIT_DEGREE);
     }
 }

@@ -15,21 +15,35 @@ void setup() {
     _dxl.begin(57600);
     Serial.println("Baudrate init.");
 
-   _scara.init_com();
-   Serial.println("Comunication init.");
-   _scara.init_moteur();
-   Serial.println("Moteur init.");
-   delay(2000);
+    _scara.init_com();
+    Serial.println("Comunication init.");
+    _scara.init_moteur();
+    Serial.println("Moteur init.");
 
-   int pos[2] = {1000, -1000};
-   _scara.setPos(pos);
+    delay(2000);
+    _scara.homing();
 
-   delay(2000);
-   _scara.homing();
+    _scara.setSpeed(100); //Limite à 100
+    _scara.setAcceleration(0); //No-limit
 }
 
 void loop() {
 
+   delay(3000);
+   int pos[2] = {0, 0};
+   _scara.setPos(pos);
+
+   delay(3000);
+   int pos1[2] = {30, 30};
+   _scara.setPos(pos1);
+
+   delay(3000);
+   int pos2[2] = {60, 60};
+   _scara.setPos(pos2);
+
+   delay(3000);
+   int pos3[2] = {90, 90};
+   _scara.setPos(pos3);
 }
 
 void printData() {

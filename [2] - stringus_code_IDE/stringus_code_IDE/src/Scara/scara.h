@@ -22,6 +22,10 @@ private:
     int Pos_current[2] = {0, 0};
     int SpeedAccel[2] = {0, 0};
 
+    //Limit moteur
+    const int limit_moteur_gauche[2] = {0, 1024}; //De 0 à 90°
+    const int limit_moteur_droit[2] = {3070, 4095} ; //De 270° à 360°
+
 public:
 
     Scara(Dynamixel2Arduino &dxl);
