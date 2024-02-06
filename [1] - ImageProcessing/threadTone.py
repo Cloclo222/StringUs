@@ -3,6 +3,7 @@
 import sys
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 from ColourSplit import *
 from Canvas import *
 from misc import *
@@ -79,8 +80,11 @@ if __name__ == "__main__":
     palette['orange'] = (255, 130, 0)
     palette['black'] = (0, 0, 0)
 
-    image = Img(imgPath, palette)
-    image.showImage()
-    canvas = Canvas()
-    lines = canvas.ComputeThreads(image,'white', 2000)
-    canvas.paintCanvas(lines)
+    # image = Img(imgPath, palette)
+    image = Img(imgPath)
+    # image.showImage()
+    canvas = Canvas(image.img_radius)
+    lines = canvas.ComputeThreads(image, 6000)
+    output = canvas.paintCanvas(lines)
+    output.save("output.png")
+

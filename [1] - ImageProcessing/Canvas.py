@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import sys
 from PIL import Image, ImageDraw
 from ColourSplit import *
@@ -13,7 +14,7 @@ def linePixels(pin0, pin1):
 
 class Canvas:
 
-    def __init__(self, ImgRadius=500, numPins=300, lineWidth=3, lineWeight=80, minLoop=3):
+    def __init__(self, ImgRadius=1000, numPins=300, lineWidth=10, lineWeight=10, minLoop=3):
         self.ImgRadius = ImgRadius
         self.numPins = numPins
         self.lineWidth = lineWidth
@@ -39,9 +40,12 @@ class Canvas:
 
     # Compute a line mask
 
-    def ComputeThreads(self, I: Img, colour, numLines, initPin=0) -> []:
+    def ComputeThreads(self, I: Img, numLines, colour = None,  initPin=0) -> []:
         # image result is rendered to
-        img = I.img_couleur_sep[colour]
+        if colour is not None:
+            img = I.img_couleur_sep[colour]
+        else:
+            img = I.img
         height, width = img.shape[0:2]
 
         # Initialize variables
@@ -85,7 +89,8 @@ class Canvas:
 
 
             # Save line to results
-            lines.append((self.Coords[oldPin], self.Coords[bestPin], I.palette[colour]))
+            # lines.append((self.Coords[oldPin], self.Coords[bestPin], I.palette[colour]))
+            lines.append((self.Coords[oldPin], self.Coords[bestPin]))
 
             # Break if no lines possible
             if bestPin == oldPin:
@@ -109,8 +114,9 @@ class Canvas:
         return lines
 
     def paintCanvas(self, lines):
-        output = Image.new('RGB',(self.ImgRadius*2,self.ImgRadius*2))
+        output = Image.new('RGB',(self.ImgRadius*2,self.ImgRadius*2),(255,255,255))
         outputDraw = ImageDraw.Draw(output)
         for line in lines:
-            outputDraw.line((line[0], line[1]), line[2])
+            outputDraw.line((line[0], line[1]),(0,0,0))
         output.show()
+        return output
