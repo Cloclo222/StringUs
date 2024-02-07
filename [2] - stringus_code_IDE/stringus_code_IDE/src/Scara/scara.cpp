@@ -12,7 +12,7 @@ void Scara::init_com()
         //while (!Serial);
         _dxl.setPortProtocolVersion(DXL_PROTOCOL_VERSION); // Set Port Protocol Version. This has to match with DYNAMIXEL protocol version.
         _dxl.ping(moteur_gauche); // Get DYNAMIXEL information
-        _dxl.ping(moteur_droit); 
+        _dxl.ping(moteur_droit); // Get DYNAMIXEL information
 }
 
 void Scara::init_moteur()
@@ -44,8 +44,8 @@ void Scara::update()
 // Switch to joint mode to cartesian and move in m/s {x, y}
 void Scara::setPos(int jointPos[2])
 {
-    _dxl.setGoalPosition(moteur_gauche, jointPos[0]-90, UNIT_DEGREE);
-    _dxl.setGoalPosition(moteur_droit, jointPos[1]+90, UNIT_DEGREE);
+    _dxl.setGoalPosition(moteur_gauche, jointPos[0], UNIT_DEGREE);
+    _dxl.setGoalPosition(moteur_droit, jointPos[1], UNIT_DEGREE);
     Pos_current[0] = jointPos[0];
     Pos_current[1] = jointPos[1];
 }
@@ -95,11 +95,11 @@ void Scara::homing(){
     this->setSpeed(20);
     this->setAcceleration(0);
 
-    if(_dxl.getPresentPosition(moteur_gauche) >= Pos_default[0]){
-        _dxl.setGoalPosition(moteur_gauche, Pos_default[0], UNIT_DEGREE);
-    }
 
-     if(_dxl.getPresentPosition(moteur_droit) >= Pos_default[1]){
-        _dxl.setGoalPosition(moteur_droit, Pos_default[1], UNIT_DEGREE);
-    }
+    _dxl.setGoalPosition(moteur_gauche, Pos_default[0], UNIT_DEGREE);
+    _dxl.setGoalPosition(moteur_droit, Pos_default[1], UNIT_DEGREE);
+
+    delay(3000);
+    
+    return;
 }
