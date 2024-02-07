@@ -1,32 +1,39 @@
+import PIL.Image
 import numpy as np
 import sys
 from PIL import Image
 import plotly.express as px
+import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 
 class Img:
 
-    def __init__(self, filename, palette, img_radius=500):
+    def __init__(self, filename, palette = None, img_radius=1000):
         self.filename = filename
         self.img_radius = img_radius
-        self.palette = palette
 
-        self.img = np.array(Image.open(self.filename).resize((self.img_radius * 2 + 1, self.img_radius * 2 + 1)), dtype=float)
-        self.img_couleur_sep = dict()
-        for keys in self.palette.keys():
-            self.img_couleur_sep[keys] = np.zeros(self.img.shape[:2])
 
-        # self.maskImage()
-        self.img_dithered = self.fs_dither()
 
+        if palette is not None:
+            self.palette = palette
+            self.colors_array = np.array(list(self.palette.values()))
+            self.img = np.array(Image.open(self.filename).resize((self.img_radius * 2 + 1, self.img_radius * 2 + 1)),dtype=float)
+            self.img_couleur_sep = dict()
+            for keys in self.palette.keys():
+                self.img_couleur_sep[keys] = np.zeros(self.img.shape[:2])
+
+            # self.maskImage()
+            self.img_dithered = self.fs_dither()
+        else:
+            self.img = np.array(Image.open(self.filename).resize((self.img_radius * 2 + 1, self.img_radius * 2 + 1)).convert('L'),dtype=float)
+            self.invertImage()
+            # Image.fromarray(self.img).show()
     def GetClosestPaletteColour(self, old_val):
-        colours = list(self.palette.values())
-        #colours = np.array(colours)
-        distances = np.sqrt(np.sum((colours - old_val) ** 2, axis=1))
+        distances = np.sqrt(np.sum((self.colors_array - old_val) ** 2, axis=1))
         closest = np.where(distances == np.amin(distances))[0][0]
-        colour = list(self.palette.keys())[list(self.palette.values()).index(colours[closest])]
+        colour = list(self.palette.keys())[closest]
         return colour
 
     def fs_dither(self):
@@ -72,7 +79,7 @@ class Img:
 
     # Invert grayscale image
     def invertImage(self):
-        return (255 - self.img)
+        self.img = 255-self.img
 
     # Apply circular mask to image
     def maskImage(self):
