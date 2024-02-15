@@ -2,6 +2,7 @@ import numpy as np
 import sys
 from PIL import Image, ImageDraw
 import plotly.express as px
+import numba
 
 
 def linePixels(pin0, pin1):
@@ -9,6 +10,39 @@ def linePixels(pin0, pin1):
     x = np.linspace(pin0[0], pin1[0], length)
     y = np.linspace(pin0[1], pin1[1], length)
     return (x.astype(int) - 1, y.astype(int) - 1)
+
+
+@numba.njit
+def ditherImg(arr, colors_array):
+    arr_shape = np.shape(arr)
+    num_imgs = len(colors_array)+1
+    res_shape = num_imgs, arr_shape[0], arr_shape[1], arr_shape[2]
+    result = np.zeros(res_shape)
+    height, width = arr.shape[0:2]
+    for ir in range(height):
+        for ic in range(width):
+            old_val = arr[ir, ic].copy()
+            distances = np.sqrt(np.sum((colors_array - old_val) ** 2, axis=1))
+            closest = np.where(distances == np.amin(distances))[0][0]
+            new_val = colors_array[closest]
+            result[closest+1, ir, ic] = 255
+            result[0, ir, ic] = new_val
+            err = old_val - new_val
+
+            if ic < width - 1:
+                result[0, ir, ic + 1] += err * 3 / 16
+            if ir < height - 1:
+                if ic > 0:
+                    result[0, ir + 1, ic - 1] += err * 3 / 16
+                result[0, ir + 1, ic] += err * 5 / 16
+                if ic < width - 1:
+                    result[0, ir + 1, ic + 1] += err / 16
+
+        # sys.stdout.write("\b\b")
+        # sys.stdout.write("\r")
+        # sys.stdout.write("[+] Dithering " + str(int(ir / height * 100)) + "% complete")
+        # sys.stdout.flush()
+    return result
 
 
 class Canvas:
@@ -23,9 +57,10 @@ class Canvas:
                  minLoop=3,
                  palette=None,
                  numLinesPerColour=None,
-                 group_orders=None
+                 group_orders=None,
                  ):
 
+        self.numLinesPerColour = numLinesPerColour
         self.filename = filename
         self.img_radius = img_radius
         self.numPins = numPins
@@ -33,17 +68,22 @@ class Canvas:
         self.lineWidth = lineWidth
         self.lineWeight = lineWeight
         self.minLoop = minLoop
+        self.Coords = None
+        self.img_dithered = None
 
         self.totalLines = []
-        self.Coords = self.pinCoords()
 
         self.base_img = Image.open(self.filename).resize((self.img_radius * 2 + 1, self.img_radius * 2 + 1))
 
         if palette is not None:
-
-            assert set(palette.keys()) == set(numLinesPerColour.keys()), "Palette keys and numLinesPerColour keys don't match"
+            if numLinesPerColour is None:
+                self.numLinesPerColour = dict()
+                for key in palette.keys():
+                    self.numLinesPerColour[key] = 100000
+            else:
+                assert set(palette.keys()) == set(
+                    numLinesPerColour.keys()), "Palette keys and numLinesPerColour keys don't match"
             self.palette = palette
-            self.numLinesPerColour = numLinesPerColour
             self.colors_array = np.array(list(self.palette.values()))
             self.np_img = np.array(self.base_img, dtype=float)
             self.img_couleur_sep = dict()
@@ -52,15 +92,16 @@ class Canvas:
             self.color_names = list(self.palette.keys())
             self.color_values = list(self.palette.values())
             first_color_letters = [color[0] for color in self.color_names]
-            assert len(set(first_color_letters)) == len(first_color_letters), "First letter of each color name must be unique."
-            assert set(first_color_letters) == set(group_orders), "Invalid letter in group_order"
+            assert len(set(first_color_letters)) == len(
+                first_color_letters), "First letter of each color name must be unique."
+            # assert set(first_color_letters) == set(group_orders), "Invalid letter in group_order"
             self.group_orders = group_orders
 
             for keys in self.palette.keys():
                 self.img_couleur_sep[keys] = np.zeros(self.np_img.shape[:2])
 
             # self.maskImage()
-            self.img_dithered = self.fs_dither()
+            self.fs_dither()
 
         else:
             self.np_img = np.array(self.base_img.convert('L'), dtype=float)
@@ -70,7 +111,8 @@ class Canvas:
             )
             # Image.fromarray(self.img).show()
 
-    def pinCoords(self, offset=0, x0=None, y0=None):
+    def pinCoords(self, numPins=300, offset=0, x0=None, y0=None):
+        self.numPins = numPins
         alpha = np.linspace(0 + offset, 2 * np.pi + offset, self.numPins + 1)
 
         if (x0 is None) or (y0 is None):
@@ -83,7 +125,7 @@ class Canvas:
             y = int(y0 + self.img_radius * np.sin(angle))
 
             coords.append((x, y))
-        return coords
+        self.Coords = coords
 
     def ComputeThreads(self, numLines, colour="grey") -> []:
 
@@ -144,23 +186,27 @@ class Canvas:
             # Print progress
             sys.stdout.write("\b\b")
             sys.stdout.write("\r")
-            sys.stdout.write("[+] Computing line " + str(line + 1) + " of " + str(numLines) + " total")
+            sys.stdout.write("[+] Computing " + colour + " line " + str(line + 1) + " of " + str(numLines) + " max")
             sys.stdout.flush()
 
-        print("\n[+] Image threaded")
-
+        print(" ")
         return lines
 
-    def buildCanvas(self, numLines=0):
+    def buildCanvas(self, numLines=100000, background=(255, 255, 255), excludeBackground=False):
 
         if self.palette is None:
-            assert numLines != 0, "Must specify number of lines in buildCanvas, for Greyscale"
+            # assert numLines != 0, "Must specify number of lines in buildCanvas, for Greyscale"
             self.totalLines = self.ComputeThreads(numLines, "grey")
+            print("\n[+] Image threaded")
             return self.totalLines
 
         else:
+
             for key in self.palette.keys():
-                self.d_couleur_threaded[key] = self.ComputeThreads(self.numLinesPerColour[key], key)
+                if self.palette[key] == background and excludeBackground is True:
+                    continue
+                else:
+                    self.d_couleur_threaded[key] = self.ComputeThreads(self.numLinesPerColour[key], key)
 
             color_names = list(self.palette.keys())
             color_counters = {k: 0 for k in color_names}
@@ -176,62 +222,21 @@ class Canvas:
                 next_lines = self.d_couleur_threaded[matching_color][start: end]
                 for line in next_lines:
                     self.totalLines.append(line)
+            print("[+] Image threaded\n")
 
-
-    def paintCanvas(self):
-        output = Image.new('RGB', (self.img_radius * 2, self.img_radius * 2), (255, 255, 255))
+    def paintCanvas(self, background=(255, 255, 255)):
+        output = Image.new('RGB', (self.img_radius * 2, self.img_radius * 2), background)
         outputDraw = ImageDraw.Draw(output)
         for line in self.totalLines:
             outputDraw.line((line[0], line[1]), line[2])
-        output.show()
+        # output.show()
         return output
 
-    def GetClosestPaletteColour(self, old_val):
-        distances = np.sqrt(np.sum((self.colors_array - old_val) ** 2, axis=1))
-        closest = np.where(distances == np.amin(distances))[0][0]
-        colour = list(self.palette.keys())[closest]
-        return colour
-
     def fs_dither(self):
-        arr = self.np_img
-        height, width = arr.shape[0:2]
-        for ir in range(height):
-            for ic in range(width):
-                old_val = arr[ir, ic].copy()
-                new_colour = self.GetClosestPaletteColour(old_val)
-                new_val = self.palette[new_colour]
-                self.img_couleur_sep[new_colour][ir][ic] = 255
-                arr[ir, ic] = new_val
-                err = old_val - new_val
-
-                if ic < width - 1:
-                    arr[ir, ic + 1] += err * 3 / 16
-                if ir < height - 1:
-                    if ic > 0:
-                        arr[ir + 1, ic - 1] += err * 3 / 16
-                    arr[ir + 1, ic] += err * 5 / 16
-                    if ic < width - 1:
-                        arr[ir + 1, ic + 1] += err / 16
-
-            sys.stdout.write("\b\b")
-            sys.stdout.write("\r")
-            sys.stdout.write("[+] Dithering " + str(int(ir / height * 100)) + "% complete")
-            sys.stdout.flush()
-        # carr = np.array(arr / np.max(arr, axis=(0, 1)) * 255, dtype=np.uint8)
-        return arr
-
-    #
-    # def imagePreProcessing(self):
-    #     #  Crop image
-    #     height, width = self.img.shape[0:2]
-    #     minEdge = min(height, width)
-    #     topEdge = int((height - minEdge) / 2)
-    #     leftEdge = int((width - minEdge) / 2)
-    #     imgCropped = self.img[topEdge:topEdge + minEdge, leftEdge:leftEdge + minEdge]
-    #
-    #     # Resize image
-    #     imgSized = cv2.resize(imgCropped, (2 * img_radius + 1, 2 * img_radius + 1))
-    #     return imgSized
+        res = ditherImg(self.np_img, self.colors_array)
+        self.img_dithered = np.array(res[0])
+        for i, key in enumerate(self.palette.keys()):
+            self.img_couleur_sep[key] = res[i+1]
 
     # Invert grayscale image
     def invertImage(self):
@@ -245,7 +250,7 @@ class Canvas:
         self.np_img[mask] = 0
 
     def showDitheredImage(self):
-        px.imshow(self.np_img, template="plotly_dark").show()
+        px.imshow(self.img_dithered, template="plotly_dark").show()
         fig = px.imshow(
             np.array(list(self.img_couleur_sep.values())), template="plotly_dark",
             title="Images per color", animation_frame=0, color_continuous_scale="gray"
