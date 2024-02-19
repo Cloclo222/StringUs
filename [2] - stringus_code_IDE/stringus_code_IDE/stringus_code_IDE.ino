@@ -1,3 +1,4 @@
+
 #include <Dynamixel2Arduino.h> //Installer par le gestionnaire de librarie Arduino IDE
 #include "src/Scara/Scara.h" //Dans le fichier src, c'est notre propre librarie
 #include "Arduino.h"
@@ -22,27 +23,30 @@ void setup() {
 
     delay(2000);
     _scara.homing();
+    Serial.println("Homing complete.");
+    
 
-    _scara.setSpeed(100); //Limite à 100
+    _scara.setSpeed(50); //Limite à 100
     _scara.setAcceleration(0); //No-limit
+    Serial.println("AccelSpeed complete.");
 }
 
 void loop() {
 
-   delay(3000);
-   int pos[2] = {0, 0};
+   delay(1000);
+   int pos[2] = {104, 81};
    _scara.setPos(pos);
 
-   delay(3000);
-   int pos1[2] = {30, 30};
+   delay(1000);
+   int pos1[2] = {81, 104};
    _scara.setPos(pos1);
 
-   delay(3000);
-   int pos2[2] = {60, 60};
+   delay(1000);
+   int pos2[2] = {95, 118};
    _scara.setPos(pos2);
 
-   delay(3000);
-   int pos3[2] = {90, 90};
+   delay(1000);
+   int pos3[2] = {118, 95};
    _scara.setPos(pos3);
 }
 

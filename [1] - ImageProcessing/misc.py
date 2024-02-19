@@ -1,6 +1,12 @@
-import numpy as np
-import matplotlib.pyplot as plt
+import itertools
+
 from Canvas import *
+import numpy as np
+import os
+import matplotlib.pyplot as plt
+import cv2
+
+
 
 def animate(lines, coords, imgRadius):
     # plot results
@@ -43,3 +49,56 @@ def WriteThreadedFile(mode: str, colour, lines, coords, imgRadius):
             svg_output.write(pather(d).encode('utf8'))
             svg_output.write(footer.encode('utf8'))
             svg_output.close()
+
+
+def createGrid(folder=None):
+
+    # User defined variables
+    dirname = "imgs/tiger_ratio"  # Name of the directory containing the images
+    name = "outputs/tiger_grid" + ".jpg"  # Name of the exported file
+    margin = 20  # Margin between pictures in pixels
+    w = 5  # Width of the matrix (nb of images)
+    h = 5  # Height of the matrix (nb of images)
+    n = w * h
+
+    filename_list = []
+
+    for file in os.listdir(dirname):
+        # if file.endswith(".JPG"):
+        filename_list.append(file)
+
+    filename_list.sort();
+
+    print(filename_list)
+
+    imgs = [cv2.resize(cv2.imread(os.getcwd() + "/" + dirname + "/" + file),(1000,1000), interpolation=cv2.INTER_AREA) for file in filename_list]
+
+    # Define the shape of the image to be replicated (all images should have the same shape)
+    img_h, img_w, img_c = imgs[0].shape
+
+    # Define the margins in x and y directions
+    m_x = margin
+    m_y = margin
+
+    # Size of the full size image
+    mat_x = img_w * w + m_x * (w - 1)
+    mat_y = img_h * h + m_y * (h - 1)
+
+    # Create a matrix of zeros of the right size and fill with 255 (so margins end up white)
+    imgmatrix = np.ones((mat_y, mat_x, img_c), np.uint8)*255
+
+    # Prepare an iterable with the right dimensions
+    positions = itertools.product(range(h), range(w))
+
+    for (y_i, x_i), img in zip(positions, imgs):
+        x = x_i * (img_w + m_x)
+        y = y_i * (img_h + m_y)
+        imgmatrix[y:y + img_h, x:x + img_w, :] = img
+
+    resized = cv2.resize(imgmatrix, (mat_x, mat_y), interpolation=cv2.INTER_AREA)
+    compression_params = [cv2.IMWRITE_JPEG_QUALITY, 90]
+    cv2.imwrite(name, resized, compression_params)
+
+
+if __name__ == "__main__":
+    createGrid()

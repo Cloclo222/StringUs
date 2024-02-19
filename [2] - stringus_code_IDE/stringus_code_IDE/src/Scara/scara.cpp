@@ -12,15 +12,15 @@ void Scara::init_com()
         //while (!Serial);
         _dxl.setPortProtocolVersion(DXL_PROTOCOL_VERSION); // Set Port Protocol Version. This has to match with DYNAMIXEL protocol version.
         _dxl.ping(moteur_gauche); // Get DYNAMIXEL information
-        _dxl.ping(moteur_droit); 
+        _dxl.ping(moteur_droit); // Get DYNAMIXEL information
 }
 
 void Scara::init_moteur()
 {
     _dxl.torqueOff(moteur_gauche);
     _dxl.setOperatingMode(moteur_gauche, OP_POSITION);
-    _dxl.writeControlTableItem(MIN_POSITION_LIMIT, moteur_gauche, 0);
-    _dxl.writeControlTableItem(MAX_POSITION_LIMIT, moteur_gauche, 4095);
+   // _dxl.writeControlTableItem(MIN_POSITION_LIMIT, moteur_gauche, 0);
+    //_dxl.writeControlTableItem(MAX_POSITION_LIMIT, moteur_gauche, 4095);
     _dxl.writeControlTableItem(DRIVE_MODE, moteur_gauche, 0);
     _dxl.writeControlTableItem(HOMING_OFFSET, moteur_gauche, 0);
     _dxl.ledOn(moteur_gauche);
@@ -28,9 +28,9 @@ void Scara::init_moteur()
 
     _dxl.torqueOff(moteur_droit);
     _dxl.setOperatingMode(moteur_droit, OP_POSITION);
-    _dxl.writeControlTableItem(MIN_POSITION_LIMIT, moteur_droit, 0);
-    _dxl.writeControlTableItem(MAX_POSITION_LIMIT, moteur_droit, 4095);
-    _dxl.writeControlTableItem(DRIVE_MODE, moteur_droit, 0);
+    //_dxl.writeControlTableItem(MIN_POSITION_LIMIT, moteur_droit, 0);
+    //_dxl.writeControlTableItem(MAX_POSITION_LIMIT, moteur_droit, 4095);
+    _dxl.writeControlTableItem(DRIVE_MODE, moteur_droit, 1);
     _dxl.writeControlTableItem(HOMING_OFFSET, moteur_droit, 0);
     _dxl.ledOn(moteur_droit);
     _dxl.torqueOn(moteur_droit);  
@@ -95,11 +95,11 @@ void Scara::homing(){
     this->setSpeed(20);
     this->setAcceleration(0);
 
-    if(_dxl.getPresentPosition(moteur_gauche) >= Pos_default[0]){
-        _dxl.setGoalPosition(moteur_gauche, Pos_default[0], UNIT_DEGREE);
-    }
 
-     if(_dxl.getPresentPosition(moteur_droit) >= Pos_default[1]){
-        _dxl.setGoalPosition(moteur_droit, Pos_default[1], UNIT_DEGREE);
-    }
+    _dxl.setGoalPosition(moteur_gauche, Pos_default[0], UNIT_DEGREE);
+    _dxl.setGoalPosition(moteur_droit, Pos_default[1], UNIT_DEGREE);
+
+    delay(3000);
+    
+    return;
 }
