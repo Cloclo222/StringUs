@@ -5,6 +5,7 @@ import plotly.express as px
 import numba
 
 
+
 def linePixels(pin0, pin1):
     length = int(np.hypot(pin1[0] - pin0[0], pin1[1] - pin0[1]))
     x = np.linspace(pin0[0], pin1[0], length)
@@ -15,7 +16,7 @@ def linePixels(pin0, pin1):
 @numba.njit
 def ditherImg(arr, colors_array):
     arr_shape = np.shape(arr)
-    num_imgs = len(colors_array)+1
+    num_imgs = len(colors_array) + 1
     res_shape = num_imgs, arr_shape[0], arr_shape[1], arr_shape[2]
     result = np.zeros(res_shape)
     height, width = arr.shape[0:2]
@@ -25,7 +26,7 @@ def ditherImg(arr, colors_array):
             distances = np.sqrt(np.sum((colors_array - old_val) ** 2, axis=1))
             closest = np.where(distances == np.amin(distances))[0][0]
             new_val = colors_array[closest]
-            result[closest+1, ir, ic] = 255
+            result[closest + 1, ir, ic] = 255
             result[0, ir, ic] = new_val
             err = old_val - new_val
 
@@ -43,6 +44,8 @@ def ditherImg(arr, colors_array):
         # sys.stdout.write("[+] Dithering " + str(int(ir / height * 100)) + "% complete")
         # sys.stdout.flush()
     return result
+
+
 
 
 class Canvas:
@@ -236,7 +239,7 @@ class Canvas:
         res = ditherImg(self.np_img, self.colors_array)
         self.img_dithered = np.array(res[0])
         for i, key in enumerate(self.palette.keys()):
-            self.img_couleur_sep[key] = res[i+1]
+            self.img_couleur_sep[key] = res[i + 1]
 
     # Invert grayscale image
     def invertImage(self):

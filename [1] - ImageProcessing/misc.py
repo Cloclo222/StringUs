@@ -7,6 +7,35 @@ import matplotlib.pyplot as plt
 import cv2
 
 
+def centerImg(filename, fillColor=(255, 255, 255), Topleftpixel=(0, 0), imgDiameter=1000):
+    img = Image.open(filename)
+    img = np.array(img)
+
+    img_cropped = (np.ones((imgDiameter, imgDiameter, 3)) * fillColor)
+
+    # source img ================================================================================================================================
+
+    rowStart = Topleftpixel[0] if Topleftpixel[0] >= 0 else 0
+    colomnStart = Topleftpixel[1] if Topleftpixel[1] >= 0 else 0
+    rowEnd = img.shape[0] if (imgDiameter + Topleftpixel[0]) > img.shape[0] else (imgDiameter + Topleftpixel[0])
+    colomnEnd = img.shape[1] if (imgDiameter + Topleftpixel[1]) > img.shape[1] else (imgDiameter + Topleftpixel[1])
+
+    # cropped img =========================================================================================================================================
+
+    rowStartCropped = np.abs(Topleftpixel[0]) if not Topleftpixel[0] >= 0 else 0
+    colomnStartCropped = np.abs(Topleftpixel[1]) if not Topleftpixel[1] >= 0 else 0
+
+
+    rowEndcropped = imgDiameter if imgDiameter< img.shape[0] - Topleftpixel[0] else img.shape[0] -Topleftpixel[0]
+
+
+    colomnEndcropped = imgDiameter if imgDiameter< img.shape[1] - Topleftpixel[1] else img.shape[1] - Topleftpixel[1]
+
+    img_cropped[rowStartCropped:rowEndcropped, colomnStartCropped:colomnEndcropped] = img[rowStart:rowEnd,
+                                                                                      colomnStart:colomnEnd]
+
+    return img_cropped.astype(np.uint8)
+
 
 def animate(lines, coords, imgRadius):
     # plot results
@@ -52,7 +81,6 @@ def WriteThreadedFile(mode: str, colour, lines, coords, imgRadius):
 
 
 def createGrid(folder=None):
-
     # User defined variables
     dirname = "imgs/tiger_ratio"  # Name of the directory containing the images
     name = "outputs/tiger_grid" + ".jpg"  # Name of the exported file
@@ -71,7 +99,8 @@ def createGrid(folder=None):
 
     print(filename_list)
 
-    imgs = [cv2.resize(cv2.imread(os.getcwd() + "/" + dirname + "/" + file),(1000,1000), interpolation=cv2.INTER_AREA) for file in filename_list]
+    imgs = [cv2.resize(cv2.imread(os.getcwd() + "/" + dirname + "/" + file), (1000, 1000), interpolation=cv2.INTER_AREA)
+            for file in filename_list]
 
     # Define the shape of the image to be replicated (all images should have the same shape)
     img_h, img_w, img_c = imgs[0].shape
@@ -85,7 +114,7 @@ def createGrid(folder=None):
     mat_y = img_h * h + m_y * (h - 1)
 
     # Create a matrix of zeros of the right size and fill with 255 (so margins end up white)
-    imgmatrix = np.ones((mat_y, mat_x, img_c), np.uint8)*255
+    imgmatrix = np.ones((mat_y, mat_x, img_c), np.uint8) * 255
 
     # Prepare an iterable with the right dimensions
     positions = itertools.product(range(h), range(w))
@@ -101,4 +130,8 @@ def createGrid(folder=None):
 
 
 if __name__ == "__main__":
-    createGrid()
+    filep = 'imgs/the_rock.jpg'
+    img = centerImg(filep, Topleftpixel=(1000, 1000), imgDiameter= 1000)
+    New_img = Image.fromarray(img)
+    New_img.show()
+    cv2.waitKey(0)
