@@ -11,11 +11,8 @@ Dynamixel2Arduino _dxl(DXL_SERIAL, -1); //Si variable définit avec un "_" à l'
 
 Scara _scara(_dxl);
 
-int x;
-
 void setup() {
     Serial.begin(115200);
-    Serial.setTimeout(1);
     _dxl.begin(57600);
     Serial.println("Baudrate init.");
 
@@ -36,11 +33,18 @@ void setup() {
 
 void loop() {
 
+   delay(1000);
+
   if (Serial.available() > 0) {
-    int x = Serial.readString().toInt();
+
+    int x; //= Serial.readString().toInt();
+    int y; //= Serial.readString().toInt();
+
+    String myInput = Serial.readStringUntil('.');
+    sscanf(myInput.c_str(), "%d, %d", &x, &y);
     Serial.print(x);
-    int pos[x] = {x, x};
-   _scara.setPos(pos);
+    int pos[x] = {x, y};
+    _scara.setPos(pos);
   }
     
   
@@ -59,7 +63,7 @@ void loop() {
 
    delay(1000);
    int pos3[2] = {118, 95};
-   _scara.setPos(pos3);*/
+   _scara.setPos(pos3);
 }
 
 void printData() {

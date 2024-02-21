@@ -1,7 +1,7 @@
 import serial
 import time
 
-arduino = serial.Serial(port='COM4',   baudrate=115200, timeout=.1)
+arduino = serial.Serial(port='COM11',   baudrate=115200, timeout=.1)
 
 
 def write_read(x):
@@ -12,6 +12,13 @@ def write_read(x):
 
 
 while True:
-    num = input("Enter a number: ")
-    value   = write_read(num)
+    num1 = input("Angle 1: ")
+    angle1 = num1
+    num2 = input("Angle 2: ")
+    angle2 = num2
+
+    concat = f'{num1}, {num2}.'
+    #print(concat)
+
+    value   = write_read(concat)
     print(value)

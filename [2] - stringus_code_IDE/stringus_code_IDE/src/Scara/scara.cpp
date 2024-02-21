@@ -48,13 +48,6 @@ void Scara::setPos(int jointPos[2])
     _dxl.setGoalPosition(moteur_droit, jointPos[1], UNIT_DEGREE);
     Pos_current[0] = jointPos[0];
     Pos_current[1] = jointPos[1];
-
-    while(_dxl.getPresentPosition(moteur_gauche)!=jointPos[0] && _dxl.getPresentPosition(moteur_droit)!=jointPos[1]){
-        if(_dxl.getPresentPosition(moteur_gauche)==jointPos[0] && _dxl.getPresentPosition(moteur_droit)==jointPos[1]){
-            return;
-        }
-        delay(5);
-    }
 }
 
 // Helper method for cartiesian movement, only done with first 2 joints
