@@ -34,6 +34,22 @@ void setup() {
 void loop() {
 
    delay(1000);
+
+  if (Serial.available() > 0) {
+
+    int x; //= Serial.readString().toInt();
+    int y; //= Serial.readString().toInt();
+
+    String myInput = Serial.readStringUntil('.');
+    sscanf(myInput.c_str(), "%d, %d", &x, &y);
+    Serial.print(x);
+    int pos[x] = {x, y};
+    _scara.setPos(pos);
+  }
+    
+  
+
+   /*delay(1000);
    int pos[2] = {104, 81};
    _scara.setPos(pos);
 

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="a7fa07ac-0398-4e33-b67f-704ba332429f" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/COM_python_arduino_UART.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SerialArduinoCom/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SerialArduinoCom/.idea/SerialArduinoCom.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SerialArduinoCom/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SerialArduinoCom/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SerialArduinoCom/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SerialArduinoCom/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SerialArduinoCom/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/SerialArduinoCom/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/SerialArduinoCom/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../stringus_code_IDE/.vscode/c_cpp_properties.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../stringus_code_IDE/.vscode/launch.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../stringus_code_IDE/.vscode/settings.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../stringus_code_IDE/src/Scara/scara.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../stringus_code_IDE/src/Scara/scara.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../stringus_code_IDE/src/Scara/scara.h" beforeDir="false" afterPath="$PROJECT_DIR$/../stringus_code_IDE/src/Scara/scara.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../stringus_code_IDE/stringus_code_IDE.ino" beforeDir="false" afterPath="$PROJECT_DIR$/../stringus_code_IDE/stringus_code_IDE.ino" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 1
+}</component>
+  <component name="ProjectId" id="2cgTXkPcR2HhjXIkqP6zGmczxEb" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "git-widget-placeholder": "Com__python__arduino__UART",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="a7fa07ac-0398-4e33-b67f-704ba332429f" name="Changes" comment="" />
+      <created>1708532264370</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1708532264370</updated>
+      <workItem from="1708532265321" duration="477000" />
+      <workItem from="1708537429127" duration="1560000" />
+      <workItem from="1708544898868" duration="899000" />
+      <workItem from="1708548185476" duration="47000" />
+      <workItem from="1708548278543" duration="117000" />
+      <workItem from="1708548461916" duration="9000" />
+      <workItem from="1708548546197" duration="1238000" />
+      <workItem from="1708550999892" duration="10000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/COM_python_arduino_UART$main.coverage" NAME="main Coverage Results" MODIFIED="1708549717443" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/SerialArduinoCom" />
+  </component>
+</project>
