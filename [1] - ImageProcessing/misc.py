@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import cv2
 
 
-
 def animate(lines, coords, imgRadius):
     # plot results
     imgResult = np.ones((imgRadius * 2, imgRadius * 2, 3)) * 125
@@ -52,7 +51,6 @@ def WriteThreadedFile(mode: str, colour, lines, coords, imgRadius):
 
 
 def createGrid(folder=None):
-
     # User defined variables
     dirname = "imgs/tiger_ratio"  # Name of the directory containing the images
     name = "outputs/tiger_grid" + ".jpg"  # Name of the exported file
@@ -71,7 +69,8 @@ def createGrid(folder=None):
 
     print(filename_list)
 
-    imgs = [cv2.resize(cv2.imread(os.getcwd() + "/" + dirname + "/" + file),(1000,1000), interpolation=cv2.INTER_AREA) for file in filename_list]
+    imgs = [cv2.resize(cv2.imread(os.getcwd() + "/" + dirname + "/" + file), (1000, 1000), interpolation=cv2.INTER_AREA)
+            for file in filename_list]
 
     # Define the shape of the image to be replicated (all images should have the same shape)
     img_h, img_w, img_c = imgs[0].shape
@@ -85,7 +84,7 @@ def createGrid(folder=None):
     mat_y = img_h * h + m_y * (h - 1)
 
     # Create a matrix of zeros of the right size and fill with 255 (so margins end up white)
-    imgmatrix = np.ones((mat_y, mat_x, img_c), np.uint8)*255
+    imgmatrix = np.ones((mat_y, mat_x, img_c), np.uint8) * 255
 
     # Prepare an iterable with the right dimensions
     positions = itertools.product(range(h), range(w))
@@ -100,5 +99,55 @@ def createGrid(folder=None):
     cv2.imwrite(name, resized, compression_params)
 
 
+@numba.jit(nopython=True)
+def trapez(y, y0, w):
+    return np.clip(np.minimum(y + 1 + w / 2 - y0, -y + 1 + w / 2 + y0), 0, 1)
+
+
+def weighted_line(r0: int, c0: int, r1: int, c1: int, w: int, rmin=0, rmax=np.inf) -> tuple[list]:
+    # The algorithm below works fine if c1 >= c0 and c1-c0 >= abs(r1-r0).
+    # If either of these cases are violated, do some switches.
+    if abs(c1 - c0) < abs(r1 - r0):
+        # Switch x and y, and switch again when returning.
+        xx, yy, val = weighted_line(c0, r0, c1, r1, w, rmin=rmin, rmax=rmax)
+        return (yy, xx, val)
+
+    # At this point we know that the distance in columns (x) is greater
+    # than that in rows (y). Possibly one more switch if c0 > c1.
+    if c0 > c1:
+        return weighted_line(r1, c1, r0, c0, w, rmin=rmin, rmax=rmax)
+
+    # The following is now always < 1 in abs
+    slope = (r1 - r0) / (c1 - c0)
+
+    # Adjust weight by the slope
+    w *= np.sqrt(1 + np.abs(slope)) / 2
+
+    # We write y as a function of x, because the slope is always <= 1
+    # (in absolute value)
+    x = np.arange(c0, c1 + 1, dtype=float)
+    y = x * slope + (c1 * r0 - c0 * r1) / (c1 - c0)
+
+    # Now instead of 2 values for y, we have 2*np.ceil(w/2).
+    # All values are 1 except the upmost and bottommost.
+    thickness = np.ceil(w / 2)
+    yy = (np.floor(y).reshape(-1, 1) + np.arange(-thickness - 1, thickness + 2).reshape(1, -1))
+    xx = np.repeat(x, yy.shape[1])
+    vals = trapez(yy, y.reshape(-1, 1), w).flatten()
+
+    yy = yy.flatten()
+
+    # Exclude useless parts and those outside of the interval
+    # to avoid parts outside of the picture
+    mask = np.logical_and.reduce((yy >= rmin, yy < rmax, vals > 0))
+
+    return (yy[mask].astype(int), xx[mask].astype(int), vals[mask])
+
+
 if __name__ == "__main__":
-    createGrid()
+    line = weighted_line(0, 0, 98, 98, 2)
+    img = np.zeros((101, 101))
+    for i in range(len(line[0])):
+        img[line[0][i], line[1][i]] = line[2][i]
+    cv2.imshow('img', img)
+    cv2.waitKey(0)
