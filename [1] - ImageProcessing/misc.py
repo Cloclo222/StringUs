@@ -7,6 +7,36 @@ import matplotlib.pyplot as plt
 import cv2
 
 
+def centerImg(filename, fillColor=(255, 255, 255), Topleftpixel=(0, 0), imgDiameter=1000):
+    img = Image.open(filename)
+    img = np.array(img)
+
+    img_cropped = (np.ones((imgDiameter, imgDiameter, 3)) * fillColor)
+
+    # source img ================================================================================================================================
+
+    rowStart = Topleftpixel[0] if Topleftpixel[0] >= 0 else 0
+    colomnStart = Topleftpixel[1] if Topleftpixel[1] >= 0 else 0
+    rowEnd = img.shape[0] if (imgDiameter + Topleftpixel[0]) > img.shape[0] else (imgDiameter + Topleftpixel[0])
+    colomnEnd = img.shape[1] if (imgDiameter + Topleftpixel[1]) > img.shape[1] else (imgDiameter + Topleftpixel[1])
+
+    # cropped img =========================================================================================================================================
+
+    rowStartCropped = np.abs(Topleftpixel[0]) if not Topleftpixel[0] >= 0 else 0
+    colomnStartCropped = np.abs(Topleftpixel[1]) if not Topleftpixel[1] >= 0 else 0
+
+
+    rowEndcropped = imgDiameter if imgDiameter< img.shape[0] - Topleftpixel[0] else img.shape[0] -Topleftpixel[0]
+
+
+    colomnEndcropped = imgDiameter if imgDiameter< img.shape[1] - Topleftpixel[1] else img.shape[1] - Topleftpixel[1]
+
+    img_cropped[rowStartCropped:rowEndcropped, colomnStartCropped:colomnEndcropped] = img[rowStart:rowEnd,
+                                                                                      colomnStart:colomnEnd]
+
+    return img_cropped.astype(np.uint8)
+
+
 def animate(lines, coords, imgRadius):
     # plot results
     imgResult = np.ones((imgRadius * 2, imgRadius * 2, 3)) * 125
@@ -145,9 +175,8 @@ def weighted_line(r0: int, c0: int, r1: int, c1: int, w: int, rmin=0, rmax=np.in
 
 
 if __name__ == "__main__":
-    line = weighted_line(0, 0, 98, 98, 2)
-    img = np.zeros((101, 101))
-    for i in range(len(line[0])):
-        img[line[0][i], line[1][i]] = line[2][i]
-    cv2.imshow('img', img)
+    filep = 'imgs/the_rock.jpg'
+    img = centerImg(filep, Topleftpixel=(1000, 1000), imgDiameter= 1000)
+    New_img = Image.fromarray(img)
+    New_img.show()
     cv2.waitKey(0)

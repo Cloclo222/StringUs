@@ -18,7 +18,7 @@ class Scara
 private:
     Dynamixel2Arduino &_dxl;
     const float DXL_PROTOCOL_VERSION = 2.0;
-    int Pos_default[2] = {90, 90};
+    int Pos_default[2] = {45, 135};
     int Pos_current[2] = {0, 0};
     int SpeedAccel[2] = {0, 0};
 

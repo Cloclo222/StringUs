@@ -6,7 +6,7 @@ import numba
 import cv2
 
 
-# @numba.guvectorize([(numba.int64[:,:], numba.int64[:], numba.int64[:], numba.float64[:])], '(n,n),(m),(m)->()')
+
 @numba.njit
 def LineSum(img, x, y):
     acc = 0
@@ -28,10 +28,12 @@ def linePixels(pin0, pin1):
 @numba.njit
 def ditherImg(arr, colors_array):
     arr_shape = np.shape(arr)
+
     num_imgs = len(colors_array)
     res_shape = num_imgs, arr_shape[0], arr_shape[1]
     res_dithered = np.zeros(arr_shape)
     result_sep = np.zeros(res_shape)
+
     height, width = arr.shape[0:2]
     for ir in range(height):
         for ic in range(width):
@@ -142,6 +144,8 @@ def ComputeThreads(img, numLines, numPins, Coords, initPin=0, minLoop=3, lineWei
         # sys.stdout.flush()
 
     return lines
+
+
 
 
 class Canvas:
