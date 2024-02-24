@@ -5,23 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a7fa07ac-0398-4e33-b67f-704ba332429f" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/COM_python_arduino_UART.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/SerialArduinoCom/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/SerialArduinoCom/.idea/SerialArduinoCom.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/SerialArduinoCom/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/SerialArduinoCom/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/SerialArduinoCom/.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/SerialArduinoCom/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/SerialArduinoCom/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SerialArduinoCom/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/SerialArduinoCom/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../stringus_code_IDE/.vscode/c_cpp_properties.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../stringus_code_IDE/.vscode/launch.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../stringus_code_IDE/.vscode/settings.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../stringus_code_IDE/src/Scara/scara.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../stringus_code_IDE/src/Scara/scara.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../stringus_code_IDE/src/Scara/scara.h" beforeDir="false" afterPath="$PROJECT_DIR$/../stringus_code_IDE/src/Scara/scara.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../stringus_code_IDE/stringus_code_IDE.ino" beforeDir="false" afterPath="$PROJECT_DIR$/../stringus_code_IDE/stringus_code_IDE.ino" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -46,7 +31,7 @@
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "WebServerToolWindowFactoryState": "false",
-    "git-widget-placeholder": "Com__python__arduino__UART",
+    "git-widget-placeholder": "Protocol__communication__test",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -71,6 +56,7 @@
       <workItem from="1708548461916" duration="9000" />
       <workItem from="1708548546197" duration="1238000" />
       <workItem from="1708550999892" duration="10000" />
+      <workItem from="1708810411411" duration="262000" />
     </task>
     <servers />
   </component>
@@ -78,6 +64,6 @@
     <option name="version" value="3" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/COM_python_arduino_UART$main.coverage" NAME="main Coverage Results" MODIFIED="1708549717443" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/SerialArduinoCom" />
+    <SUITE FILE_PATH="coverage/COM_python_arduino_UART$main.coverage" NAME="main Coverage Results" MODIFIED="1708810671873" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/SerialArduinoCom" />
   </component>
 </project>

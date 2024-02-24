@@ -5,7 +5,11 @@
 
 #define DXL_SERIAL   Serial1
 
-void printData(); 
+char serialBuffer[BUFFER_LENGTH]; // Buffer pour les messages Serial
+int bufferIndex = 0;              // Index pour le char dans serialBuffer
+
+void serialControl(); 
+void executeCommand(const char* command);
 
 Dynamixel2Arduino _dxl(DXL_SERIAL, -1); //Si variable définit avec un "_" à l'avant, c'est un objet!
 
@@ -25,7 +29,6 @@ void setup() {
     _scara.homing();
     Serial.println("Homing complete.");
     
-
     _scara.setSpeed(50); //Limite à 100
     _scara.setAcceleration(0); //No-limit
     Serial.println("AccelSpeed complete.");
@@ -33,44 +36,62 @@ void setup() {
 
 void loop() {
 
-   delay(1000);
+  delay(100);
+  serialControl();
 
-  if (Serial.available() > 0) {
-
-    int x; //= Serial.readString().toInt();
-    int y; //= Serial.readString().toInt();
-
-    String myInput = Serial.readStringUntil('.');
-    sscanf(myInput.c_str(), "%d, %d", &x, &y);
-    Serial.print(x);
-    int pos[x] = {x, y};
-    _scara.setPos(pos);
-  }
-    
-  
-
-   /*delay(1000);
-   int pos[2] = {104, 81};
-   _scara.setPos(pos);
-
-   delay(1000);
-   int pos1[2] = {81, 104};
-   _scara.setPos(pos1);
-
-   delay(1000);
-   int pos2[2] = {95, 118};
-   _scara.setPos(pos2);
-
-   delay(1000);
-   int pos3[2] = {118, 95};
-   _scara.setPos(pos3);
 }
 
-void printData() {
-    //Serial.print("X: "); Serial.print(_scara.printData.x);
-    //Serial.print(", Y: "); Serial.print(_scara.printData.y);
-    Serial.print(", Angle gauche: "); Serial.print(_scara.getPos()[0]);
-    Serial.print(", Angle droite: "); Serial.print(_scara.getPos()[1]);
-    Serial.print(", Vitesse Max: "); Serial.print(_scara.getSpeedAccel()[0]);
-    Serial.print(", Acceleration Max: "); Serial.println(_scara.getSpeedAccel()[1]);
+void serialControl() {
+
+  while (Serial.available() > 0) {            //Si message dans Serial
+    char incomingChar = Serial.read();
+
+      if (incomingChar == '}')                // "}" veut dire que c'est la fin du message
+      {
+        serialBuffer[bufferIndex] = '\0';     // Mets une fin au string
+        executeCommand(serialBuffer + 1);     // executeCommand, en skippant le '{'
+        bufferIndex = 0;                    
+      } 
+      
+      else if (incomingChar != '{' && bufferIndex < BUFFER_LENGTH - 1)  //Condition pour enregistrer les char jusqu'à }
+      { 
+        serialBuffer[bufferIndex++] = incomingChar;                     
+      }
+  }
+}
+
+void executeCommand(const char* command) {
+  if (command[0] == 'C') {            // Regarde si le string commence par C
+    switch (command[1]) {             // Regarde le chiffre de commande
+
+      //==============================================================================================================//
+      // 1 : Mouvement simple jusqu'à l'angle demandé
+      case '1': {                                                     
+        float angle1, angle2;
+        if (sscanf(command + 2, "%f %f", &angle1, &angle2) == 2) { //Regarde s'il y a deux angle
+          _scara.setPos(angle1, angle2);
+        }
+
+        else{
+        Serial.println("C1_error : La commande n'a pas reçu deux angles."); 
+        }
+
+        break;
+      }
+
+      //==============================================================================================================//
+      // 2 : ...
+      case '2': {
+        break;
+      }
+
+      //==============================================================================================================//
+      // 3 : ...
+      case '3': {
+        break;
+      }
+    }
+  }
+  
+  Serial.println('1'); // Retourne 1 au programme Python pour demander une prochaine commande
 }
