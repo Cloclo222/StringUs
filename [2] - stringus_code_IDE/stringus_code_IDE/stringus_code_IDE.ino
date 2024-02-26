@@ -4,6 +4,7 @@
 #include "Arduino.h"
 
 #define DXL_SERIAL   Serial1
+#define BUFFER_LENGTH 64
 
 char serialBuffer[BUFFER_LENGTH]; // Buffer pour les messages Serial
 int bufferIndex = 0;              // Index pour le char dans serialBuffer
@@ -67,9 +68,10 @@ void executeCommand(const char* command) {
       //==============================================================================================================//
       // 1 : Mouvement simple jusqu'à l'angle demandé
       case '1': {                                                     
-        float angle1, angle2;
-        if (sscanf(command + 2, "%f %f", &angle1, &angle2) == 2) { //Regarde s'il y a deux angle
-          _scara.setPos(angle1, angle2);
+        int angle1, angle2;
+        if (sscanf(command + 2, "%d %d", &angle1, &angle2) == 2) { //Regarde s'il y a deux angle
+          int position[2] = {angle1, angle2};
+          _scara.setPos(position);
         }
 
         else{
