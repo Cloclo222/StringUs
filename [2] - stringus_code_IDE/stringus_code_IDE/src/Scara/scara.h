@@ -18,13 +18,9 @@ class Scara
 private:
     Dynamixel2Arduino &_dxl;
     const float DXL_PROTOCOL_VERSION = 2.0;
-    int Pos_default[2] = {45, 135};
+    int Pos_default[2] = {45, 225};
     int Pos_current[2] = {0, 0};
     int SpeedAccel[2] = {0, 0};
-
-    //Limit moteur
-    //const int limit_moteur_gauche[2] = {0, 1024}; //De 0 à 90°
-    //const int limit_moteur_droit[2] = {3070, 4095} ; //De 270° à 360°
 
 public:
 
@@ -34,6 +30,7 @@ public:
     void init_moteur();
     void update();
     void setPos(int jointPos[2]);
+    void isPos(int jointPos[2]);
     int* getPos(); 
     void move(float cmd[2]);
     bool buildInvJacobienne();

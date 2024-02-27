@@ -15,16 +15,16 @@ def envoie_commande(commande):
                 break  # Sort de la loop pour envoyer une autre commande
 
 commandes = [
-    "{C1 10 10}",
-    "{C1 20 20}",
-    "{C1 30 30}",
-    "{C1 40 40}",
-    "{C1 50 50}",
+    "{C1 45 225}",
+    "{C1 30 225}",
+    "{C1 30 200}",
+    "{C1 45 200}",
+    "{C1 45 225}",
 ]
 
 for cmd in commandes:
     envoie_commande(cmd)
-    time.sleep(0.2)  #Pour laisser le temps au arduino de calculer
+    time.sleep(0.01)  #Pour laisser le temps au arduino de calculer
     
 #arduino.close()  # Si toute les commandes sont complété
 

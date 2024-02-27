@@ -48,7 +48,26 @@ void Scara::setPos(int jointPos[2])
     _dxl.setGoalPosition(moteur_droit, jointPos[1], UNIT_DEGREE);
     Pos_current[0] = jointPos[0];
     Pos_current[1] = jointPos[1];
+
 }
+
+void Scara::isPos(int jointPos[2]) {
+    bool isMoteurGaucheInPosition = false;
+    bool isMoteurDroitInPosition = false;
+    float marge_erreur = 1.0;
+    
+    while (!isMoteurGaucheInPosition || !isMoteurDroitInPosition) {
+        float currentPosGauche = _dxl.getPresentPosition(moteur_gauche, UNIT_DEGREE);
+        float currentPosDroit = _dxl.getPresentPosition(moteur_droit, UNIT_DEGREE);
+        
+        isMoteurGaucheInPosition = abs(currentPosGauche - jointPos[0]) <= marge_erreur;
+        isMoteurDroitInPosition = abs(currentPosDroit - jointPos[1]) <= marge_erreur;
+        
+        delay(200); // Delay to prevent overwhelming the controller with requests.
+    }
+}
+
+
 
 // Helper method for cartiesian movement, only done with first 2 joints
 // TODO: optimise

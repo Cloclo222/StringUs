@@ -50,7 +50,8 @@ void serialControl() {
       if (incomingChar == '}')                // "}" veut dire que c'est la fin du message
       {
         serialBuffer[bufferIndex] = '\0';     // Mets une fin au string
-        executeCommand(serialBuffer + 1);     // executeCommand, en skippant le '{'
+        //Serial.print(serialBuffer);
+        executeCommand(serialBuffer);     // executeCommand, en skippant le '{'
         bufferIndex = 0;                    
       } 
       
@@ -62,20 +63,26 @@ void serialControl() {
 }
 
 void executeCommand(const char* command) {
+  
   if (command[0] == 'C') {            // Regarde si le string commence par C
-    switch (command[1]) {             // Regarde le chiffre de commande
-
+    char command_char = command[1];
+    int command_int = command_char - '0';
+    switch (command_int) { // Regarde le chiffre de commande
+                 
       //==============================================================================================================//
       // 1 : Mouvement simple jusqu'à l'angle demandé
-      case '1': {                                                     
+      case 1: {                                                      
         int angle1, angle2;
+        sscanf(command + 2, "%d %d", &angle1, &angle2);
         if (sscanf(command + 2, "%d %d", &angle1, &angle2) == 2) { //Regarde s'il y a deux angle
           int position[2] = {angle1, angle2};
           _scara.setPos(position);
+          _scara.isPos(position);
+          
         }
 
         else{
-        Serial.println("C1_error : La commande n'a pas reçu deux angles."); 
+        Serial.print("C1_error : La commande n'a pas reçu deux angles."); 
         }
 
         break;
@@ -83,13 +90,13 @@ void executeCommand(const char* command) {
 
       //==============================================================================================================//
       // 2 : ...
-      case '2': {
+      case 2: {
         break;
       }
 
       //==============================================================================================================//
       // 3 : ...
-      case '3': {
+      case 3: {
         break;
       }
     }
