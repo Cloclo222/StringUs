@@ -6,7 +6,6 @@ import numba
 import cv2
 
 
-
 @numba.njit
 def LineSum(img, x, y):
     acc = 0
@@ -61,18 +60,14 @@ def ditherImg(arr, colors_array):
     return [res_dithered, result_sep]
 
 
-def ComputeThreads(img, numLines, numPins, Coords, initPin=0, minLoop=3, lineWeight=10, lineWidth=10,
+def ComputeThreads(img, numLines, numPins, Coords, Angles, initPin=0, minLoop=3, lineWeight=10, lineWidth=10,
                    colour=(0, 0, 0)) -> []:
-    height, width = img.shape[0:2]
-
     # Initialize variables
     i = 0
     lines = []
     previousPins = []
     oldPin = initPin
     lineMask = np.zeros_like(img)
-    # lineMask = Image.new("L", (width, height))
-    # lineMaskD = ImageDraw.Draw(lineMask)
 
     for line in range(numLines):
         i += 1
@@ -86,20 +81,9 @@ def ComputeThreads(img, numLines, numPins, Coords, initPin=0, minLoop=3, lineWei
             coord = Coords[pin]
 
             xLine, yLine = linePixels(oldCoord, coord)
-            # length = int(np.hypot(coord[0] - oldCoord[0], coord[1] - oldCoord[1]))
-            # xLine = np.linspace(oldCoord[0], coord[0], length)
-            # yLine = np.linspace(oldCoord[1], coord[1], length)
-            # xLineint = np.array([int(xLine[i]) for i in range(len(xLine))]) - 1
-            # yLineint = np.array([int(yLine[i]) for i in range(len(yLine))]) - 1
-            # xarrange= np.arange(oldCoord[0], coord[0])
-            # yarrange= np.arange(oldCoord[1], coord[1])
 
             # Fitness function
-            # for y, x in zip(yLine, xLine):
-            #     lineSum += img[y, x]
             Sum = LineSum(img, xLine, yLine)
-            # Sum = np.sum(img[yLine, xLine])
-
             if (Sum > bestLine) and not (pin in previousPins):
                 bestLine = Sum
                 bestPin = pin
@@ -110,17 +94,10 @@ def ComputeThreads(img, numLines, numPins, Coords, initPin=0, minLoop=3, lineWei
         previousPins.append(bestPin)
 
         # Subtract new line from image
-
-        # xMask, yMask = linePixels(oldCoord, Coords[bestPin])
         lineMask = lineMask * 0
-        # img = LineMask(img, xMask, yMask, lineWeight)
 
         cv2.line(lineMask, oldCoord, Coords[bestPin], lineWeight, lineWidth)
         img = np.subtract(img, lineMask)
-
-        # lineMask.paste(0, (0, 0, height, width))
-        # lineMaskD.line((oldCoord, Coords[bestPin]), lineWeight, lineWidth)
-        # img = np.subtract(img, lineMask)
 
         kobe = img / 255
         cv2.imshow('kobe', cv2.resize(kobe, (1000, 1000)))
@@ -128,7 +105,7 @@ def ComputeThreads(img, numLines, numPins, Coords, initPin=0, minLoop=3, lineWei
 
         # Save line to results\
 
-        lines.append((Coords[oldPin], Coords[bestPin], colour))
+        lines.append((oldPin, bestPin))
 
         # Break if no lines possible
         if bestPin == oldPin:
@@ -144,8 +121,6 @@ def ComputeThreads(img, numLines, numPins, Coords, initPin=0, minLoop=3, lineWei
         # sys.stdout.flush()
 
     return lines
-
-
 
 
 class Canvas:
@@ -172,6 +147,7 @@ class Canvas:
         self.lineWeight = lineWeight
         self.minLoop = minLoop
         self.Coords = None
+        self.Angles = None
         self.img_dithered = None
 
         self.totalLines = []
@@ -230,6 +206,7 @@ class Canvas:
 
             coords.append((x, y))
         self.Coords = coords
+        self.Angles = alpha[0:-1]
 
     def buildCanvas(self, numLines=10000, background=(255, 255, 255), excludeBackground=False):
 
@@ -239,11 +216,12 @@ class Canvas:
                                              numLines=numLines,
                                              numPins=self.numPins,
                                              Coords=self.Coords,
+                                             Angles=self.Angles,
                                              initPin=self.initPin,
                                              lineWidth=self.lineWidth,
                                              lineWeight=self.lineWeight,
                                              colour=(0, 0, 0))
-            np.flip(self.totalLines)
+            np.flip(self.totalLines, 0)
             print("\n[+] Image threaded")
             return self.totalLines
 
@@ -257,10 +235,12 @@ class Canvas:
                                                                   numLines=self.numLinesPerColour[key],
                                                                   numPins=self.numPins,
                                                                   Coords=self.Coords,
+                                                                  Angles=self.Angles,
                                                                   initPin=self.initPin,
                                                                   lineWidth=self.lineWidth,
                                                                   lineWeight=self.lineWeight,
                                                                   colour=self.palette[key])
+                    self.d_couleur_threaded[key] = np.flip(self.d_couleur_threaded[key])
                     print("Threaded %i %s lines" % (len(self.d_couleur_threaded[key]), key))
 
             color_names = list(self.palette.keys())
@@ -269,24 +249,27 @@ class Canvas:
             for g in self.group_orders:
                 num_instances = len([c for c in self.group_orders if c == g])
                 matching_color = [c for c in color_names if c[0] == g][0]
-                color_value = self.palette[matching_color]
-                color_counters[matching_color] += 1
-                color_len = len(self.d_couleur_threaded[matching_color])
-                start = int(color_len * (color_counters[matching_color] - 1) / num_instances)
-                end = int(color_len * color_counters[matching_color] / num_instances)
-                next_lines = self.d_couleur_threaded[matching_color][start: end]
-                for line in next_lines:
-                    self.totalLines.append(line)
+                if self.palette[matching_color] == background and excludeBackground is True:
+                    continue
+                else:
+                    color_value = self.palette[matching_color]
+                    color_counters[matching_color] += 1
+                    color_len = len(self.d_couleur_threaded[matching_color])
+                    start = int(color_len * (color_counters[matching_color] - 1) / num_instances)
+                    end = int(color_len * color_counters[matching_color] / num_instances)
+                    next_lines = self.d_couleur_threaded[matching_color][start: end]
+                    for line in next_lines:
+                        self.totalLines.append((line, matching_color))
             print("[+] Image threaded\n")
 
     def paintCanvas(self, background=(255, 255, 255)):
-        output = np.ones((self.img_radius*2, self.img_radius*2,3))*background
-        # output = Image.new('RGB', (self.img_radius * 2, self.img_radius * 2), background)
-        # outputDraw = ImageDraw.Draw(output)
+        output = Image.new('RGB', (self.img_radius * 2, self.img_radius * 2), background)
+        outputDraw = ImageDraw.Draw(output)
         for line in self.totalLines:
-            cv2.line(output, line[0], line[1], line[2])
-            # outputDraw.line((line[0], line[1]), fill=line[2], width=self.lineWidth)
-        # output.show()
+            pin1 = line[0][0]
+            pin2 = line[0][1]
+            colour = self.palette[line[-1]]
+            outputDraw.line((self.Coords[pin1], self.Coords[pin2]), fill=colour)
         return output
 
     def fs_dither(self):
@@ -294,21 +277,14 @@ class Canvas:
         self.img_dithered = np.array(res[0])
         for i, key in enumerate(self.palette.keys()):
             img_blur = cv2.blur(res[1][i], (3, 3))
-            # cv2.imshow('nig', img_blur/255)
+            # cv2.imshow('', img_blur/255)
             # cv2.waitKey(0)
-            self.img_couleur_sep[key] = img_blur
-            # self.img_couleur_sep[key] = res[1][i]
+            # self.img_couleur_sep[key] = img_blur
+            self.img_couleur_sep[key] = res[1][i]
 
     # Invert grayscale image
     def invertImage(self):
         self.np_img = 255 - self.np_img
-
-    # Apply circular mask to image
-    def maskImage(self):
-        radius = self.img_radius
-        y, x = np.ogrid[-radius:radius, -radius:radius]
-        mask = x ** 2 + y ** 2 > radius ** 2
-        self.np_img[mask] = 0
 
     def showDitheredImage(self):
         px.imshow(self.img_dithered, template="plotly_dark").show()

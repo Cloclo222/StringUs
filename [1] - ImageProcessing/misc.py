@@ -25,11 +25,9 @@ def centerImg(filename, fillColor=(255, 255, 255), Topleftpixel=(0, 0), imgDiame
     rowStartCropped = np.abs(Topleftpixel[0]) if not Topleftpixel[0] >= 0 else 0
     colomnStartCropped = np.abs(Topleftpixel[1]) if not Topleftpixel[1] >= 0 else 0
 
+    rowEndcropped = imgDiameter if imgDiameter < img.shape[0] - Topleftpixel[0] else img.shape[0] - Topleftpixel[0]
 
-    rowEndcropped = imgDiameter if imgDiameter< img.shape[0] - Topleftpixel[0] else img.shape[0] -Topleftpixel[0]
-
-
-    colomnEndcropped = imgDiameter if imgDiameter< img.shape[1] - Topleftpixel[1] else img.shape[1] - Topleftpixel[1]
+    colomnEndcropped = imgDiameter if imgDiameter < img.shape[1] - Topleftpixel[1] else img.shape[1] - Topleftpixel[1]
 
     img_cropped[rowStartCropped:rowEndcropped, colomnStartCropped:colomnEndcropped] = img[rowStart:rowEnd,
                                                                                       colomnStart:colomnEnd]
@@ -49,35 +47,32 @@ def animate(lines, coords, imgRadius):
     cv2.destroyAllWindows()
 
 
-def WriteThreadedFile(mode: str, colour, lines, coords, imgRadius):
-    mode = mode.lower()
-    match mode:
-        case "csv":
-            csv_output = open('threaded_%s.csv' % colour, 'wb')
-            csv_output.write("x1,y1,x2,y2\n".encode('utf8'))
-            csver = lambda c1, c2: "%i,%i" % c1 + "," + "%i,%i" % c2 + "\n"
-            for l in lines:
-                csv_output.write(csver(coords[l[0]], coords[l[1]]).encode('utf8'))
-            csv_output.close()
+def WriteThreadedCsvFile(filename, lines, imgRadius=1000):
+    csv_output = open(filename, 'wb')
+    csv_output.write("p1, p2, c\n".encode('utf8'))
+    csver = lambda p1, p2, c: "%i" % p1 + "," + "%i" % p2 + "," + "%s" % c + "\n"
+    for l in lines:
+        csv_output.write(csver(l[0][0], l[0][1], l[-1]).encode('utf8'))
+    csv_output.close()
 
-        case "svg":
-            svg_output = open('threaded_%s.svg' % colour, 'wb')
-            header = """<?xml version="1.0" standalone="no"?>
-                <svg width="%i" height="%i" version="1.1" xmlns="http://www.w3.org/2000/svg">
-                """ % (imgRadius * 2, imgRadius * 2)
-            footer = "</svg>"
-            svg_output.write(header.encode('utf8'))
-            pather = lambda d: '<path d="%s" stroke="black" stroke-width="0.5" fill="none" />\n' % d
-            pathstrings = []
-            pathstrings.append("M" + "%i %i" % coords[lines[0][0]] + " ")
-            for l in lines:
-                nn = coords[l[1]]
-                pathstrings.append("L" + "%i %i" % nn + " ")
-            pathstrings.append("Z")
-            d = "".join(pathstrings)
-            svg_output.write(pather(d).encode('utf8'))
-            svg_output.write(footer.encode('utf8'))
-            svg_output.close()
+    # case "svg":
+    #     svg_output = open('%s.svg' % filename, 'wb')
+    #     header = """<?xml version="1.0" standalone="no"?>
+    #         <svg width="%i" height="%i" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    #         """ % (imgRadius * 2, imgRadius * 2)
+    #     footer = "</svg>"
+    #     svg_output.write(header.encode('utf8'))
+    #     pather = lambda d: '<path d="%s" stroke="black" stroke-width="0.5" fill="none" />\n' % d
+    #     pathstrings = []
+    #     pathstrings.append("M" + "%i %i" % coords[lines[0][0]] + " ")
+    #     for l in lines:
+    #         nn = coords[l[1]]
+    #         pathstrings.append("L" + "%i %i" % nn + " ")
+    #     pathstrings.append("Z")
+    #     d = "".join(pathstrings)
+    #     svg_output.write(pather(d).encode('utf8'))
+    #     svg_output.write(footer.encode('utf8'))
+    #     svg_output.close()
 
 
 def createGrid(folder=None):
@@ -129,54 +124,9 @@ def createGrid(folder=None):
     cv2.imwrite(name, resized, compression_params)
 
 
-@numba.jit(nopython=True)
-def trapez(y, y0, w):
-    return np.clip(np.minimum(y + 1 + w / 2 - y0, -y + 1 + w / 2 + y0), 0, 1)
-
-
-def weighted_line(r0: int, c0: int, r1: int, c1: int, w: int, rmin=0, rmax=np.inf) -> tuple[list]:
-    # The algorithm below works fine if c1 >= c0 and c1-c0 >= abs(r1-r0).
-    # If either of these cases are violated, do some switches.
-    if abs(c1 - c0) < abs(r1 - r0):
-        # Switch x and y, and switch again when returning.
-        xx, yy, val = weighted_line(c0, r0, c1, r1, w, rmin=rmin, rmax=rmax)
-        return (yy, xx, val)
-
-    # At this point we know that the distance in columns (x) is greater
-    # than that in rows (y). Possibly one more switch if c0 > c1.
-    if c0 > c1:
-        return weighted_line(r1, c1, r0, c0, w, rmin=rmin, rmax=rmax)
-
-    # The following is now always < 1 in abs
-    slope = (r1 - r0) / (c1 - c0)
-
-    # Adjust weight by the slope
-    w *= np.sqrt(1 + np.abs(slope)) / 2
-
-    # We write y as a function of x, because the slope is always <= 1
-    # (in absolute value)
-    x = np.arange(c0, c1 + 1, dtype=float)
-    y = x * slope + (c1 * r0 - c0 * r1) / (c1 - c0)
-
-    # Now instead of 2 values for y, we have 2*np.ceil(w/2).
-    # All values are 1 except the upmost and bottommost.
-    thickness = np.ceil(w / 2)
-    yy = (np.floor(y).reshape(-1, 1) + np.arange(-thickness - 1, thickness + 2).reshape(1, -1))
-    xx = np.repeat(x, yy.shape[1])
-    vals = trapez(yy, y.reshape(-1, 1), w).flatten()
-
-    yy = yy.flatten()
-
-    # Exclude useless parts and those outside of the interval
-    # to avoid parts outside of the picture
-    mask = np.logical_and.reduce((yy >= rmin, yy < rmax, vals > 0))
-
-    return (yy[mask].astype(int), xx[mask].astype(int), vals[mask])
-
-
 if __name__ == "__main__":
     filep = 'imgs/the_rock.jpg'
-    img = centerImg(filep, Topleftpixel=(1000, 1000), imgDiameter= 1000)
+    img = centerImg(filep, Topleftpixel=(1000, 1000), imgDiameter=1000)
     New_img = Image.fromarray(img)
     New_img.show()
     cv2.waitKey(0)
