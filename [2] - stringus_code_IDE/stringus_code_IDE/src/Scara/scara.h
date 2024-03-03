@@ -36,7 +36,8 @@ public:
     bool buildInvJacobienne();
     void printPosition();
     void sendDefaultPos();
-    void setSpeed(uint8_t speedLimit);
+    void setSpeed(uint8_t speedLimitRight, uint8_t speedLimitLeft);
+    void setSpeedForLinearMov(int jointPos[2], uint8_t speedLimit);
     void setAcceleration(uint8_t AccelLimit);
     int* getSpeedAccel();
     void homing();

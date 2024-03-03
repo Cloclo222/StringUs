@@ -30,9 +30,6 @@ void setup() {
     _scara.homing();
     Serial.println("Homing complete.");
     
-    _scara.setSpeed(50); //Limite à 100
-    _scara.setAcceleration(0); //No-limit
-    Serial.println("AccelSpeed complete.");
 }
 
 void loop() {
@@ -76,6 +73,7 @@ void executeCommand(const char* command) {
         sscanf(command + 2, "%d %d", &angle1, &angle2);
         if (sscanf(command + 2, "%d %d", &angle1, &angle2) == 2) { //Regarde s'il y a deux angle
           int position[2] = {angle1, angle2};
+          _scara.setSpeedForLinearMov(position,40);
           _scara.setPos(position);
           _scara.isPos(position);
           

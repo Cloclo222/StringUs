@@ -1,4 +1,5 @@
 #include "scara.h"
+#include <cmath>
 
 
 Scara::Scara(Dynamixel2Arduino &dxl) : _dxl(dxl) {}
@@ -67,11 +68,6 @@ void Scara::isPos(int jointPos[2]) {
     }
 }
 
-
-
-// Helper method for cartiesian movement, only done with first 2 joints
-// TODO: optimise
-// Return bool true if matrix could be inverted or false if singular matrix
 bool Scara::buildInvJacobienne()
 {
 return false;
@@ -88,12 +84,42 @@ int* Scara::getPos()
     return Pos_current;
 }
 
-void Scara::setSpeed(uint8_t speedLimit)
+void Scara::setSpeed(uint8_t speedLimitLeft, uint8_t speedLimitRight)
 {
     using namespace ControlTableItem;
-    _dxl.writeControlTableItem(PROFILE_VELOCITY, moteur_droit, speedLimit);
-    _dxl.writeControlTableItem(PROFILE_VELOCITY, moteur_gauche, speedLimit);
-    this->SpeedAccel[0] = speedLimit;
+    _dxl.writeControlTableItem(PROFILE_VELOCITY, moteur_droit, speedLimitRight);
+    _dxl.writeControlTableItem(PROFILE_VELOCITY, moteur_gauche, speedLimitLeft);
+    this->SpeedAccel[0] = speedLimitRight;
+}
+
+void Scara::setSpeedForLinearMov(int jointPos[2], uint8_t speedLimit)
+{
+    
+    float leftDelta = abs(jointPos[0] - this->getPos()[0]);
+    float rightDelta = abs(jointPos[1] - this->getPos()[1]);
+    
+
+    if (leftDelta > rightDelta)
+    {
+        float ratio = rightDelta/leftDelta;
+        float speedLimitMod = speedLimit * ratio;
+        uint8_t result = round(speedLimitMod);
+        setSpeed(speedLimit,result);
+        //setSpeed(5,20);
+    }
+    else if (rightDelta > leftDelta)
+    {
+        float ratio = leftDelta/rightDelta;
+        float speedLimitMod = speedLimit * ratio;
+        uint8_t result = round(speedLimitMod);
+        setSpeed(result,speedLimit);
+        //setSpeed(5,20);
+    }
+    else if(rightDelta == leftDelta)
+    {
+        setSpeed(speedLimit, speedLimit);
+    }
+
 }
 
 void Scara::setAcceleration(uint8_t AccelLimit)
@@ -111,7 +137,7 @@ int* Scara::getSpeedAccel()
 
 void Scara::homing(){
 
-    this->setSpeed(20);
+    this->setSpeed(20,20);
     this->setAcceleration(0);
 
 

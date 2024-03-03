@@ -1,7 +1,7 @@
 import serial
 import time
 
-arduino = serial.Serial('COM11', 115200, timeout=1)
+arduino = serial.Serial('COM4', 115200, timeout=1)
 time.sleep(2)  # Temps pour que la connection se fasse
 
 def envoie_commande(commande):
@@ -15,11 +15,11 @@ def envoie_commande(commande):
                 break  # Sort de la loop pour envoyer une autre commande
 
 commandes = [
-    "{C1 45 225}",
-    "{C1 30 225}",
-    "{C1 30 200}",
-    "{C1 45 200}",
-    "{C1 45 225}",
+    "{C1 56 236}",
+    "{C1 11 225}",
+    "{C1 62 203}",
+    "{C1 68 206}",
+    "{C1 30 210}",
 ]
 
 for cmd in commandes:
