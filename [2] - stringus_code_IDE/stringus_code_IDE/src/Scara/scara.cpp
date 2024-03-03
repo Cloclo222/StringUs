@@ -14,6 +14,7 @@ void Scara::init_com()
         _dxl.setPortProtocolVersion(DXL_PROTOCOL_VERSION); // Set Port Protocol Version. This has to match with DYNAMIXEL protocol version.
         _dxl.ping(moteur_gauche); // Get DYNAMIXEL information
         _dxl.ping(moteur_droit); // Get DYNAMIXEL information
+        _dxl.ping(moteur_table); // Get DYNAMIXEL information
 }
 
 void Scara::init_moteur()
@@ -35,6 +36,15 @@ void Scara::init_moteur()
     _dxl.writeControlTableItem(HOMING_OFFSET, moteur_droit, 0);
     _dxl.ledOn(moteur_droit);
     _dxl.torqueOn(moteur_droit);  
+
+    _dxl.torqueOff(moteur_table);
+    _dxl.setOperatingMode(moteur_table, OP_POSITION);
+    //_dxl.writeControlTableItem(MIN_POSITION_LIMIT, moteur_droit, 0);
+    //_dxl.writeControlTableItem(MAX_POSITION_LIMIT, moteur_droit, 4095);
+    _dxl.writeControlTableItem(DRIVE_MODE, moteur_table, 0);
+    _dxl.writeControlTableItem(HOMING_OFFSET, moteur_table, 0);
+    _dxl.ledOn(moteur_table);
+    _dxl.torqueOn(moteur_table); 
 }
 
 void Scara::update()
@@ -42,7 +52,6 @@ void Scara::update()
 
 }
 
-// Switch to joint mode to cartesian and move in m/s {x, y}
 void Scara::setPos(int jointPos[2])
 {
     _dxl.setGoalPosition(moteur_gauche, jointPos[0], UNIT_DEGREE);
@@ -138,11 +147,13 @@ int* Scara::getSpeedAccel()
 void Scara::homing(){
 
     this->setSpeed(20,20);
+    _dxl.writeControlTableItem(PROFILE_VELOCITY, moteur_table, 20);
     this->setAcceleration(0);
 
 
     _dxl.setGoalPosition(moteur_gauche, Pos_default[0], UNIT_DEGREE);
     _dxl.setGoalPosition(moteur_droit, Pos_default[1], UNIT_DEGREE);
+    _dxl.setGoalPosition(moteur_table, 0, UNIT_DEGREE);
 
     delay(3000);
     

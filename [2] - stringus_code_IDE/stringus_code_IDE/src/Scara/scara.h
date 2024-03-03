@@ -7,6 +7,7 @@
 //Nos variables
 #define moteur_gauche 1
 #define moteur_droit 2
+#define moteur_table 3
 #define UP 180
 #define DOWN 0
 
