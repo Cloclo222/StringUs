@@ -3,12 +3,11 @@ import itertools
 from Canvas import *
 import numpy as np
 import os
-import matplotlib.pyplot as plt
 import cv2
 
 
 def centerImg(filename, fillColor=(255, 255, 255), Topleftpixel=(0, 0), imgDiameter=1000):
-    img = Image.open(filename)
+    img = Image.open(filename).convert('RGB')
     img = np.array(img)
 
     img_cropped = (np.ones((imgDiameter, imgDiameter, 3)) * fillColor)
@@ -31,8 +30,9 @@ def centerImg(filename, fillColor=(255, 255, 255), Topleftpixel=(0, 0), imgDiame
 
     img_cropped[rowStartCropped:rowEndcropped, colomnStartCropped:colomnEndcropped] = img[rowStart:rowEnd,
                                                                                       colomnStart:colomnEnd]
+    img_cropped = Image.fromarray(img_cropped.astype(np.uint8))
 
-    return img_cropped.astype(np.uint8)
+    return img_cropped
 
 
 def animate(lines, coords, imgRadius):
@@ -49,7 +49,7 @@ def animate(lines, coords, imgRadius):
 
 def WriteThreadedCsvFile(filename, lines, imgRadius=1000):
     csv_output = open(filename, 'wb')
-    csv_output.write("p1, p2, c\n".encode('utf8'))
+    csv_output.write("p1,p2,c\n".encode('utf8'))
     csver = lambda p1, p2, c: "%i" % p1 + "," + "%i" % p2 + "," + "%s" % c + "\n"
     for l in lines:
         csv_output.write(csver(l[0][0], l[0][1], l[-1]).encode('utf8'))
@@ -125,8 +125,8 @@ def createGrid(folder=None):
 
 
 if __name__ == "__main__":
-    filep = 'imgs/the_rock.jpg'
-    img = centerImg(filep, Topleftpixel=(1000, 1000), imgDiameter=1000)
+    filep = 'imgs/shronk.png'
+    img = centerImg(filep, Topleftpixel=(0, 250), imgDiameter=550)
     New_img = Image.fromarray(img)
     New_img.show()
     cv2.waitKey(0)
