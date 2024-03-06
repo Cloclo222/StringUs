@@ -100,9 +100,9 @@ def ComputeThreads(img, numLines, numPins, Coords, Angles, initPin=0, minLoop=3,
         cv2.line(lineMask, oldCoord, Coords[bestPin], lineWeight, lineWidth)
         img = np.subtract(img, lineMask)
 
-        kobe = img / 255
-        cv2.imshow('', cv2.resize(kobe, (1000, 1000)))
-        cv2.waitKey(10)
+        progress = img / 255
+        cv2.imshow('%s'%colour, cv2.resize(progress, (1000, 1000)))
+        cv2.waitKey(1)
 
         # Save line to results\
 
@@ -121,6 +121,7 @@ def ComputeThreads(img, numLines, numPins, Coords, Angles, initPin=0, minLoop=3,
         # sys.stdout.write("[+] Computing " + colour + " line " + str(line + 1) + " of " + str(numLines) + " max")
         # sys.stdout.flush()
 
+    cv2.destroyAllWindows()
     return lines
 
 
@@ -155,7 +156,7 @@ class Canvas:
         self.Angles = None
         self.img_dithered = None
 
-        self.totalLines = []
+        self.totalLines = None
 
         if Cropping is True:
             self.base_img = centerImg(self.filename, fillColor=fillColor, Topleftpixel=Topleftpixel, imgDiameter=CropDiameter).resize((2*img_radius+1, 2*img_radius+1))
@@ -220,10 +221,10 @@ class Canvas:
         self.Angles = alpha[0:-1]
 
     def buildCanvas(self, numLines=10000, background=(255, 255, 255), excludeBackground=False):
-
+        self.totalLines = []
         if self.greyscale is True:
             # assert numLines != 0, "Must specify number of lines in buildCanvas, for Greyscale"
-            self.totalLines = ComputeThreads(self.img_couleur_sep["grey"],
+            Lines = ComputeThreads(self.img_couleur_sep["grey"],
                                              numLines=numLines,
                                              numPins=self.numPins,
                                              Coords=self.Coords,
@@ -231,10 +232,13 @@ class Canvas:
                                              initPin=self.initPin,
                                              lineWidth=self.lineWidth,
                                              lineWeight=self.lineWeight,
-                                             colour=(0, 0, 0))
-            np.flip(self.totalLines, 0)
+                                             colour='black')
+            Lines = np.flipud(Lines)
             print("\n[+] Image threaded")
-            return self.totalLines
+            # for line in enumerate(Lines):
+            #     self.totalLines[i] = [line, "black"]
+            z = ["black" for i in range(len(Lines))]
+            self.totalLines = list(zip(Lines, z))
 
         else:
 
@@ -250,7 +254,7 @@ class Canvas:
                                                                   initPin=self.initPin,
                                                                   lineWidth=self.lineWidth,
                                                                   lineWeight=self.lineWeight,
-                                                                  colour=self.palette[key])
+                                                                  colour=key)
                     self.d_couleur_threaded[key] = np.flip(self.d_couleur_threaded[key])
                     print("Threaded %i %s lines" % (len(self.d_couleur_threaded[key]), key))
 
@@ -286,8 +290,8 @@ class Canvas:
             output = Image.new('L', (self.img_radius * 2, self.img_radius * 2),255)
             outputDraw = ImageDraw.Draw(output)
             for line in self.totalLines:
-                pin1 = line[0]
-                pin2 = line[1]
+                pin1 = line[0][0]
+                pin2 = line[0][1]
                 colour = 0
                 outputDraw.line((self.Coords[pin1], self.Coords[pin2]), fill=colour)
         return output

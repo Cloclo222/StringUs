@@ -22,12 +22,9 @@ if __name__ == "__main__":
     )
     start = time.time()
     canvas = Canvas(**args, img_radius=1000, numPins=300, lineWidth=7, Cropping=True, Topleftpixel=(0,250), CropDiameter=550)
-    canvas.showDitheredImage()
+    # canvas.showDitheredImage()
     end = time.time()
     print("image dithered in %.3fs" % (end - start))
-    # canvas.showDitheredImage()
-    # for i in range(300,301,100):
-    # canvas.pinCoords(i)
     start = time.time()
     canvas.buildCanvas()
     end = time.time()
