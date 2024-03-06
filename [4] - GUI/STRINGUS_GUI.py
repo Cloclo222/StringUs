@@ -1,11 +1,12 @@
 import sys
 import cv2
+import csv
 import numpy as np
-from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLineEdit, QFormLayout, QGridLayout, QHBoxLayout, QLabel, QFileDialog, QComboBox, QMessageBox, QSpinBox, QMenu, QMenuBar
-from PyQt5.QtGui import QIcon, QIntValidator, QDoubleValidator, QFont, QPixmap
+from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLineEdit, QFormLayout, QGridLayout, QHBoxLayout, QLabel, QFileDialog, QComboBox, QMessageBox, QSpinBox, QMenu, QMenuBar,QAction, QMainWindow, QInputDialog, QVBoxLayout
+from PyQt5.QtGui import QIcon, QIntValidator, QDoubleValidator, QFont, QPixmap, QIcon, QKeySequence
 from PyQt5.QtCore import pyqtSlot, Qt
 from PIL import Image
-
+from PyQt5 import QtCore as qtc
 
 
 class AnotherWindow(QWidget):
@@ -17,6 +18,55 @@ class AnotherWindow(QWidget):
         super().__init__()
         self.setWindowTitle("Parametres avancés")
         self.setGeometry(50, 50, 1000, 500)
+
+class Window_GetName(QWidget):
+    """
+    This "window" is a QWidget. If it has no parent, it
+    will appear as a free-floating window as we want.
+    """
+    submitted = qtc.pyqtSignal(str)
+
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Nom du fichier?")
+
+
+        self.DataName = None
+
+        self.Ok_button = QPushButton("OK")
+        self.Ok_button.clicked.connect(self.Ok_clique)
+
+        self.canc_button = QPushButton("Cancel")
+        self.canc_button.clicked.connect(self.canc_clique)
+
+        # Box Name
+        self.Name = QLineEdit()
+        self.Name.setMaxLength(15)
+        self.Name.setAlignment(Qt.AlignLeft)
+        self.Name.setFont(QFont("Arial", 10))
+
+
+        layout = QGridLayout()
+        #
+        #Add widgets to the layout
+        layout.addWidget(QLabel("Nom du fichier:"), 0, 0)
+        layout.addWidget(self.Name, 0,1)
+        layout.addWidget(self.Ok_button, 1,0)
+        layout.addWidget(self.canc_button, 1,1)
+
+        self.setLayout(layout)
+
+
+    def Ok_clique(self):
+        if self.Name.text() == "":
+            QMessageBox.information(self, 'ERREUR', "J'ai besoin d'un nom de fichier (;", QMessageBox.Ok)
+        else:
+            self.submitted.emit(
+                self.Name.text()
+                )
+            self.close()
+    def canc_clique(self):
+        self.close()
 
 
 class Window(QWidget):
@@ -33,7 +83,9 @@ class Window(QWidget):
         self.sous_titre = QLabel("Faites vos selections")
         self.sous_titre.setFont(QFont('Arial', 20))
 
+        self._createActions()
         self._createMenuBar()
+        self._connectActions()
 
         #Variable Globale Necessaire
         self.fname = ['C:/temp/StringUS/GUI_PYQT5_STRINGUS/Code/no.png']
@@ -137,9 +189,6 @@ class Window(QWidget):
         # layout.addWidget(load_button, 13, 0)
         # layout.addWidget(download_button, 13, 1)
 
-
-
-
         # Set the layout on the application's window
         self.setLayout(layout)
         #print(self.children())
@@ -160,10 +209,6 @@ class Window(QWidget):
     def calcul_de_donner(self):
         data_clous = self.clous.text()
         data_dim = self.dim.text()
-        data_couleur1 = self.Couleur1.currentText()
-        data_couleur2 = self.Couleur2.currentText()
-        data_couleur3 = self.Couleur3.currentText()
-        data_couleur4 = self.Couleur4.currentText()
 
         if not data_clous or not data_dim or self.fname[0] == 'C:/temp/StringUS/GUI_PYQT5_STRINGUS/Code/no.png' :
             QMessageBox.information(self, 'ERREUR', "Information manquante", QMessageBox.Ok)
@@ -173,10 +218,7 @@ class Window(QWidget):
             self.flag_calculate = True
             print("Le nombre de clous est de:", data_clous)
             print("Le diametre est de:", data_dim)
-            print("La couleur 1 est:", data_couleur1)
-            print("La couleur 1 est:", data_couleur2)
-            print("La couleur 1 est:", data_couleur3)
-            print("La couleur 1 est:", data_couleur4)
+
 
     def envoyer(self):
         if self.flag_calculate:
@@ -263,18 +305,119 @@ class Window(QWidget):
         print("Loading")
 
     def _createMenuBar(self):
-
         menuBar = QMenuBar(self)
         #self.setMenuBar(menuBar)
-        # Creating menus using a QMenu object
+        #menuBar = self.menuBar()
+        # File menu
         fileMenu = QMenu("&File", self)
         menuBar.addMenu(fileMenu)
-        # Creating menus using a title
+        # fileMenu.addAction(self.newAction)
+        fileMenu.addAction(self.openAction)
+        # Open Recent submenu
+        self.openRecentMenu = fileMenu.addMenu("Open Recent")
+        fileMenu.addAction(self.saveAction)
+        # Separator
+        fileMenu.addSeparator()
+        fileMenu.addAction(self.exitAction)
+        # Edit menu
         editMenu = menuBar.addMenu("&Edit")
-        helpMenu = menuBar.addMenu("&Help")
+        editMenu.addAction(self.copyAction)
+        editMenu.addAction(self.pasteAction)
+        editMenu.addAction(self.cutAction)
 
+    def _createActions(self):
+        # File actions
+        self.openAction = QAction(QIcon(":file-open.svg"), "&Open...", self)
+        self.saveAction = QAction(QIcon(":file-save.svg"), "&Save", self)
+        self.exitAction = QAction("&Exit", self)
 
+        # String-based key sequences
+        self.openAction.setShortcut("Ctrl+O")
+        self.saveAction.setShortcut("Ctrl+S")
 
+        # Edit actions
+        self.copyAction = QAction(QIcon(":edit-copy.svg"), "&Copy", self)
+        self.pasteAction = QAction(QIcon(":edit-paste.svg"), "&Paste", self)
+        self.cutAction = QAction(QIcon(":edit-cut.svg"), "C&ut", self)
+        # Standard key sequence
+        self.copyAction.setShortcut(QKeySequence.Copy)
+        self.pasteAction.setShortcut(QKeySequence.Paste)
+        self.cutAction.setShortcut(QKeySequence.Cut)
+
+    def contextMenuEvent(self, event):
+        # Context menu
+        menu = QMenu(self.centralWidget)
+        # Populating the menu with actions
+        menu.addAction(self.openAction)
+        menu.addAction(self.saveAction)
+        # Separator
+        separator = QAction(self)
+        separator.setSeparator(True)
+        menu.addAction(separator)
+        menu.addAction(self.copyAction)
+        menu.addAction(self.pasteAction)
+        menu.addAction(self.cutAction)
+        # Launching the menu
+        menu.exec(event.globalPos())
+
+    def _connectActions(self):
+        # Connect File actions
+        self.openAction.triggered.connect(self.openFile)
+        self.saveAction.triggered.connect(self.saveFile)
+        self.exitAction.triggered.connect(self.close)
+
+        # Connect Edit actions
+        self.copyAction.triggered.connect(self.copyContent)
+        self.pasteAction.triggered.connect(self.pasteContent)
+        self.cutAction.triggered.connect(self.cutContent)
+
+        # Slots
+    def openFile(self):
+        # Logic for opening an existing file goes here...
+        self.centralWidget.setText("<b>File > Open...</b> clicked")
+
+    def saveFile(self):
+
+        self.NewWindow()
+
+    def saveCSV(self, name):
+
+        with open(name, 'w', newline='') as file:
+            writer = csv.writer(file)
+
+            writer.writerow(["SNo", "Name", "Subject"])
+            writer.writerow([1, "Ash Ketchum", "English"])
+            writer.writerow([2, "Gary Oak", "Mathematics"])
+            writer.writerow([3, "Brock Lesner", "Physics"])
+
+        #self.centralWidget.setText("<b>File > Save</b> clicked")
+
+    def copyContent(self):
+        # Logic for copying content goes here...
+        self.centralWidget.setText("<b>Edit > Copy</b> clicked")
+
+    def pasteContent(self):
+        # Logic for pasting content goes here...
+        self.centralWidget.setText("<b>Edit > Paste</b> clicked")
+
+    def cutContent(self):
+        # Logic for cutting content goes here...
+        self.centralWidget.setText("<b>Edit > Cut</b> clicked")
+
+    def openRecentFile(self, filename):
+        # Logic for opening a recent file goes here...
+        self.centralWidget.setText(f"<b>{filename}</b> opened")
+
+    @qtc.pyqtSlot(str)
+    def UpdateName(self, name_new):
+         nameFile = name_new + '.csv'
+         self.saveCSV(nameFile)
+    def NewWindow(self):
+
+        self.nameFile = None
+        self.window = Window_GetName()
+        self.window.submitted.connect(self.UpdateName)
+        self.window.show()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
