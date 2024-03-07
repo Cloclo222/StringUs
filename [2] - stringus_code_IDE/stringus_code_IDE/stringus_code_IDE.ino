@@ -74,8 +74,9 @@ void executeCommand(const char* command) {
         if (sscanf(command + 2, "%d %d", &angle1, &angle2) == 2) { //Regarde s'il y a deux angle
           int position[2] = {angle1, angle2};
           _scara.setSpeedForLinearMov(position,40);
-          _scara.setPos(position);
-          _scara.isPos(position);
+          _scara.setScaraPos(position);
+          int current_table_pos = _scara.getPos()[2];
+          _scara.isPos(position, current_table_pos);
           
         }
 
@@ -88,7 +89,20 @@ void executeCommand(const char* command) {
 
       //==============================================================================================================//
       // 2 : ...
-      case 2: {
+      case 2: {                                                    
+        int angle1;
+        sscanf(command + 2, "%d", &angle1);
+        if (sscanf(command + 2, "%d", &angle1) == 1) { //Regarde s'il y a 1 angle
+          _scara.setTablePos(angle1);
+          int current_pos[2] = {_scara.getPos()[0],_scara.getPos()[1]};
+          _scara.isPos(current_pos,angle1);
+          
+        }
+
+        else{
+        Serial.print("C2_error : La commande n'a pas reçu 1 angle."); 
+        }
+
         break;
       }
 

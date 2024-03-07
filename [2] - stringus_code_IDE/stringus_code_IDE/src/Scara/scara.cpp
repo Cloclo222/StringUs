@@ -52,7 +52,7 @@ void Scara::update()
 
 }
 
-void Scara::setPos(int jointPos[2])
+void Scara::setScaraPos(int jointPos[2])
 {
     _dxl.setGoalPosition(moteur_gauche, jointPos[0], UNIT_DEGREE);
     _dxl.setGoalPosition(moteur_droit, jointPos[1], UNIT_DEGREE);
@@ -61,17 +61,27 @@ void Scara::setPos(int jointPos[2])
 
 }
 
-void Scara::isPos(int jointPos[2]) {
+void Scara::setTablePos(int TablePos)
+{
+    _dxl.setGoalPosition(moteur_table, TablePos, UNIT_DEGREE);
+    Pos_current[2] = TablePos;
+
+}
+
+void Scara::isPos(int jointPos[2], int TablePos) {
     bool isMoteurGaucheInPosition = false;
     bool isMoteurDroitInPosition = false;
+    bool isMoteurTableInPosition = false;
     float marge_erreur = 1.0;
     
-    while (!isMoteurGaucheInPosition || !isMoteurDroitInPosition) {
+    while (!isMoteurGaucheInPosition || !isMoteurDroitInPosition || !isMoteurTableInPosition) {
         float currentPosGauche = _dxl.getPresentPosition(moteur_gauche, UNIT_DEGREE);
         float currentPosDroit = _dxl.getPresentPosition(moteur_droit, UNIT_DEGREE);
+        float currentPosTable = _dxl.getPresentPosition(moteur_table, UNIT_DEGREE);
         
         isMoteurGaucheInPosition = abs(currentPosGauche - jointPos[0]) <= marge_erreur;
         isMoteurDroitInPosition = abs(currentPosDroit - jointPos[1]) <= marge_erreur;
+        isMoteurTableInPosition = abs(currentPosTable - TablePos) <= marge_erreur;
         
         delay(200); // Delay to prevent overwhelming the controller with requests.
     }
@@ -85,7 +95,9 @@ return false;
 void Scara::sendDefaultPos()
 {
     int jointPos[2] = {Pos_default[0], Pos_default[1]}; // or replace with your default positions
-    this->setPos(jointPos);
+    int TablePos = Pos_default[2];
+    this->setScaraPos(jointPos);
+    this->setTablePos(TablePos);
 }
 
 int* Scara::getPos()
@@ -147,7 +159,7 @@ int* Scara::getSpeedAccel()
 void Scara::homing(){
 
     this->setSpeed(20,20);
-    _dxl.writeControlTableItem(PROFILE_VELOCITY, moteur_table, 20);
+    _dxl.writeControlTableItem(PROFILE_VELOCITY, moteur_table, 40);
     this->setAcceleration(0);
 
 

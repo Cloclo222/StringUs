@@ -1,8 +1,8 @@
 import serial
 import time
 from PinsToPath import *
-
-arduino = serial.Serial('COM4', 115200, timeout=1)
+# TODO CHECK TON CRISSE DE PORT 
+arduino = serial.Serial('COM7', 115200, timeout=1)
 time.sleep(2)  # Temps pour que la connection se fasse
 
 
@@ -17,19 +17,19 @@ def envoie_commande(commande):
                 break  # Sort de la loop pour envoyer une autre commande
 
 
-# commandes = [
-#     "{C1 56 236}",
-#     "{C1 11 225}",
-#     "{C1 62 203}",
-#     "{C1 68 206}",
-#     "{C1 30 210}",
-# ]
+commandes = [
+    "{C2 90}",
+    "{C2 180}",
+    "{C2 90}",
+    "{C2 270}",
+    "{C2 0}"
+]
 
 path = Path("StringUS/[1] - ImageProcessing/outputs/shronk.csv", 300)
 
-commandes = []
-for pin in path.pinsInDeg[1]:
-    commandes.append("C2 %f" % pin)
+# commandes = []
+# for pin in path.pinsInDeg[1]:
+#     commandes.append("C2 %f" % pin)
 
 for cmd in commandes:
     envoie_commande(cmd)
