@@ -14,12 +14,14 @@ if __name__ == "__main__":
         ),
         group_orders="worbworbworb"
     )
-    for r in range(250, 1251, 250):
-        canvas = Canvas(**args,img_radius=r)
-        # canvas.showDitheredImage()
-        for c in range(100, 301, 50):
-            canvas.pinCoords(c)
-            canvas.buildCanvas()
-            output = canvas.paintCanvas()
-            ratio = float(2*np.pi/c)
-            output.save("tiger_ratio/tiger_r%i_c%i_ratio%.3f.jpg"%(r,c,ratio))
+    # for r in range(250, 1251, 250):
+    #     canvas = Canvas(**args,img_radius=r)
+    #     # canvas.showDitheredImage()
+    #     for c in range(100, 301, 50)
+    canvas = Canvas(**args,img_radius = 1000)
+    canvas.pinCoords(300)
+    canvas.buildCanvas()
+    output = canvas.paintCanvas()
+    ratio = float(2*np.pi/300)
+    output.save("tiger_ratio/tiger_r%i_c%i_ratio%.3f.jpg"%(1000,300,ratio))
+    WriteThreadedCsvFile("../outputs/tigga.csv", canvas.totalLines)

@@ -237,7 +237,7 @@ class Canvas:
             print("\n[+] Image threaded")
             # for line in enumerate(Lines):
             #     self.totalLines[i] = [line, "black"]
-            z = ["black" for i in range(len(Lines))]
+            z = [(0,0,0) for i in range(len(Lines))]
             self.totalLines = list(zip(Lines, z))
 
         else:
@@ -260,6 +260,7 @@ class Canvas:
 
             color_names = list(self.palette.keys())
             color_counters = {k: 0 for k in color_names}
+            matching_rgb = list(self.palette.values())
 
             for g in self.group_orders:
                 num_instances = len([c for c in self.group_orders if c == g])
@@ -274,7 +275,7 @@ class Canvas:
                     end = int(color_len * color_counters[matching_color] / num_instances)
                     next_lines = self.d_couleur_threaded[matching_color][start: end]
                     for line in next_lines:
-                        self.totalLines.append((line, matching_color))
+                        self.totalLines.append((line, color_value))
             print("[+] Image threaded\n")
 
     def paintCanvas(self, background=(255, 255, 255)):
@@ -284,7 +285,7 @@ class Canvas:
             for line in self.totalLines:
                 pin1 = line[0][0]
                 pin2 = line[0][1]
-                colour = self.palette[line[-1]]
+                colour = line[-1]
                 outputDraw.line((self.Coords[pin1], self.Coords[pin2]), fill=colour)
         else:
             output = Image.new('L', (self.img_radius * 2, self.img_radius * 2),255)
