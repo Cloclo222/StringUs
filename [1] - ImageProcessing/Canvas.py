@@ -4,6 +4,7 @@ from PIL import Image, ImageDraw, ImageFilter
 import plotly.express as px
 import numba
 import cv2
+from misc import *
 
 
 @numba.njit
@@ -99,9 +100,9 @@ def ComputeThreads(img, numLines, numPins, Coords, Angles, initPin=0, minLoop=3,
         cv2.line(lineMask, oldCoord, Coords[bestPin], lineWeight, lineWidth)
         img = np.subtract(img, lineMask)
 
-        kobe = img / 255
-        cv2.imshow('kobe', cv2.resize(kobe, (1000, 1000)))
-        cv2.waitKey(10)
+        progress = img / 255
+        cv2.imshow('%s'%colour, cv2.resize(progress, (1000, 1000)))
+        cv2.waitKey(1)
 
         # Save line to results\
 
@@ -120,6 +121,7 @@ def ComputeThreads(img, numLines, numPins, Coords, Angles, initPin=0, minLoop=3,
         # sys.stdout.write("[+] Computing " + colour + " line " + str(line + 1) + " of " + str(numLines) + " max")
         # sys.stdout.flush()
 
+    cv2.destroyAllWindows()
     return lines
 
 
@@ -128,14 +130,18 @@ class Canvas:
     def __init__(self,
                  filename,
                  img_radius=1000,
-                 numPins=300,
+                 numPins=250,
                  initPin=0,
                  lineWidth=10,
                  lineWeight=10,
                  minLoop=3,
+                 Cropping=False,
                  palette=None,
                  numLinesPerColour=None,
                  group_orders=None,
+                 fillColor=(255,255,255),
+                 Topleftpixel=(0, 0),
+                 CropDiameter=1000
                  ):
 
         self.numLinesPerColour = numLinesPerColour
@@ -150,12 +156,17 @@ class Canvas:
         self.Angles = None
         self.img_dithered = None
 
-        self.totalLines = []
+        self.totalLines = None
 
-        self.base_img = Image.open(self.filename).resize((self.img_radius * 2 + 1, self.img_radius * 2 + 1))
-        self.pinCoords()
+        if Cropping is True:
+            self.base_img = centerImg(self.filename, fillColor=fillColor, Topleftpixel=Topleftpixel, imgDiameter=CropDiameter).resize((2*img_radius+1, 2*img_radius+1))
+        else:
+            self.base_img = Image.open(self.filename,).convert('RGB').resize((self.img_radius * 2 + 1, self.img_radius * 2 + 1))
+
+        self.pinCoords(numPins=self.numPins)
 
         if palette is not None:
+            self.greyscale = False
             if numLinesPerColour is None:
                 self.numLinesPerColour = dict()
                 for key in palette.keys():
@@ -189,9 +200,10 @@ class Canvas:
             self.img_couleur_sep = dict(
                 grey=self.np_img
             )
+            self.greyscale = True
             # Image.fromarray(self.img).show()
 
-    def pinCoords(self, numPins=300, offset=0, x0=None, y0=None):
+    def pinCoords(self, numPins, offset=0, x0=None, y0=None):
         self.numPins = numPins
         alpha = np.linspace(0 + offset, 2 * np.pi + offset, self.numPins + 1)
 
@@ -209,10 +221,10 @@ class Canvas:
         self.Angles = alpha[0:-1]
 
     def buildCanvas(self, numLines=10000, background=(255, 255, 255), excludeBackground=False):
-
-        if self.palette is None:
+        self.totalLines = []
+        if self.greyscale is True:
             # assert numLines != 0, "Must specify number of lines in buildCanvas, for Greyscale"
-            self.totalLines = ComputeThreads(self.img_couleur_sep["grey"],
+            Lines = ComputeThreads(self.img_couleur_sep["grey"],
                                              numLines=numLines,
                                              numPins=self.numPins,
                                              Coords=self.Coords,
@@ -220,10 +232,13 @@ class Canvas:
                                              initPin=self.initPin,
                                              lineWidth=self.lineWidth,
                                              lineWeight=self.lineWeight,
-                                             colour=(0, 0, 0))
-            np.flip(self.totalLines, 0)
+                                             colour='black')
+            Lines = np.flipud(Lines)
             print("\n[+] Image threaded")
-            return self.totalLines
+            # for line in enumerate(Lines):
+            #     self.totalLines[i] = [line, "black"]
+            z = [(0,0,0) for i in range(len(Lines))]
+            self.totalLines = list(zip(Lines, z))
 
         else:
 
@@ -239,12 +254,13 @@ class Canvas:
                                                                   initPin=self.initPin,
                                                                   lineWidth=self.lineWidth,
                                                                   lineWeight=self.lineWeight,
-                                                                  colour=self.palette[key])
+                                                                  colour=key)
                     self.d_couleur_threaded[key] = np.flip(self.d_couleur_threaded[key])
                     print("Threaded %i %s lines" % (len(self.d_couleur_threaded[key]), key))
 
             color_names = list(self.palette.keys())
             color_counters = {k: 0 for k in color_names}
+            matching_rgb = list(self.palette.values())
 
             for g in self.group_orders:
                 num_instances = len([c for c in self.group_orders if c == g])
@@ -259,17 +275,26 @@ class Canvas:
                     end = int(color_len * color_counters[matching_color] / num_instances)
                     next_lines = self.d_couleur_threaded[matching_color][start: end]
                     for line in next_lines:
-                        self.totalLines.append((line, matching_color))
+                        self.totalLines.append((line, color_value))
             print("[+] Image threaded\n")
 
     def paintCanvas(self, background=(255, 255, 255)):
-        output = Image.new('RGB', (self.img_radius * 2, self.img_radius * 2), background)
-        outputDraw = ImageDraw.Draw(output)
-        for line in self.totalLines:
-            pin1 = line[0][0]
-            pin2 = line[0][1]
-            colour = self.palette[line[-1]]
-            outputDraw.line((self.Coords[pin1], self.Coords[pin2]), fill=colour)
+        if self.greyscale is False:
+            output = Image.new('RGB', (self.img_radius * 2, self.img_radius * 2), background)
+            outputDraw = ImageDraw.Draw(output)
+            for line in self.totalLines:
+                pin1 = line[0][0]
+                pin2 = line[0][1]
+                colour = line[-1]
+                outputDraw.line((self.Coords[pin1], self.Coords[pin2]), fill=colour)
+        else:
+            output = Image.new('L', (self.img_radius * 2, self.img_radius * 2),255)
+            outputDraw = ImageDraw.Draw(output)
+            for line in self.totalLines:
+                pin1 = line[0][0]
+                pin2 = line[0][1]
+                colour = 0
+                outputDraw.line((self.Coords[pin1], self.Coords[pin2]), fill=colour)
         return output
 
     def fs_dither(self):
