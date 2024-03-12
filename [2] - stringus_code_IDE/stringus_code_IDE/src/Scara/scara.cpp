@@ -100,9 +100,27 @@ void Scara::sendDefaultPos()
     this->setTablePos(TablePos);
 }
 
-int* Scara::getPos()
+int* Scara::getLastCmd()
 {
     return Pos_current;
+}
+
+float Scara::getDxlPos(int moteur)
+{
+    float currentPosGauche = _dxl.getPresentPosition(moteur, UNIT_DEGREE);
+}
+
+void Scara::toggleTorque(int i)
+{
+    if (i == 0){
+        _dxl.torqueOff(moteur_gauche);
+        _dxl.torqueOff(moteur_droit);
+    }
+    else if (i == 1){
+        _dxl.torqueOn(moteur_gauche);
+        _dxl.torqueOn(moteur_droit);
+    }
+    
 }
 
 void Scara::setSpeed(uint8_t speedLimitLeft, uint8_t speedLimitRight)
@@ -116,8 +134,8 @@ void Scara::setSpeed(uint8_t speedLimitLeft, uint8_t speedLimitRight)
 void Scara::setSpeedForLinearMov(int jointPos[2], uint8_t speedLimit)
 {
     
-    float leftDelta = abs(jointPos[0] - this->getPos()[0]);
-    float rightDelta = abs(jointPos[1] - this->getPos()[1]);
+    float leftDelta = abs(jointPos[0] - this->getLastCmd()[0]);
+    float rightDelta = abs(jointPos[1] - this->getLastCmd()[1]);
     
 
     if (leftDelta > rightDelta)
