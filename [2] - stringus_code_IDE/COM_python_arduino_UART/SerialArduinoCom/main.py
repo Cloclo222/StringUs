@@ -18,14 +18,21 @@ def envoie_commande(commande):
 
 
 commandes = [
-    "{C2 90}",
-    "{C2 180}",
-    "{C2 90}",
-    "{C2 270}",
-    "{C2 0}"
+#Sequence clou 30 à gauche
+#"{C3 71 178 0}",
+#"{C3 80 177 0}",
+#"{C3 82 179 0}",
+#"{C3 71 180 0}",
+
+#Sequence clou 20 à droite
+#"{C3 8 257 0}",
+#"{C3 8 261 0}",
+#"{C3 7 270 0}",
+#"{C3 4 265 0}",
+#"{C3 8 257 0}",
 ]
 
-path = Path("StringUS/[1] - ImageProcessing/outputs/shronk.csv", 300)
+#path = Path("StringUS/[1] - ImageProcessing/outputs/shronk.csv", 300)
 
 # commandes = []
 # for pin in path.pinsInDeg[1]:
