@@ -9,19 +9,18 @@ from PyQt5.QtGui import QIcon, QIntValidator, QDoubleValidator, QFont, QPixmap, 
 from PyQt5.QtCore import pyqtSlot, Qt
 from PIL import Image
 from PyQt5 import QtCore as qtc
-from Canvas import *
 
 
 # A tres verifier, ce sont les rgb dans les PA, des choses bizzares se produisent
 
 class Window_PA(QWidget):
-
     submitted2 = qtc.pyqtSignal(list, str, int, int, str)
-    def __init__(self, number_of_color: int, filename, flag_bar, rgb_image, pd, ep, seq, sizedef):
+
+    def __init__(self, number_of_color: int, filename, flag_bar, rgb_image, pd, ep, seq, sizedef, grey):
         super().__init__()
         # Geometrie
         self.setWindowTitle("Parametres avancés")
-        # self.setGeometry(50, 50, 1000, 500)
+        self.setGeometry(100, 100, 500, 500)
 
         self.Titre = QLabel("STRINGUS: L'Art du Robot")
         self.Titre.setFont(QFont('Arial', 30))
@@ -38,10 +37,11 @@ class Window_PA(QWidget):
         self.valueepaisseur = ep
         self.valuepoid = pd
         self.sequence = seq
+        self.greyscale = grey
 
         # Box Epaisseur de la ligne
         self.epaisseur = QLineEdit(str(ep))
-        #self.epaisseur = QLineEdit()
+        # self.epaisseur = QLineEdit()
         self.epaisseur.setValidator(QIntValidator())
         self.epaisseur.setMaxLength(4)
         self.epaisseur.setAlignment(Qt.AlignLeft)
@@ -79,7 +79,7 @@ class Window_PA(QWidget):
         # Couleur Dominant_image
         self.dominant_image = QLabel()
         self.pixmap = QPixmap(
-                self.resize_image(600, 200, 'C:/Users/Xavier Lefebvre/Documents/GitHub/StringUs/[4] - GUI/bar.jpg'))
+            self.resize_image(600, 200, 'C:/Users/Xavier Lefebvre/Documents/GitHub/StringUs/[4] - GUI/bar.jpg'))
         self.dominant_image.setPixmap(self.pixmap)
 
         # Image a imprimer
@@ -100,6 +100,13 @@ class Window_PA(QWidget):
         # Enregistrer Button
         self.enregistrer_button = QPushButton("Enregistrer")
         self.enregistrer_button.clicked.connect(self.enregistrer)
+
+        if self.greyscale:
+            self.pixmap = QPixmap(
+                self.resize_image(600, 200, 'C:/Users/Xavier Lefebvre/Documents/GitHub/StringUs/[4] - GUI/grey.jpg'))
+            self.dominant_image.setPixmap(self.pixmap)
+            self.changeColor.setHidden(True)
+            self.ordre.setHidden(True)
 
         layout = QGridLayout()
 
@@ -197,7 +204,7 @@ class Window_PA(QWidget):
             self.valuepoid = int(self.poid.text())
             self.valueepaisseur = int(self.epaisseur.text())
             self.sequence = self.ordre.text()
-            self.submitted2.emit(self.rgb, self.size,self.valueepaisseur, self.valuepoid, self.sequence)
+            self.submitted2.emit(self.rgb, self.size, self.valueepaisseur, self.valuepoid, self.sequence)
             self.close()
 
     def redoBand(self, new_rgb):
@@ -274,6 +281,7 @@ class Window_GetName(QWidget):
     def canc_clique(self):
         self.close()
 
+
 class Window(QWidget):
     def __init__(self):
         super().__init__()
@@ -294,7 +302,7 @@ class Window(QWidget):
         self._connectActions()
 
         # Variable Globale Necessaire
-        self.fname = ['C:/Users/eaime/OneDrive - USherbrooke/S4GRO/PROJETS4-GRO/StringUs/[4] - GUI/no.png']
+        self.fname = ['no.png']
         self.flag_calculate = False
         self.flag_couleur = True
         self.data_nbcouleur = 1
@@ -303,14 +311,15 @@ class Window(QWidget):
         self.rgb_values = []
 
         # Parametre defaut
+        self.greyscale = False
         self.defautpoid = 1
         self.defautep = 1
+        self.sequencedefaut = ""
         self.sequence()
-        self.data_nbcouleur = 1
-        self.sequencedefaut = "c1"
         self.sizedef = "Real"
         self.nbclous = 100
         self.diam = 50
+
 
         # Box Nombre de clous
         self.clous = QLineEdit(str(self.nbclous))
@@ -330,6 +339,7 @@ class Window(QWidget):
         browse_button = QPushButton("Browse")
         browse_button.clicked.connect(self.browse_clique)
         self.image_path = QLabel("Vide")
+        self.image_path.setMaximumWidth(299)
 
         # Calculate Button
         calculate_button = QPushButton("Calculer")
@@ -363,41 +373,51 @@ class Window(QWidget):
         # Image Couleur Dominante
         self.dominant_image = QLabel()
         self.pixmap = QPixmap(
-            self.resize_image(600, 200, 'C:/Users/eaime/OneDrive - USherbrooke/S4GRO/PROJETS4-GRO/StringUs/[4] - GUI/grey.jpg'))
+            self.resize_image(600, 300, 'grey.jpg'))
         self.dominant_image.setPixmap(self.pixmap)
 
         # Preview de l'oeuvre
         working = QLabel()
         pixmap = QPixmap(
-            self.resize_image(400, 400, 'C:/Users/eaime/OneDrive - USherbrooke/S4GRO/PROJETS4-GRO/StringUs/[4] - GUI/work.png'))
+            self.resize_image(400, 400, 'work.png'))
         working.setPixmap(pixmap)
+
+        # Check Box grey
+        self.grey = QCheckBox()
+        self.grey.setGeometry(qtc.QRect(170, 120, 81, 20))
+        self.grey.stateChanged.connect(self.greycolor)
 
         # Affichage
         layout = QGridLayout()
 
         # Add widgets to the layout
         layout.addWidget(self.Titre, 0, 0, 1, 4)
-        layout.addWidget(self.sous_titre, 1, 0)
-        layout.addWidget(QLabel("Nombre de clous:"), 2, 0)
-        layout.addWidget(self.clous, 2, 1)
-        layout.addWidget(self.dim, 3, 1)
-        layout.addWidget(QLabel("Diametre (mm):"), 3, 0)
-        layout.addWidget(browse_button, 4, 0)
-        layout.addWidget(self.image_path, 4, 1)
-        layout.addWidget(self.load, 0, 5, 4, 4)
+        layout.addWidget(self.sous_titre, 1, 0, 1, 3)
+        layout.addWidget(QLabel("Nombre de clous:"), 2, 0, 1, 2)
+        layout.addWidget(self.clous, 2, 2, 1, 2)
+        layout.addWidget(self.dim, 3, 2, 1, 2)
+        layout.addWidget(QLabel("Diametre (mm):"), 3, 0, 1, 2)
+        layout.addWidget(browse_button, 4, 0, 1, 2)
+
+        layout.addWidget(self.image_path, 4, 2, 1, 2)
+
         layout.addWidget(QLabel("Nombre de couleur:"), 5, 0)
         layout.addWidget(self.nb_couleur, 5, 1)
+        layout.addWidget(QLabel("Gris"), 6, 2)
+        layout.addWidget(self.grey, 6, 3)
 
-        layout.addWidget(QLabel("Couleurs proposées:"), 6, 0)
-        layout.addWidget(self.dominant_image, 7, 0, 1, 2)
+        layout.addWidget(QLabel("Couleurs proposées:"), 6, 0, 1, 2)
 
-        layout.addWidget(advenced_setting_butt, 8, 0, 1, 2)
+        layout.addWidget(self.load, 0, 4, 7, 5)
+        layout.addWidget(self.dominant_image, 7, 0, 4, 4)
 
-        layout.addWidget(calculate_button, 10, 0)
-        layout.addWidget(envoyer_button, 10, 1)
-        layout.addWidget(working, 5, 5, 7, 4)
-        layout.addWidget(precedant_button, 13, 5, 1, 2)
-        layout.addWidget(suivant_button, 13, 7, 1, 2)
+        layout.addWidget(advenced_setting_butt, 11, 0, 1, 4)
+
+        layout.addWidget(calculate_button, 12, 0, 1, 2)
+        layout.addWidget(envoyer_button, 12, 2, 1, 2)
+        layout.addWidget(working, 7, 4, 7, 5)
+        layout.addWidget(precedant_button, 14, 4, 1, 2)
+        layout.addWidget(suivant_button, 14, 7, 1, 2)
 
         # Set the layout on the application's window
         self.setLayout(layout)
@@ -411,9 +431,15 @@ class Window(QWidget):
         self.load.setPixmap(self.pixmap)
 
         self.analyse_image(self.fname[0])
-        self.pixmap = QPixmap(
-            self.resize_image(600, 200, 'C:/Users/Xavier Lefebvre/Documents/GitHub/StringUs/[4] - GUI/bar.jpg'))
-        self.dominant_image.setPixmap(self.pixmap)
+
+        if self.greyscale:
+            self.pixmap = QPixmap(
+                self.resize_image(600, 300, 'grey.jpg'))
+            self.dominant_image.setPixmap(self.pixmap)
+        else:
+            self.pixmap = QPixmap(
+                self.resize_image(600, 300, 'bar.jpg'))
+            self.dominant_image.setPixmap(self.pixmap)
 
     def calcul_de_donner(self):
         data_clous = self.clous.text()
@@ -427,43 +453,6 @@ class Window(QWidget):
             self.flag_calculate = True
             print("Le nombre de clous est de:", data_clous)
             print("Le diametre est de:", data_dim)
-            Radius = self.diam / 2
-            if self.flag_greyscale is False:
-
-                palette = {}
-                keys = range(self.data_nbcouleur)
-                values = self.rgb_values
-                for i in keys:
-                    palette[i+1] = values[i]
-
-                args = dict(
-                    filename=self.fname[0],
-                    palette=palette,
-                    group_orders=self.sequencedefaut,
-                    img_radius=Radius,
-                    numPins = self.nbclous,
-                    lineWidth = self.defautep,
-                    lineWeight = self.defautpoid
-                )
-                canvas = Canvas(**args)
-                canvas.buildCanvas()
-                output = canvas.paintCanvas()
-                output.save('img_threaded.png')
-                WriteThreadedCsvFile("../ThreadedCSVFile.csv",canvas.totalLines)
-
-            else:
-                args = dict(
-                    filename=self.fname[0],
-                    img_radius=Radius,
-                    numPins = self.nbclous,
-                    lineWidth = self.defautep,
-                    lineWeight = self.defautpoid
-                )
-                canvas = Canvas(**args)
-                canvas.buildCanvas()
-                output = canvas.paintCanvas()
-                output.save('img_threaded.png')
-                WriteThreadedCsvFile("../ThreadedCSVFile.csv",canvas.totalLines)
 
     def envoyer(self):
         if self.flag_calculate:
@@ -531,11 +520,10 @@ class Window(QWidget):
         self.data_nbcouleur = self.nb_couleur.value()
         self.sequence()
 
-
-        if self.fname[0] != 'C:/temp/StringUS/GUI_PYQT5_STRINGUS/Code/no.png' and self.flag_couleur == True:
+        if self.fname[0] != 'no.png' and self.flag_couleur == True:
             self.analyse_image(self.fname[0])
             self.pixmap = QPixmap(
-                self.resize_image(600, 200, 'C:/Users/Xavier Lefebvre/Documents/GitHub/StringUs/[4] - GUI/bar.jpg'))
+                self.resize_image(600, 300, 'bar.jpg'))
             self.dominant_image.setPixmap(self.pixmap)
 
     def advenced_setting(self):
@@ -552,7 +540,7 @@ class Window(QWidget):
 
             self.nameFile = None
             self.PM = Window_PA(self.data_nbcouleur, self.fname[0], self.flag_bar, self.rgb_values, self.defautpoid,
-                                self.defautep, self.sequencedefaut, self.sizedef)
+                                self.defautep, self.sequencedefaut, self.sizedef, self.greyscale)
             self.PM.submitted2.connect(self.UpdateValues)
             self.PM.show()
 
@@ -660,9 +648,16 @@ class Window(QWidget):
         self.sequencedefaut = seq
         self.sizedef = size
 
-        self.pixmap = QPixmap(
-            self.resize_image(600, 200, 'C:/Users/Xavier Lefebvre/Documents/GitHub/StringUs/[4] - GUI/bar.jpg'))
-        self.dominant_image.setPixmap(self.pixmap)
+        if self.greyscale:
+            self.pixmap = QPixmap(
+                self.resize_image(600, 300, 'grey.jpg'))
+            self.dominant_image.setPixmap(self.pixmap)
+        else:
+            self.pixmap = QPixmap(
+                self.resize_image(600, 300, 'bar.jpg'))
+            self.dominant_image.setPixmap(self.pixmap)
+
+
 
     def NewWindow(self):
 
@@ -673,10 +668,34 @@ class Window(QWidget):
 
     def sequence(self):
         self.sequencedefaut = ""
-        for i in range(self.data_nbcouleur):
-            self.sequencedefaut = self.sequencedefaut + "c" + str(i + 1) + " "
 
-        self.sequencedefaut = self.sequencedefaut * 4
+        if self.greyscale:
+            self.sequencedefaut = "c1 c1 c1 c1"
+
+        else:
+            for i in range(self.data_nbcouleur):
+                self.sequencedefaut = self.sequencedefaut + "c" + str(i + 1) + " "
+
+            self.sequencedefaut = self.sequencedefaut * 4
+
+    def greycolor(self):
+
+        if self.grey.checkState():
+            self.greyscale = True
+            print("here")
+            self.pixmap = QPixmap(
+                self.resize_image(600, 300, 'grey.jpg'))
+            self.dominant_image.setPixmap(self.pixmap)
+            self.nb_couleur.setHidden(True)
+        else:
+            self.greyscale = False
+            self.nb_couleur.setHidden(False)
+            if self.fname[0] != 'no.png' and self.flag_couleur == True:
+                self.analyse_image(self.fname[0])
+                self.pixmap = QPixmap(
+                    self.resize_image(600, 300, 'bar.jpg'))
+                self.dominant_image.setPixmap(self.pixmap)
+
 
 
 if __name__ == "__main__":
