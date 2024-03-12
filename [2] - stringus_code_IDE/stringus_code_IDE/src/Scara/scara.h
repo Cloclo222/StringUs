@@ -33,7 +33,9 @@ public:
     void setScaraPos(int jointPos[2]);
     void setTablePos(int TablePos);
     void isPos(int jointPos[2], int TablePos);
-    int* getPos(); 
+    int* getLastCmd(); 
+    float getDxlPos(int moteur);
+    void toggleTorque(int i);
     void move(float cmd[2]);
     bool buildInvJacobienne();
     void printPosition();
@@ -43,6 +45,7 @@ public:
     void setAcceleration(uint8_t AccelLimit);
     int* getSpeedAccel();
     void homing();
+
 };
 
 #endif //__SCARA_H__

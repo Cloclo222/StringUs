@@ -2,6 +2,7 @@
 #include <Dynamixel2Arduino.h> //Installer par le gestionnaire de librarie Arduino IDE
 #include "src/Scara/Scara.h" //Dans le fichier src, c'est notre propre librarie
 #include "Arduino.h"
+#include <string>
 
 #define DXL_SERIAL   Serial1
 #define BUFFER_LENGTH 64
@@ -75,7 +76,7 @@ void executeCommand(const char* command) {
           int position[2] = {angle1, angle2};
           _scara.setSpeedForLinearMov(position,100);
           _scara.setScaraPos(position);
-          int current_table_pos = _scara.getPos()[2];
+          int current_table_pos = _scara.getLastCmd()[2];
           _scara.isPos(position, current_table_pos);
           
         }
@@ -94,7 +95,7 @@ void executeCommand(const char* command) {
         sscanf(command + 2, "%d", &angle1);
         if (sscanf(command + 2, "%d", &angle1) == 1) { //Regarde s'il y a 1 angle
           _scara.setTablePos(angle1);
-          int current_pos[2] = {_scara.getPos()[0],_scara.getPos()[1]};
+          int current_pos[2] = {_scara.getLastCmd()[0],_scara.getLastCmd()[1]};
           _scara.isPos(current_pos,angle1);
           
         }
@@ -121,7 +122,7 @@ void executeCommand(const char* command) {
           _scara.setSpeedForLinearMov(position,100);
           _scara.setScaraPos(position);
 
-          int current_pos[2] = {_scara.getPos()[0],_scara.getPos()[1]};
+          int current_pos[2] = {_scara.getLastCmd()[0],_scara.getLastCmd()[1]};
           _scara.isPos(current_pos, angleTable);
 
           delay(200);
@@ -131,11 +132,32 @@ void executeCommand(const char* command) {
         else{
         Serial.print("C3_error : La commande n'a pas reçu 3 angle."); 
         }
-
+        break;
+      }
+    }
+     Serial.println('1'); // Retourne 1 au programme Python pour demander une prochaine commande
+  }
+  else if (command[0] == 'T') {            // Regarde si le string commence par C
+    char command_char = command[1];
+    int command_int = command_char - '0';
+    switch (command_int) { // Regarde le chiffre de commande
+                  
+      //==============================================================================================================//
+      // 1 : Mouvement simple jusqu'à l'angle demandé
+      case 0: {                                                      
+        _scara.toggleTorque(0);
+        Serial.println('1');    
+        break;
+      }
+      case 1: {
+        float left_pos = _scara.getDxlPos(moteur_gauche);
+        float right_pos = _scara.getDxlPos(moteur_droit);
+        float table_pos = _scara.getDxlPos(moteur_table);
+        Serial.println(left_pos);
+        Serial.println(right_pos);
+        Serial.println(table_pos);
         break;
       }
     }
   }
-  
-  Serial.println('1'); // Retourne 1 au programme Python pour demander une prochaine commande
 }
