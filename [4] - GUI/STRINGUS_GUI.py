@@ -9,7 +9,7 @@ from PyQt5.QtGui import QIcon, QIntValidator, QDoubleValidator, QFont, QPixmap, 
 from PyQt5.QtCore import pyqtSlot, Qt
 from PIL import Image
 from PyQt5 import QtCore as qtc
-
+from Canvas import *
 
 # A tres verifier, ce sont les rgb dans les PA, des choses bizzares se produisent
 
@@ -22,7 +22,7 @@ class Window_PA(QWidget):
         self.setWindowTitle("Parametres avancés")
         self.setGeometry(100, 100, 500, 500)
 
-        self.Titre = QLabel("STRINGUS: L'Art du Robot")
+        self.Titre = QLabel("STRINGUS: Du virtuel au réel")
         self.Titre.setFont(QFont('Arial', 30))
 
         self.sous_titre = QLabel("Parametres avances")
@@ -79,7 +79,7 @@ class Window_PA(QWidget):
         # Couleur Dominant_image
         self.dominant_image = QLabel()
         self.pixmap = QPixmap(
-            self.resize_image(600, 200, 'C:/Users/Xavier Lefebvre/Documents/GitHub/StringUs/[4] - GUI/bar.jpg'))
+            self.resize_image(600, 200, 'bar.jpg'))
         self.dominant_image.setPixmap(self.pixmap)
 
         # Image a imprimer
@@ -103,7 +103,7 @@ class Window_PA(QWidget):
 
         if self.greyscale:
             self.pixmap = QPixmap(
-                self.resize_image(600, 200, 'C:/Users/Xavier Lefebvre/Documents/GitHub/StringUs/[4] - GUI/grey.jpg'))
+                self.resize_image(600, 200, 'grey.jpg'))
             self.dominant_image.setPixmap(self.pixmap)
             self.changeColor.setHidden(True)
             self.ordre.setHidden(True)
@@ -290,7 +290,7 @@ class Window(QWidget):
         self.setWindowTitle("STRINGUS")
         self.setGeometry(50, 50, 1000, 500)
 
-        self.Titre = QLabel("STRINGUS: L'Art du Robot")
+        self.Titre = QLabel("STRING US: Du virtuel au réel")
         self.Titre.setFont(QFont('Arial', 30))
 
         self.sous_titre = QLabel("Faites vos selections")
@@ -312,13 +312,13 @@ class Window(QWidget):
 
         # Parametre defaut
         self.greyscale = False
-        self.defautpoid = 1
-        self.defautep = 1
+        self.defautpoid = 10
+        self.defautep = 10
         self.sequencedefaut = ""
         self.sequence()
         self.sizedef = "Real"
-        self.nbclous = 100
-        self.diam = 50
+        self.nbclous = 150
+        self.diam = 500
 
 
         # Box Nombre de clous
@@ -377,10 +377,10 @@ class Window(QWidget):
         self.dominant_image.setPixmap(self.pixmap)
 
         # Preview de l'oeuvre
-        working = QLabel()
+        self.working = QLabel()
         pixmap = QPixmap(
             self.resize_image(400, 400, 'work.png'))
-        working.setPixmap(pixmap)
+        self.working.setPixmap(pixmap)
 
         # Check Box grey
         self.grey = QCheckBox()
@@ -415,7 +415,7 @@ class Window(QWidget):
 
         layout.addWidget(calculate_button, 12, 0, 1, 2)
         layout.addWidget(envoyer_button, 12, 2, 1, 2)
-        layout.addWidget(working, 7, 4, 7, 5)
+        layout.addWidget(self.working, 7, 4, 7, 5)
         layout.addWidget(precedant_button, 14, 4, 1, 2)
         layout.addWidget(suivant_button, 14, 7, 1, 2)
 
@@ -445,7 +445,7 @@ class Window(QWidget):
         data_clous = self.clous.text()
         data_dim = self.dim.text()
 
-        if not data_clous or not data_dim or self.fname[0] == 'C:/temp/StringUS/GUI_PYQT5_STRINGUS/Code/no.png':
+        if not data_clous or not data_dim or self.fname[0] == 'no.png':
             QMessageBox.information(self, 'ERREUR', "Information manquante", QMessageBox.Ok)
             self.flag_calculate = False
 
@@ -453,6 +453,47 @@ class Window(QWidget):
             self.flag_calculate = True
             print("Le nombre de clous est de:", data_clous)
             print("Le diametre est de:", data_dim)
+        Radius = int(self.diam / 2)
+        if self.greyscale is False:
+
+            palette = {}
+            keys = range(self.data_nbcouleur)
+            values = self.rgb_values
+            for i in keys:
+                palette["c%i"%(i+1)] = values[i]
+
+            args = dict(
+                filename=self.fname[0],
+                palette=palette,
+                group_orders=self.sequencedefaut,
+                img_radius=Radius,
+                numPins=self.nbclous,
+                lineWidth=self.defautep,
+                lineWeight=self.defautpoid
+            )
+            canvas = Canvas(**args)
+            canvas.buildCanvas()
+            output = canvas.paintCanvas()
+            output.save('img_threaded.png')
+            WriteThreadedCsvFile("../ThreadedCSVFile.csv", canvas.totalLines)
+
+        else:
+            args = dict(
+                filename=self.fname[0],
+                img_radius=Radius,
+                numPins=self.nbclous,
+                lineWidth=self.defautep,
+                lineWeight=self.defautpoid
+            )
+            canvas = Canvas(**args)
+            canvas.buildCanvas()
+            output = canvas.paintCanvas()
+            output.save('img_threaded.png')
+            WriteThreadedCsvFile("../ThreadedCSVFile.csv", canvas.totalLines)
+
+        pixmap = QPixmap(
+            self.resize_image(400, 400, 'img_threaded.png'))
+        self.working.setPixmap(pixmap)
 
     def envoyer(self):
         if self.flag_calculate:

@@ -182,7 +182,8 @@ class Canvas:
 
             self.color_names = list(self.palette.keys())
             self.color_values = list(self.palette.values())
-            first_color_letters = [color[0] for color in self.color_names]
+
+            first_color_letters = [color[1] for color in self.color_names]
             assert len(set(first_color_letters)) == len(
                 first_color_letters), "First letter of each color name must be unique."
             # assert set(first_color_letters) == set(group_orders), "Invalid letter in group_order"
@@ -262,9 +263,9 @@ class Canvas:
             color_counters = {k: 0 for k in color_names}
             matching_rgb = list(self.palette.values())
 
-            for g in self.group_orders:
-                num_instances = len([c for c in self.group_orders if c == g])
-                matching_color = [c for c in color_names if c[0] == g][0]
+            for g in self.group_orders.split():
+                num_instances = len([c for c in self.group_orders.split() if c == g])
+                matching_color = [c for c in color_names if c == g][0]
                 if self.palette[matching_color] == background and excludeBackground is True:
                     continue
                 else:
