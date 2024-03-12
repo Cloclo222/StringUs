@@ -9,6 +9,7 @@ from PyQt5.QtGui import QIcon, QIntValidator, QDoubleValidator, QFont, QPixmap, 
 from PyQt5.QtCore import pyqtSlot, Qt
 from PIL import Image
 from PyQt5 import QtCore as qtc
+from Canvas import *
 
 
 # A tres verifier, ce sont les rgb dans les PA, des choses bizzares se produisent
@@ -293,7 +294,7 @@ class Window(QWidget):
         self._connectActions()
 
         # Variable Globale Necessaire
-        self.fname = ['C:/temp/StringUS/GUI_PYQT5_STRINGUS/Code/no.png']
+        self.fname = ['C:/Users/eaime/OneDrive - USherbrooke/S4GRO/PROJETS4-GRO/StringUs/[4] - GUI/no.png']
         self.flag_calculate = False
         self.flag_couleur = True
         self.data_nbcouleur = 1
@@ -362,13 +363,13 @@ class Window(QWidget):
         # Image Couleur Dominante
         self.dominant_image = QLabel()
         self.pixmap = QPixmap(
-            self.resize_image(600, 200, 'C:/Users/Xavier Lefebvre/Documents/GitHub/StringUs/[4] - GUI/grey.jpg'))
+            self.resize_image(600, 200, 'C:/Users/eaime/OneDrive - USherbrooke/S4GRO/PROJETS4-GRO/StringUs/[4] - GUI/grey.jpg'))
         self.dominant_image.setPixmap(self.pixmap)
 
         # Preview de l'oeuvre
         working = QLabel()
         pixmap = QPixmap(
-            self.resize_image(400, 400, 'C:/Users/Xavier Lefebvre/Documents/GitHub/StringUs/[4] - GUI/work.png'))
+            self.resize_image(400, 400, 'C:/Users/eaime/OneDrive - USherbrooke/S4GRO/PROJETS4-GRO/StringUs/[4] - GUI/work.png'))
         working.setPixmap(pixmap)
 
         # Affichage
@@ -426,6 +427,43 @@ class Window(QWidget):
             self.flag_calculate = True
             print("Le nombre de clous est de:", data_clous)
             print("Le diametre est de:", data_dim)
+            Radius = self.diam / 2
+            if self.flag_greyscale is False:
+
+                palette = {}
+                keys = range(self.data_nbcouleur)
+                values = self.rgb_values
+                for i in keys:
+                    palette[i+1] = values[i]
+
+                args = dict(
+                    filename=self.fname[0],
+                    palette=palette,
+                    group_orders=self.sequencedefaut,
+                    img_radius=Radius,
+                    numPins = self.nbclous,
+                    lineWidth = self.defautep,
+                    lineWeight = self.defautpoid
+                )
+                canvas = Canvas(**args)
+                canvas.buildCanvas()
+                output = canvas.paintCanvas()
+                output.save('img_threaded.png')
+                WriteThreadedCsvFile("../ThreadedCSVFile.csv",canvas.totalLines)
+
+            else:
+                args = dict(
+                    filename=self.fname[0],
+                    img_radius=Radius,
+                    numPins = self.nbclous,
+                    lineWidth = self.defautep,
+                    lineWeight = self.defautpoid
+                )
+                canvas = Canvas(**args)
+                canvas.buildCanvas()
+                output = canvas.paintCanvas()
+                output.save('img_threaded.png')
+                WriteThreadedCsvFile("../ThreadedCSVFile.csv",canvas.totalLines)
 
     def envoyer(self):
         if self.flag_calculate:
