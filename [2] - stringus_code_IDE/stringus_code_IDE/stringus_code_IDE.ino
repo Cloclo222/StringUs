@@ -73,7 +73,7 @@ void executeCommand(const char* command) {
         sscanf(command + 2, "%d %d", &angle1, &angle2);
         if (sscanf(command + 2, "%d %d", &angle1, &angle2) == 2) { //Regarde s'il y a deux angle
           int position[2] = {angle1, angle2};
-          _scara.setSpeedForLinearMov(position,40);
+          _scara.setSpeedForLinearMov(position,100);
           _scara.setScaraPos(position);
           int current_table_pos = _scara.getPos()[2];
           _scara.isPos(position, current_table_pos);
@@ -109,6 +109,29 @@ void executeCommand(const char* command) {
       //==============================================================================================================//
       // 3 : ...
       case 3: {
+        int angleGauche, angleDroite, angleTable;
+
+        sscanf(command + 2, "%d %d %d", &angleGauche,  &angleDroite,  &angleTable);
+        if (sscanf(command + 2, "%d %d %d", &angleGauche,  &angleDroite,  &angleTable) == 3) { //Regarde s'il y a 1 angle
+          
+          int position[2] = {angleGauche, angleDroite};
+
+          _scara.setTablePos(angleTable);
+
+          _scara.setSpeedForLinearMov(position,100);
+          _scara.setScaraPos(position);
+
+          int current_pos[2] = {_scara.getPos()[0],_scara.getPos()[1]};
+          _scara.isPos(current_pos, angleTable);
+
+          delay(200);
+          
+        }
+
+        else{
+        Serial.print("C3_error : La commande n'a pas reçu 3 angle."); 
+        }
+
         break;
       }
     }
