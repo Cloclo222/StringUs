@@ -289,7 +289,7 @@ class Window(QWidget):
         self.setWindowTitle("STRINGUS")
         self.setGeometry(50, 50, 1000, 500)
 
-        self.Titre = QLabel("STRING US: Du virtuel au réel")
+        self.Titre = QLabel("STRINGUS: Du virtuel au réel")
         self.Titre.setFont(QFont('Arial', 30))
 
         self.sous_titre = QLabel("Faites vos selections")
@@ -441,58 +441,65 @@ class Window(QWidget):
             self.dominant_image.setPixmap(self.pixmap)
 
     def calcul_de_donner(self):
-        data_clous = self.clous.text()
-        data_dim = self.dim.text()
+        self.nbclous = int(self.clous.text())
+        data_dim = int(self.dim.text())
 
-        if not data_clous or not data_dim or self.fname[0] == 'Input/no.png':
+        if not self.nbclous or not data_dim or self.fname[0] == 'Input/no.png':
             QMessageBox.information(self, 'ERREUR', "Information manquante", QMessageBox.Ok)
             self.flag_calculate = False
 
         else:
             self.flag_calculate = True
-            print("Le nombre de clous est de:", data_clous)
+            print("Le nombre de clous est de:", self.nbclous)
             print("Le diametre est de:", data_dim)
-        Radius = int(self.diam * 2)
-        if self.greyscale is False:
 
-            palette = {}
-            keys = range(self.data_nbcouleur)
-            values = self.rgb_values
-            for i in keys:
-                palette["c%i"%(i+1)] = values[i]
+            Radius = int(self.diam * 2)
+            if self.greyscale is False:
 
-            args = dict(
-                filename=self.fname[0],
-                palette=palette,
-                group_orders=self.sequencedefaut,
-                img_radius=Radius,
-                numPins=self.nbclous,
-                lineWidth=self.defautep,
-                lineWeight=self.defautpoid
-            )
-            canvas = Canvas(**args)
-            canvas.buildCanvas()
-            output = canvas.paintCanvas()
-            output.save('Output/img_threaded.png')
-            WriteThreadedCsvFile("Output/ThreadedCSVFile.csv", canvas.totalLines)
+                palette = {}
+                keys = range(self.data_nbcouleur)
+                values = self.rgb_values
+                for i in keys:
+                    palette["c%i"%(i+1)] = values[i]
 
-        else:
-            args = dict(
-                filename=self.fname[0],
-                img_radius=Radius,
-                numPins=self.nbclous,
-                lineWidth=self.defautep,
-                lineWeight=self.defautpoid
-            )
-            canvas = Canvas(**args)
-            canvas.buildCanvas()
-            output = canvas.paintCanvas()
-            output.save('Output/img_threaded.png')
-            WriteThreadedCsvFile("Output/ThreadedCSVFile.csv", canvas.totalLines)
+                args = dict(
+                    filename=self.fname[0],
+                    palette=palette,
+                    group_orders=self.sequencedefaut,
+                    img_radius=Radius,
+                    numPins=self.nbclous,
+                    lineWidth=self.defautep,
+                    lineWeight=self.defautpoid
+                )
+                canvas = Canvas(**args)
+                canvas.buildCanvas()
+                output = canvas.paintCanvas()
+                output.save('Output/img_threaded.png')
+                WriteThreadedCsvFile("Output/ThreadedCSVFile.csv", canvas.totalLines)
+                for keys in canvas.img_couleur_sep.keys():
+                    im = Image.fromarray(np.uint8(canvas.img_couleur_sep[keys]))
+                    im.save("Output/Threaded_%s.png" % keys)
 
-        pixmap = QPixmap(
-            self.resize_image(400, 400, 'Output/img_threaded.png'))
-        self.working.setPixmap(pixmap)
+            else:
+                args = dict(
+                    filename=self.fname[0],
+                    img_radius=Radius,
+                    numPins=self.nbclous,
+                    lineWidth=self.defautep,
+                    lineWeight=self.defautpoid
+                )
+                canvas = Canvas(**args)
+                canvas.buildCanvas()
+                output = canvas.paintCanvas()
+                output.save('Output/img_threaded.png')
+                WriteThreadedCsvFile("Output/ThreadedCSVFile.csv", canvas.totalLines)
+                for keys in canvas.img_couleur_sep.keys():
+                    im = Image.fromarray(np.uint8(canvas.img_couleur_sep[keys]))
+                    im.save("Output/Threaded_%s.png" % keys)
+
+            pixmap = QPixmap(
+                self.resize_image(400, 400, 'Output/img_threaded.png'))
+            self.working.setPixmap(pixmap)
 
     def envoyer(self):
         if self.flag_calculate:
