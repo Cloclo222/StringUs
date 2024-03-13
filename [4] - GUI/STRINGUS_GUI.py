@@ -301,7 +301,7 @@ class Window(QWidget):
         self._connectActions()
 
         # Variable Globale Necessaire
-        self.fname = ['Input/no.png']
+        self.fnameImage = ['Input/no.png']
         self.flag_calculate = False
         self.flag_couleur = True
         self.data_nbcouleur = 1
@@ -318,73 +318,74 @@ class Window(QWidget):
         self.sizedef = "Real"
         self.nbclous = 150
         self.diam = 500
+        self.compteur = 0
 
 
         # Box Nombre de clous
-        self.clous = QLineEdit(str(self.nbclous))
-        self.clous.setValidator(QIntValidator())
-        self.clous.setMaxLength(4)
-        self.clous.setAlignment(Qt.AlignLeft)
-        self.clous.setFont(QFont("Arial", 15))
+        self.ClousLine = QLineEdit(str(self.nbclous))
+        self.ClousLine.setValidator(QIntValidator())
+        self.ClousLine.setMaxLength(4)
+        self.ClousLine.setAlignment(Qt.AlignLeft)
+        self.ClousLine.setFont(QFont("Arial", 15))
 
         # Box Diametre
-        self.dim = QLineEdit(str(self.diam))
-        self.dim.setValidator(QIntValidator())
-        self.dim.setMaxLength(3)
-        self.dim.setAlignment(Qt.AlignLeft)
-        self.dim.setFont(QFont("Arial", 15))
+        self.DimLine = QLineEdit(str(self.diam))
+        self.DimLine.setValidator(QIntValidator())
+        self.DimLine.setMaxLength(3)
+        self.DimLine.setAlignment(Qt.AlignLeft)
+        self.DimLine.setFont(QFont("Arial", 15))
 
         # Browse document
-        browse_button = QPushButton("Browse")
-        browse_button.clicked.connect(self.browse_clique)
+        BrowseButton = QPushButton("Browse")
+        BrowseButton.clicked.connect(self.isBrowseButtonClick)
         self.image_path = QLabel("Vide")
         self.image_path.setMaximumWidth(299)
 
         # Calculate Button
-        calculate_button = QPushButton("Calculer")
-        calculate_button.clicked.connect(self.calcul_de_donner)
+        CalculateButton= QPushButton("Calculer")
+        CalculateButton.clicked.connect(self.isCalculateButtonClick)
 
         # Envoie Button
-        envoyer_button = QPushButton("Envoyer")
-        envoyer_button.clicked.connect(self.envoyer)
+        SendButton = QPushButton("Envoyer")
+        SendButton.clicked.connect(self.isSendButtonClick)
 
         # Precedant Button
-        precedant_button = QPushButton("Precedant")
-        precedant_button.clicked.connect(self.precedant)
+        PrecedantButton = QPushButton("Precedant")
+        PrecedantButton.clicked.connect(self.isPrecedantButtonClick)
 
         # Suivant Button
-        suivant_button = QPushButton("Suivant")
-        suivant_button.clicked.connect(self.suivant)
+        NextButton = QPushButton("Suivant")
+        NextButton.clicked.connect(self.isNextButtonClick)
 
         # Advanced Setting
-        advenced_setting_butt = QPushButton("Paramètre avancés")
-        advenced_setting_butt.clicked.connect(self.advenced_setting)
+        PAButton = QPushButton("Paramètre avancés")
+        PAButton.clicked.connect(self.isPAButtonClick)
 
         # Nombre de couleur
-        self.nb_couleur = QSpinBox(minimum=1, maximum=20, value=1)
-        self.nb_couleur.valueChanged.connect(self.nb_couleur_fonct)
+        self.NbCouleurBox = QSpinBox(minimum=1, maximum=20, value=1)
+        self.NbCouleurBox.valueChanged.connect(self.isNbCouleurChange)
 
         # Image a imprimer Stringus
-        self.load = QLabel()
-        self.pixmap = QPixmap(self.resize_image(400, 400, self.fname[0]))
-        self.load.setPixmap(self.pixmap)
+        self.VOImage = QLabel()
+        self.pixmap = QPixmap(self.resize_image(400, 400,  self.fnameImage[0]))
+        self.VOImage.setPixmap(self.pixmap)
 
         # Image Couleur Dominante
-        self.dominant_image = QLabel()
+        self.DominantImage = QLabel()
         self.pixmap = QPixmap(
             self.resize_image(600, 300, 'Input/grey.jpg'))
-        self.dominant_image.setPixmap(self.pixmap)
+        self.DominantImage.setPixmap(self.pixmap)
 
         # Preview de l'oeuvre
-        self.working = QLabel()
+        self.PreviewImage = QLabel()
         pixmap = QPixmap(
             self.resize_image(400, 400, 'Input/work.png'))
-        self.working.setPixmap(pixmap)
+        self.PreviewImage.setPixmap(pixmap)
 
         # Check Box grey
-        self.grey = QCheckBox()
-        self.grey.setGeometry(qtc.QRect(170, 120, 81, 20))
-        self.grey.stateChanged.connect(self.greycolor)
+        self.GreyBox = QCheckBox()
+        self.GreyBox.setGeometry(qtc.QRect(170, 120, 81, 20))
+        self.GreyBox.stateChanged.connect(self.GreyBoxCheck)
 
         # Affichage
         layout = QGridLayout()
@@ -393,63 +394,75 @@ class Window(QWidget):
         layout.addWidget(self.Titre, 0, 0, 1, 4)
         layout.addWidget(self.sous_titre, 1, 0, 1, 3)
         layout.addWidget(QLabel("Nombre de clous:"), 2, 0, 1, 2)
-        layout.addWidget(self.clous, 2, 2, 1, 2)
-        layout.addWidget(self.dim, 3, 2, 1, 2)
+        layout.addWidget(self.ClousLine, 2, 2, 1, 2)
+        layout.addWidget(self.DimLine, 3, 2, 1, 2)
         layout.addWidget(QLabel("Diametre (mm):"), 3, 0, 1, 2)
-        layout.addWidget(browse_button, 4, 0, 1, 2)
+        layout.addWidget(BrowseButton, 4, 0, 1, 2)
 
         layout.addWidget(self.image_path, 4, 2, 1, 2)
 
         layout.addWidget(QLabel("Nombre de couleur:"), 5, 0)
-        layout.addWidget(self.nb_couleur, 5, 1)
+        layout.addWidget(self.NbCouleurBox, 5, 1)
         layout.addWidget(QLabel("Gris"), 6, 2)
-        layout.addWidget(self.grey, 6, 3)
+        layout.addWidget(self.GreyBox, 6, 3)
 
         layout.addWidget(QLabel("Couleurs proposées:"), 6, 0, 1, 2)
 
-        layout.addWidget(self.load, 0, 4, 7, 5)
-        layout.addWidget(self.dominant_image, 7, 0, 4, 4)
+        layout.addWidget(self.VOImage, 0, 4, 7, 5)
+        layout.addWidget(self.DominantImage, 7, 0, 4, 4)
 
-        layout.addWidget(advenced_setting_butt, 11, 0, 1, 4)
+        layout.addWidget(PAButton, 11, 0, 1, 4)
 
-        layout.addWidget(calculate_button, 12, 0, 1, 2)
-        layout.addWidget(envoyer_button, 12, 2, 1, 2)
-        layout.addWidget(self.working, 7, 4, 7, 5)
-        layout.addWidget(precedant_button, 14, 4, 1, 2)
-        layout.addWidget(suivant_button, 14, 7, 1, 2)
+        layout.addWidget(CalculateButton, 12, 0, 1, 2)
+        layout.addWidget(SendButton, 12, 2, 1, 2)
+        layout.addWidget(self.PreviewImage, 7, 4, 7, 5)
+        layout.addWidget(PrecedantButton, 14, 4, 1, 2)
+        layout.addWidget(NextButton, 14, 7, 1, 2)
 
         # Set the layout on the application's window
         self.setLayout(layout)
 
-    def browse_clique(self):
+    def isBrowseButtonClick(self):
         self.flag_bar = True
-        self.fname = QFileDialog.getOpenFileName(self, 'Open file')
-        self.image_path.setText(self.fname[0])
+        self.fnameImage = QFileDialog.getOpenFileName(self, 'Open file')
+        self.image_path.setText(self.fnameImage [0])
 
-        self.pixmap = QPixmap(self.resize_image(400, 400, self.fname[0]))
-        self.load.setPixmap(self.pixmap)
+        self.pixmap = QPixmap(self.resize_image(400, 400,  self.fnameImage[0]))
+        self.VOImage.setPixmap(self.pixmap)
 
-        self.analyse_image(self.fname[0])
+        self.analyse_image( self.fnameImage[0])
 
         if self.greyscale:
             self.pixmap = QPixmap(
                 self.resize_image(600, 300, 'Input/grey.jpg'))
-            self.dominant_image.setPixmap(self.pixmap)
+            self.DominantImage.setPixmap(self.pixmap)
         else:
             self.pixmap = QPixmap(
                 self.resize_image(600, 300, 'Input/bar.jpg'))
-            self.dominant_image.setPixmap(self.pixmap)
+            self.DominantImage.setPixmap(self.pixmap)
 
-    def calcul_de_donner(self):
-        self.nbclous = int(self.clous.text())
-        data_dim = int(self.dim.text())
+    def isCalculateButtonClick(self):
 
-        if not self.nbclous or not data_dim or self.fname[0] == 'Input/no.png':
+        self.nbclous = int(self.ClousLine.text())
+        data_dim = int(self.DimLine.text())
+
+        if not self.nbclous or not data_dim or self.fnameImage[0] == 'Input/no.png':
             QMessageBox.information(self, 'ERREUR', "Information manquante", QMessageBox.Ok)
             self.flag_calculate = False
 
         else:
             self.flag_calculate = True
+
+            #self.nameFile = None
+            # self.window2 = Window_GetName()
+            # self.window2.submitted.connect(self.NameClousCSV)
+            # self.window2.setAttribute(Qt.WA_DeleteOnClose)
+            # self.window2.show()
+            #
+            # loop = qtc.QEventLoop()
+            # self.window2.destroyed.connect(loop.quit)
+            # loop.exec()  # wait ...
+
             print("Le nombre de clous est de:", self.nbclous)
             print("Le diametre est de:", data_dim)
 
@@ -463,7 +476,7 @@ class Window(QWidget):
                     palette["c%i"%(i+1)] = values[i]
 
                 args = dict(
-                    filename=self.fname[0],
+                    filename=self.fnameImage[0],
                     palette=palette,
                     group_orders=self.sequencedefaut,
                     img_radius=Radius,
@@ -474,15 +487,15 @@ class Window(QWidget):
                 canvas = Canvas(**args)
                 canvas.buildCanvas()
                 output = canvas.paintCanvas()
-                output.save('Output/img_threaded.png')
+                output.save('Output/c0.png')
                 WriteThreadedCsvFile("Output/ThreadedCSVFile.csv", canvas.totalLines)
                 for keys in canvas.img_couleur_sep.keys():
                     im = Image.fromarray(np.uint8(canvas.img_couleur_sep[keys]))
-                    im.save("Output/Threaded_%s.png" % keys)
+                    im.save("Output/%s.png" % keys)
 
             else:
                 args = dict(
-                    filename=self.fname[0],
+                    filename=self.fnameImage[0],
                     img_radius=Radius,
                     numPins=self.nbclous,
                     lineWidth=self.defautep,
@@ -491,89 +504,64 @@ class Window(QWidget):
                 canvas = Canvas(**args)
                 canvas.buildCanvas()
                 output = canvas.paintCanvas()
-                output.save('Output/img_threaded.png')
+                output.save('Output/c0.png')
                 WriteThreadedCsvFile("Output/ThreadedCSVFile.csv", canvas.totalLines)
                 for keys in canvas.img_couleur_sep.keys():
                     im = Image.fromarray(np.uint8(canvas.img_couleur_sep[keys]))
-                    im.save("Output/Threaded_%s.png" % keys)
+                    im.save("Output/%s.png" % keys)
 
             pixmap = QPixmap(
-                self.resize_image(400, 400, 'Output/img_threaded.png'))
-            self.working.setPixmap(pixmap)
+                self.resize_image(400, 400, 'Output/c0.png'))
+            self.PreviewImage.setPixmap(pixmap)
 
-    def envoyer(self):
+    def isSendButtonClick(self):
         if self.flag_calculate:
             print("lol")
 
         else:
             QMessageBox.information(self, 'ERREUR', "Il faut calculer avant d'envoyer", QMessageBox.Ok)
 
-    def resize_image(self, largeur, hauteur, image_path):
+    def isNextButtonClick(self):
+        self.compteur += 1
+        if self.compteur <= self.data_nbcouleur:
+            name = "c" + str(self.compteur) + ".png"
+            filename = "Output/" + name
 
-        image = Image.open(image_path)
-        resized = image.resize((largeur, hauteur))
-        resized.save(image_path)
+        if self.compteur > self.data_nbcouleur:
+            self.compteur = self.data_nbcouleur
+            name = "c" + str(self.compteur) + ".png"
+            filename = "Output/" + name
 
-        return image_path
+        pixmap = QPixmap(
+            self.resize_image(400, 400, filename))
+        self.PreviewImage.setPixmap(pixmap)
 
-    def suivant(self):
-        print("lol")
+    def isPrecedantButtonClick(self):
+        self.compteur -= 1
+        if self.compteur >= 0:
+            name = "c" + str(self.compteur) + ".png"
+            filename = "Output/" + name
 
-    def precedant(self):
-        print("lol")
+        if self.compteur < 0:
+            self.compteur = 0
+            name = "c" + str(self.compteur) + ".png"
+            filename = "Output/" + name
 
-    def create_bar(self, height, width, color):
-        bar = np.zeros((height, width, 3), np.uint8)
-        bar[:] = color
-        red, green, blue = int(color[2]), int(color[1]), int(color[0])
-        return bar, (red, green, blue)
+        pixmap = QPixmap(
+            self.resize_image(400, 400, filename))
+        self.PreviewImage.setPixmap(pixmap)
 
-    def analyse_image(self, filename):
-
-        img = cv2.imread(filename)
-        height, width, _ = np.shape(img)
-        # print(height, width)
-
-        data = np.reshape(img, (height * width, 3))
-        data = np.float32(data)
-
-        number_clusters = self.data_nbcouleur
-        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
-        flags = cv2.KMEANS_RANDOM_CENTERS
-        compactness, labels, centers = cv2.kmeans(data, number_clusters, None, criteria, 10, flags)
-        # print(centers)
-
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        bars = []
-        self.rgb_values.clear()
-
-        for index, row in enumerate(centers):
-            bar, rgb = self.create_bar(200, 200, row)
-            bars.append(bar)
-            self.rgb_values.append(rgb)
-
-        img_bar = np.hstack(bars)
-
-        for index, row in enumerate(self.rgb_values):
-            image = cv2.putText(img_bar, f'{index + 1}', (5 + 200 * index, 200 - 10),
-                                font, 0.5, (255, 0, 0), 1, cv2.LINE_AA)
-            # print(f'{index + 1}. RGB{row}')
-
-        cv2.imwrite('Input/bar.jpg', img_bar)
-
-        cv2.waitKey(0)
-
-    def nb_couleur_fonct(self):
-        self.data_nbcouleur = self.nb_couleur.value()
+    def isNbCouleurChange(self):
+        self.data_nbcouleur = self.NbCouleurBox.value()
         self.sequence()
 
-        if self.fname[0] != 'Input/no.png' and self.flag_couleur == True:
-            self.analyse_image(self.fname[0])
+        if self.fnameImage[0] != 'Input/no.png' and self.flag_couleur == True:
+            self.analyse_image(self.fnameImage[0])
             self.pixmap = QPixmap(
                 self.resize_image(600, 300, 'Input/bar.jpg'))
-            self.dominant_image.setPixmap(self.pixmap)
+            self.DominantImage.setPixmap(self.pixmap)
 
-    def advenced_setting(self):
+    def isPAButtonClick(self):
 
         # Call fonction pour les parametres d'entree
 
@@ -585,21 +573,35 @@ class Window(QWidget):
             # self.nb_couleur_fonct()
             # self.flag_couleur = True
 
-            self.nameFile = None
-            self.PM = Window_PA(self.data_nbcouleur, self.fname[0], self.flag_bar, self.rgb_values, self.defautpoid,
+            self.PM = Window_PA(self.data_nbcouleur, self.fnameImage[0], self.flag_bar, self.rgb_values, self.defautpoid,
                                 self.defautep, self.sequencedefaut, self.sizedef, self.greyscale)
             self.PM.submitted2.connect(self.UpdateValues)
             self.PM.show()
 
+    def GreyBoxCheck(self):
+
+        if self.GreyBox.checkState():
+            self.greyscale = True
+            print("here")
+            self.pixmap = QPixmap(
+                self.resize_image(600, 300, 'Input/grey.jpg'))
+            self.DominantImage.setPixmap(self.pixmap)
+            self.NbCouleurBox.setHidden(True)
+        else:
+            self.greyscale = False
+            self.NbCouleurBox.setHidden(False)
+            if self.fnameImage[0] != 'Input/no.png' and self.flag_couleur == True:
+                self.analyse_image(self.fnameImage[0])
+                self.pixmap = QPixmap(
+                    self.resize_image(600, 300, 'Input/bar.jpg'))
+                self.DominantImage.setPixmap(self.pixmap)
+
     def _createMenuBar(self):
         menuBar = QMenuBar(self)
-        # self.setMenuBar(menuBar)
-        # menuBar = self.menuBar()
-        # File menu
         fileMenu = QMenu("&File", self)
         menuBar.addMenu(fileMenu)
-        # fileMenu.addAction(self.newAction)
         fileMenu.addAction(self.openAction)
+
         # Open Recent submenu
         self.openRecentMenu = fileMenu.addMenu("Open Recent")
         fileMenu.addAction(self.saveAction)
@@ -645,11 +647,44 @@ class Window(QWidget):
         # Slots
 
     def openFile(self):
-        # Logic for opening an existing file goes here...
-        self.centralWidget.setText("<b>File > Open...</b> clicked")
+        valeur = [None] * 10
+        i = 0
+        self.fichier = QFileDialog.getOpenFileName(self, 'Open file', "CSV files")
+
+        with open(self.fichier[0], newline='') as csvfile:
+            fichierCSV = csv.reader(csvfile)
+
+            for row in fichierCSV:
+                valeur[i] = row[1]
+                i += 1
+
+        self.fnameImage[0] = valeur[3]
+        self.data_nbcouleur = int(valeur[4])
+        self.defautpoid = int(valeur[6])
+        self.defautep = int(valeur[5])
+        self.sequencedefaut = valeur[8]
+        self.sizedef = valeur[8]
+        self.nbclous = int(valeur[1])
+        self.diam = int(valeur[2])
+
+        self.image_path.setText(self.fnameImage[0])
+
+        self.pixmap = QPixmap(self.resize_image(400, 400, self.fnameImage[0]))
+        self.VOImage.setPixmap(self.pixmap)
+        self.DimLine.setText(valeur[2])
+        self.ClousLine.setText(valeur[1])
+
+        self.analyse_image(self.fnameImage[0])
+        self.pixmap = QPixmap(
+            self.resize_image(600, 300, 'Input/bar.jpg'))
+        self.DominantImage.setPixmap(self.pixmap)
+        self.NbCouleurBox.setValue(self.data_nbcouleur)
 
     def saveFile(self):
-        self.NewWindow()
+        self.nameFile = None
+        self.window = Window_GetName()
+        self.window.submitted.connect(self.UpdateName)
+        self.window.show()
 
     def saveCSV(self, name):
 
@@ -659,7 +694,7 @@ class Window(QWidget):
             writer.writerow(["Nom_du_Paramètre", "Valeur"])
             writer.writerow(["Nombre_de_clous", self.nbclous])
             writer.writerow(["Diametre_du_fil", self.diam])
-            writer.writerow(["Nom_du_fichier", self.fname[0]])
+            writer.writerow(["Nom_du_fichier", self.fnameImage[0]])
             writer.writerow(["Nombre_de_couleur", self.data_nbcouleur])
             writer.writerow(["Epaisseur", self.defautep])
             writer.writerow(["Poid", self.defautpoid])
@@ -682,12 +717,10 @@ class Window(QWidget):
         # Logic for opening a recent file goes here...
         self.centralWidget.setText(f"<b>{filename}</b> opened")
 
-    # @qtc.pyqtSlot(str)
     def UpdateName(self, name_new):
         nameFile = name_new + '.csv'
         self.saveCSV(nameFile)
 
-    # @qtc.pyqtSlot(str)
     def UpdateValues(self, rgb, size, ep, pd, seq):
         self.rgb_values = rgb
         self.defautpoid = pd
@@ -698,20 +731,11 @@ class Window(QWidget):
         if self.greyscale:
             self.pixmap = QPixmap(
                 self.resize_image(600, 300, 'Input/grey.jpg'))
-            self.dominant_image.setPixmap(self.pixmap)
+            self.DominantImage.setPixmap(self.pixmap)
         else:
             self.pixmap = QPixmap(
                 self.resize_image(600, 300, 'Input/bar.jpg'))
-            self.dominant_image.setPixmap(self.pixmap)
-
-
-
-    def NewWindow(self):
-
-        self.nameFile = None
-        self.window = Window_GetName()
-        self.window.submitted.connect(self.UpdateName)
-        self.window.show()
+            self.DominantImage.setPixmap(self.pixmap)
 
     def sequence(self):
         self.sequencedefaut = ""
@@ -725,23 +749,57 @@ class Window(QWidget):
 
             self.sequencedefaut = self.sequencedefaut * 4
 
-    def greycolor(self):
+    def create_bar(self, height, width, color):
+        bar = np.zeros((height, width, 3), np.uint8)
+        bar[:] = color
+        red, green, blue = int(color[2]), int(color[1]), int(color[0])
+        return bar, (red, green, blue)
 
-        if self.grey.checkState():
-            self.greyscale = True
-            print("here")
-            self.pixmap = QPixmap(
-                self.resize_image(600, 300, 'Input/grey.jpg'))
-            self.dominant_image.setPixmap(self.pixmap)
-            self.nb_couleur.setHidden(True)
-        else:
-            self.greyscale = False
-            self.nb_couleur.setHidden(False)
-            if self.fname[0] != 'no.png' and self.flag_couleur == True:
-                self.analyse_image(self.fname[0])
-                self.pixmap = QPixmap(
-                    self.resize_image(600, 300, 'Input/bar.jpg'))
-                self.dominant_image.setPixmap(self.pixmap)
+    def analyse_image(self, filename):
+
+        img = cv2.imread(filename)
+        height, width, _ = np.shape(img)
+        # print(height, width)
+
+        data = np.reshape(img, (height * width, 3))
+        data = np.float32(data)
+
+        number_clusters = self.data_nbcouleur
+        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
+        flags = cv2.KMEANS_RANDOM_CENTERS
+        compactness, labels, centers = cv2.kmeans(data, number_clusters, None, criteria, 10, flags)
+        # print(centers)
+
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        bars = []
+        self.rgb_values.clear()
+
+        for index, row in enumerate(centers):
+            bar, rgb = self.create_bar(200, 200, row)
+            bars.append(bar)
+            self.rgb_values.append(rgb)
+
+        img_bar = np.hstack(bars)
+
+        for index, row in enumerate(self.rgb_values):
+            image = cv2.putText(img_bar, f'{index + 1}', (5 + 200 * index, 200 - 10),
+                                font, 0.5, (255, 0, 0), 1, cv2.LINE_AA)
+            # print(f'{index + 1}. RGB{row}')
+
+        cv2.imwrite('Input/bar.jpg', img_bar)
+
+        cv2.waitKey(0)
+
+    def resize_image(self, largeur, hauteur, image_path):
+
+        image = Image.open(image_path)
+        resized = image.resize((largeur, hauteur))
+        resized.save(image_path)
+
+        return image_path
+
+    def NameClousCSV(self, name_new):
+        self.nameFileClousCSV = name_new + '.csv'
 
 
 
