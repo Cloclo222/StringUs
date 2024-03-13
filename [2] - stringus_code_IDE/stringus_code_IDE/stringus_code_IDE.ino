@@ -6,6 +6,8 @@
 
 #define DXL_SERIAL   Serial1
 #define BUFFER_LENGTH 64
+#define MAX_SCARA_SPEED 50
+#define MAX_TABLE_SPEED 40
 
 char serialBuffer[BUFFER_LENGTH]; // Buffer pour les messages Serial
 int bufferIndex = 0;              // Index pour le char dans serialBuffer
@@ -74,10 +76,12 @@ void executeCommand(const char* command) {
         sscanf(command + 2, "%d %d", &angle1, &angle2);
         if (sscanf(command + 2, "%d %d", &angle1, &angle2) == 2) { //Regarde s'il y a deux angle
           int position[2] = {angle1, angle2};
-          _scara.setSpeedForLinearMov(position,100);
+          _scara.setSpeedForLinearMov(position,MAX_SCARA_SPEED);
           _scara.setScaraPos(position);
           int current_table_pos = _scara.getLastCmd()[2];
+          // Serial.println("im in isPos");
           _scara.isPos(position, current_table_pos);
+          // Serial.println("im out isPos");
           
         }
 
@@ -119,7 +123,7 @@ void executeCommand(const char* command) {
 
           _scara.setTablePos(angleTable);
 
-          _scara.setSpeedForLinearMov(position,100);
+          _scara.setSpeedForLinearMov(position,MAX_SCARA_SPEED);
           _scara.setScaraPos(position);
 
           int current_pos[2] = {_scara.getLastCmd()[0],_scara.getLastCmd()[1]};
@@ -150,9 +154,9 @@ void executeCommand(const char* command) {
         break;
       }
       case 1: {
-        float left_pos = _scara.getDxlPos(moteur_gauche);
-        float right_pos = _scara.getDxlPos(moteur_droit);
-        float table_pos = _scara.getDxlPos(moteur_table);
+        int left_pos = _scara.getDxlPos(moteur_gauche);
+        int right_pos = _scara.getDxlPos(moteur_droit);
+        int table_pos = _scara.getDxlPos(moteur_table);
         Serial.println(left_pos);
         Serial.println(right_pos);
         Serial.println(table_pos);
