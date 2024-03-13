@@ -4,3 +4,6 @@
 .vscode/launch.json
 .vscode/ipch
 /[1] - ImageProcessing/imgs
+/[1] - ImageProcessing/outputs
+/[4] - GUI/Outputs
+/[4] - GUI/Inputs
