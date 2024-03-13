@@ -11,7 +11,6 @@ from PIL import Image
 from PyQt5 import QtCore as qtc
 from Canvas import *
 
-# A tres verifier, ce sont les rgb dans les PA, des choses bizzares se produisent
 
 class Window_PA(QWidget):
     submitted2 = qtc.pyqtSignal(list, str, int, int, str)
@@ -79,7 +78,7 @@ class Window_PA(QWidget):
         # Couleur Dominant_image
         self.dominant_image = QLabel()
         self.pixmap = QPixmap(
-            self.resize_image(600, 200, 'bar.jpg'))
+            self.resize_image(600, 200, 'Input/bar.jpg'))
         self.dominant_image.setPixmap(self.pixmap)
 
         # Image a imprimer
@@ -103,7 +102,7 @@ class Window_PA(QWidget):
 
         if self.greyscale:
             self.pixmap = QPixmap(
-                self.resize_image(600, 200, 'grey.jpg'))
+                self.resize_image(600, 200, 'Input/grey.jpg'))
             self.dominant_image.setPixmap(self.pixmap)
             self.changeColor.setHidden(True)
             self.ordre.setHidden(True)
@@ -191,7 +190,7 @@ class Window_PA(QWidget):
             self.redoBand(self.rgb)
 
             self.pixmap = QPixmap(self.resize_image(600, 200,
-                                                    'C:/Users/Xavier Lefebvre/Documents/GitHub/StringUs/[4] - GUI/bar.jpg'))
+                                                    'Input/bar.jpg'))
             self.dominant_image.setPixmap(self.pixmap)
 
     def enregistrer(self):
@@ -223,7 +222,7 @@ class Window_PA(QWidget):
             image = cv2.putText(img_bar, f'{index + 1}', (5 + 200 * index, 200 - 10),
                                 font, 0.5, (255, 0, 0), 1, cv2.LINE_AA)
 
-        cv2.imwrite('bar.jpg', img_bar)
+        cv2.imwrite('Input/bar.jpg', img_bar)
 
         cv2.waitKey(0)
 
@@ -302,7 +301,7 @@ class Window(QWidget):
         self._connectActions()
 
         # Variable Globale Necessaire
-        self.fname = ['no.png']
+        self.fname = ['Input/no.png']
         self.flag_calculate = False
         self.flag_couleur = True
         self.data_nbcouleur = 1
@@ -373,13 +372,13 @@ class Window(QWidget):
         # Image Couleur Dominante
         self.dominant_image = QLabel()
         self.pixmap = QPixmap(
-            self.resize_image(600, 300, 'grey.jpg'))
+            self.resize_image(600, 300, 'Input/grey.jpg'))
         self.dominant_image.setPixmap(self.pixmap)
 
         # Preview de l'oeuvre
         self.working = QLabel()
         pixmap = QPixmap(
-            self.resize_image(400, 400, 'work.png'))
+            self.resize_image(400, 400, 'Input/work.png'))
         self.working.setPixmap(pixmap)
 
         # Check Box grey
@@ -434,18 +433,18 @@ class Window(QWidget):
 
         if self.greyscale:
             self.pixmap = QPixmap(
-                self.resize_image(600, 300, 'grey.jpg'))
+                self.resize_image(600, 300, 'Input/grey.jpg'))
             self.dominant_image.setPixmap(self.pixmap)
         else:
             self.pixmap = QPixmap(
-                self.resize_image(600, 300, 'bar.jpg'))
+                self.resize_image(600, 300, 'Input/bar.jpg'))
             self.dominant_image.setPixmap(self.pixmap)
 
     def calcul_de_donner(self):
         data_clous = self.clous.text()
         data_dim = self.dim.text()
 
-        if not data_clous or not data_dim or self.fname[0] == 'no.png':
+        if not data_clous or not data_dim or self.fname[0] == 'Input/no.png':
             QMessageBox.information(self, 'ERREUR', "Information manquante", QMessageBox.Ok)
             self.flag_calculate = False
 
@@ -453,7 +452,7 @@ class Window(QWidget):
             self.flag_calculate = True
             print("Le nombre de clous est de:", data_clous)
             print("Le diametre est de:", data_dim)
-        Radius = int(self.diam / 2)
+        Radius = int(self.diam * 2)
         if self.greyscale is False:
 
             palette = {}
@@ -474,8 +473,8 @@ class Window(QWidget):
             canvas = Canvas(**args)
             canvas.buildCanvas()
             output = canvas.paintCanvas()
-            output.save('img_threaded.png')
-            WriteThreadedCsvFile("../ThreadedCSVFile.csv", canvas.totalLines)
+            output.save('Output/img_threaded.png')
+            WriteThreadedCsvFile("Output/ThreadedCSVFile.csv", canvas.totalLines)
 
         else:
             args = dict(
@@ -488,11 +487,11 @@ class Window(QWidget):
             canvas = Canvas(**args)
             canvas.buildCanvas()
             output = canvas.paintCanvas()
-            output.save('img_threaded.png')
-            WriteThreadedCsvFile("../ThreadedCSVFile.csv", canvas.totalLines)
+            output.save('Output/img_threaded.png')
+            WriteThreadedCsvFile("Output/ThreadedCSVFile.csv", canvas.totalLines)
 
         pixmap = QPixmap(
-            self.resize_image(400, 400, 'img_threaded.png'))
+            self.resize_image(400, 400, 'Output/img_threaded.png'))
         self.working.setPixmap(pixmap)
 
     def envoyer(self):
@@ -553,7 +552,7 @@ class Window(QWidget):
                                 font, 0.5, (255, 0, 0), 1, cv2.LINE_AA)
             # print(f'{index + 1}. RGB{row}')
 
-        cv2.imwrite('bar.jpg', img_bar)
+        cv2.imwrite('Input/bar.jpg', img_bar)
 
         cv2.waitKey(0)
 
@@ -561,10 +560,10 @@ class Window(QWidget):
         self.data_nbcouleur = self.nb_couleur.value()
         self.sequence()
 
-        if self.fname[0] != 'no.png' and self.flag_couleur == True:
+        if self.fname[0] != 'Input/no.png' and self.flag_couleur == True:
             self.analyse_image(self.fname[0])
             self.pixmap = QPixmap(
-                self.resize_image(600, 300, 'bar.jpg'))
+                self.resize_image(600, 300, 'Input/bar.jpg'))
             self.dominant_image.setPixmap(self.pixmap)
 
     def advenced_setting(self):
@@ -691,11 +690,11 @@ class Window(QWidget):
 
         if self.greyscale:
             self.pixmap = QPixmap(
-                self.resize_image(600, 300, 'grey.jpg'))
+                self.resize_image(600, 300, 'Input/grey.jpg'))
             self.dominant_image.setPixmap(self.pixmap)
         else:
             self.pixmap = QPixmap(
-                self.resize_image(600, 300, 'bar.jpg'))
+                self.resize_image(600, 300, 'Input/bar.jpg'))
             self.dominant_image.setPixmap(self.pixmap)
 
 
@@ -725,7 +724,7 @@ class Window(QWidget):
             self.greyscale = True
             print("here")
             self.pixmap = QPixmap(
-                self.resize_image(600, 300, 'grey.jpg'))
+                self.resize_image(600, 300, 'Input/grey.jpg'))
             self.dominant_image.setPixmap(self.pixmap)
             self.nb_couleur.setHidden(True)
         else:
@@ -734,7 +733,7 @@ class Window(QWidget):
             if self.fname[0] != 'no.png' and self.flag_couleur == True:
                 self.analyse_image(self.fname[0])
                 self.pixmap = QPixmap(
-                    self.resize_image(600, 300, 'bar.jpg'))
+                    self.resize_image(600, 300, 'Input/bar.jpg'))
                 self.dominant_image.setPixmap(self.pixmap)
 
 
