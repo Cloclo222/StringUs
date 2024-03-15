@@ -154,14 +154,18 @@ void executeCommand(const char* command) {
         break;
       }
       case 1: {
-        int left_pos = _scara.getDxlPos(moteur_gauche);
-        int right_pos = _scara.getDxlPos(moteur_droit);
-        int table_pos = _scara.getDxlPos(moteur_table);
-        Serial.println(left_pos);
-        Serial.println(right_pos);
-        Serial.println(table_pos);
+        printPos();
         break;
       }
     }
   }
+}
+
+void printPos(){
+  int left_pos = _scara.getDxlPos(moteur_gauche);
+  int right_pos = _scara.getDxlPos(moteur_droit);
+  int table_pos = _scara.getDxlPos(moteur_table);
+  Serial.println(left_pos);
+  Serial.println(right_pos);
+  Serial.println(table_pos);
 }

@@ -83,7 +83,7 @@ void Scara::isPos(int jointPos[2], int TablePos) {
         isMoteurDroitInPosition = abs(currentPosDroit - jointPos[1]) <= marge_erreur;
         isMoteurTableInPosition = abs(currentPosTable - TablePos) <= marge_erreur;
         
-        delay(200); // Delay to prevent overwhelming the controller with requests.
+        delay(50); // Delay to prevent overwhelming the controller with requests.
     }
 }
 
