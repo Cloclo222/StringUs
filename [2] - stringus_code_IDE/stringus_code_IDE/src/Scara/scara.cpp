@@ -54,8 +54,8 @@ void Scara::update()
 
 void Scara::setScaraPos(int jointPos[2])
 {
-    _dxl.setGoalPosition(moteur_gauche, jointPos[0], UNIT_DEGREE);
-    _dxl.setGoalPosition(moteur_droit, jointPos[1], UNIT_DEGREE);
+    _dxl.setGoalPosition(moteur_gauche, jointPos[0]);
+    _dxl.setGoalPosition(moteur_droit, jointPos[1]);
     Pos_current[0] = jointPos[0];
     Pos_current[1] = jointPos[1];
 
@@ -63,7 +63,7 @@ void Scara::setScaraPos(int jointPos[2])
 
 void Scara::setTablePos(int TablePos)
 {
-    _dxl.setGoalPosition(moteur_table, TablePos, UNIT_DEGREE);
+    _dxl.setGoalPosition(moteur_table, TablePos);
     Pos_current[2] = TablePos;
 
 }
@@ -72,18 +72,18 @@ void Scara::isPos(int jointPos[2], int TablePos) {
     bool isMoteurGaucheInPosition = false;
     bool isMoteurDroitInPosition = false;
     bool isMoteurTableInPosition = false;
-    float marge_erreur = 1.0;
+    int marge_erreur = 10;
     
     while (!isMoteurGaucheInPosition || !isMoteurDroitInPosition || !isMoteurTableInPosition) {
-        float currentPosGauche = _dxl.getPresentPosition(moteur_gauche, UNIT_DEGREE);
-        float currentPosDroit = _dxl.getPresentPosition(moteur_droit, UNIT_DEGREE);
-        float currentPosTable = _dxl.getPresentPosition(moteur_table, UNIT_DEGREE);
+        float currentPosGauche = _dxl.getPresentPosition(moteur_gauche);
+        float currentPosDroit = _dxl.getPresentPosition(moteur_droit);
+        float currentPosTable = _dxl.getPresentPosition(moteur_table);
         
         isMoteurGaucheInPosition = abs(currentPosGauche - jointPos[0]) <= marge_erreur;
         isMoteurDroitInPosition = abs(currentPosDroit - jointPos[1]) <= marge_erreur;
         isMoteurTableInPosition = abs(currentPosTable - TablePos) <= marge_erreur;
         
-        delay(200); // Delay to prevent overwhelming the controller with requests.
+        delay(50); // Delay to prevent overwhelming the controller with requests.
     }
 }
 
@@ -107,7 +107,7 @@ int* Scara::getLastCmd()
 
 float Scara::getDxlPos(int moteur)
 {
-    float currentPosGauche = _dxl.getPresentPosition(moteur, UNIT_DEGREE);
+    float currentPosGauche = _dxl.getPresentPosition(moteur);
 }
 
 void Scara::toggleTorque(int i)
@@ -181,11 +181,15 @@ void Scara::homing(){
     this->setAcceleration(0);
 
 
-    _dxl.setGoalPosition(moteur_gauche, Pos_default[0], UNIT_DEGREE);
-    _dxl.setGoalPosition(moteur_droit, Pos_default[1], UNIT_DEGREE);
-    _dxl.setGoalPosition(moteur_table, 0, UNIT_DEGREE);
+    _dxl.setGoalPosition(moteur_gauche, Pos_default[0]);
+    _dxl.setGoalPosition(moteur_droit, Pos_default[1]);
+    _dxl.setGoalPosition(moteur_table, Pos_default[2] );
 
     delay(3000);
+
+    Pos_current[0] = _dxl.getPresentPosition(moteur_gauche);
+    Pos_current[1] = _dxl.getPresentPosition(moteur_droit);
+    Pos_current[2] = _dxl.getPresentPosition(moteur_table);
     
     return;
 }
