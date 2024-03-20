@@ -72,7 +72,7 @@ void Scara::isPos(int jointPos[2], int TablePos) {
     bool isMoteurGaucheInPosition = false;
     bool isMoteurDroitInPosition = false;
     bool isMoteurTableInPosition = false;
-    int marge_erreur = 10;
+    int marge_erreur = 2;
     
     while (!isMoteurGaucheInPosition || !isMoteurDroitInPosition || !isMoteurTableInPosition) {
         float currentPosGauche = _dxl.getPresentPosition(moteur_gauche);
@@ -166,6 +166,7 @@ void Scara::setAcceleration(uint8_t AccelLimit)
     using namespace ControlTableItem;
     _dxl.writeControlTableItem(PROFILE_ACCELERATION, moteur_droit, AccelLimit);
     _dxl.writeControlTableItem(PROFILE_ACCELERATION, moteur_gauche, AccelLimit);
+    _dxl.writeControlTableItem(PROFILE_ACCELERATION, moteur_table, AccelLimit);
     this->SpeedAccel[1] = AccelLimit;
 }
 

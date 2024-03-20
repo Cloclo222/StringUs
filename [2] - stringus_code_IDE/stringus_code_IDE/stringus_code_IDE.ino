@@ -30,6 +30,7 @@ void setup() {
     Serial.println("Moteur init.");
 
     delay(2000);
+    _scara.setAcceleration(2500);
     _scara.homing();
     Serial.println("Homing complete.");
     
