@@ -4,18 +4,107 @@ import csv
 import numpy as np
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLineEdit, QFormLayout, QGridLayout, QHBoxLayout, \
     QLabel, QFileDialog, QComboBox, QMessageBox, QSpinBox, QMenu, QMenuBar, QAction, QMainWindow, QInputDialog, \
-    QVBoxLayout, QCheckBox, QColorDialog
+    QVBoxLayout, QCheckBox, QColorDialog, QProgressBar
 from PyQt5.QtGui import QIcon, QIntValidator, QDoubleValidator, QFont, QPixmap, QIcon, QKeySequence
-from PyQt5.QtCore import pyqtSlot, Qt
+from PyQt5.QtCore import (
+    Qt, QObject, pyqtSignal, pyqtSlot, QRunnable, QThreadPool
+)
 from PIL import Image
 from PyQt5 import QtCore as qtc
 from Canvas import *
+import time
 
+class WorkerSignals(QObject):
+    progress = qtc.pyqtSignal(int)
+
+class JobRunner(QRunnable):
+
+    signals = WorkerSignals()
+
+    def __init__(self):
+        super().__init__()
+
+        self.is_paused = False
+        self.is_killed = False
+
+    @pyqtSlot()
+    def run(self):
+        for n in range(100):
+            self.signals.progress.emit(n + 1)
+            time.sleep(0.1)
+
+            while self.is_paused:
+                time.sleep(0)
+
+            if self.is_killed:
+                break
+
+    def pause(self):
+        self.is_paused = True
+
+    def resume(self):
+        self.is_paused = False
+
+    def kill(self):
+        self.is_killed = True
+
+class Window_Progress(QWidget):
+
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle("Information Robot")
+        self.setGeometry(100, 100, 500, 500)
+
+        self.Titre = QLabel("STRINGUS: Du virtuel au réel")
+        self.Titre.setFont(QFont('Arial', 30))
+
+        self.sous_titre = QLabel("Information Robot")
+        self.sous_titre.setFont(QFont('Arial', 20))
+
+        # Thread runner
+        self.threadpool = QThreadPool()
+
+        # Create a runner
+        self.runner = JobRunner()
+        self.runner.signals.progress.connect(self.update_progress)
+        self.threadpool.start(self.runner)
+
+        #Stop Button
+        self.StopButton = QPushButton("Stop")
+        self.StopButton.pressed.connect(self.runner.kill)
+
+        #Pause Button
+        self.PauseButton = QPushButton("Pause")
+        #self.PauseButton.setGeometry(2, 2, 2, 2)
+        self.PauseButton.pressed.connect(self.runner.pause)
+
+        #Resume Button
+        self.ResumeButton = QPushButton("Resume")
+        self.ResumeButton.pressed.connect(self.runner.resume)
+
+        #self.status = self.statusBar()
+        self.progress = QProgressBar()
+        #self.status.addPermanentWidget(self.progress)
+
+        layout = QGridLayout()
+
+        # Add widgets to the layout
+        layout.addWidget(self.Titre, 0, 0, 2, 4)
+        layout.addWidget(self.sous_titre, 1, 0, 1, 2)
+        layout.addWidget(self.PauseButton, 2, 0,2,2)
+        layout.addWidget(self.ResumeButton, 2, 2,2,2)
+        layout.addWidget(self.progress, 3, 0, 1, 4)
+
+        self.setLayout(layout)
+
+    def update_progress(self, n):
+        self.progress.setValue(n)
 
 class Window_PA(QWidget):
     submitted2 = qtc.pyqtSignal(list, str, int, int, str)
 
-    def __init__(self, number_of_color: int, filename, flag_bar, rgb_image, pd, ep, seq, sizedef, grey):
+    def __init__(self, number_of_color_set: int, filename, rgb_image, pd, ep, seq, sizedef, grey):
         super().__init__()
         # Geometrie
         self.setWindowTitle("Parametres avancés")
@@ -28,30 +117,31 @@ class Window_PA(QWidget):
         self.sous_titre.setFont(QFont('Arial', 20))
 
         # Variable
-        self.nb_couleur = number_of_color
+        self.nb_couleur = number_of_color_set
         self.image_a_imprimer = filename
-        self.rgb = []
-        self.rgb = rgb_image
+        self.Realrgb = []
+        self.Realrgb = rgb_image
         self.size = sizedef
         self.valueepaisseur = ep
         self.valuepoid = pd
         self.sequence = seq
         self.greyscale = grey
+        self.temp = self.Realrgb.copy()
 
         # Box Epaisseur de la ligne
-        self.epaisseur = QLineEdit(str(ep))
+        self.EpaisseurLine = QLineEdit(str(ep))
         # self.epaisseur = QLineEdit()
-        self.epaisseur.setValidator(QIntValidator())
-        self.epaisseur.setMaxLength(4)
-        self.epaisseur.setAlignment(Qt.AlignLeft)
-        self.epaisseur.setFont(QFont("Arial", 10))
+        self.EpaisseurLine.setValidator(QIntValidator())
+        self.EpaisseurLine.setMaxLength(4)
+        self.EpaisseurLine.setAlignment(Qt.AlignLeft)
+        self.EpaisseurLine.setFont(QFont("Arial", 10))
 
         # Box Poid de la ligne
-        self.poid = QLineEdit(str(pd))
-        self.poid.setValidator(QIntValidator())
-        self.poid.setMaxLength(4)
-        self.poid.setAlignment(Qt.AlignLeft)
-        self.poid.setFont(QFont("Arial", 10))
+        self.PoidLine = QLineEdit(str(pd))
+        self.PoidLine.setValidator(QIntValidator())
+        self.PoidLine.setMaxLength(4)
+        self.PoidLine.setAlignment(Qt.AlignLeft)
+        self.PoidLine.setFont(QFont("Arial", 10))
 
         # Check Box RealSize
         self.checkBox_Real = QCheckBox()
@@ -72,40 +162,40 @@ class Window_PA(QWidget):
             self.checkBox_Real.setChecked(False)
 
         # Selection Couleur
-        self.couleur = QSpinBox(minimum=1, maximum=self.nb_couleur, value=1)
-        self.couleur.valueChanged.connect(self.nb_couleur_fonct)
+        self.CouleurChoiceBox = QSpinBox(minimum=1, maximum=self.nb_couleur, value=1)
+        self.CouleurChoiceBox.valueChanged.connect(self.isCouleurChoiceBoxChange)
 
         # Couleur Dominant_image
-        self.dominant_image = QLabel()
+        self.DominantImage = QLabel()
         self.pixmap = QPixmap(
             self.resize_image(600, 200, 'Input/bar.jpg'))
-        self.dominant_image.setPixmap(self.pixmap)
+        self.DominantImage.setPixmap(self.pixmap)
 
         # Image a imprimer
-        self.load = QLabel()
+        self.Image = QLabel()
         self.pixmap = QPixmap(self.resize_image(400, 400, self.image_a_imprimer))
-        self.load.setPixmap(self.pixmap)
+        self.Image.setPixmap(self.pixmap)
 
         # Box ordre
-        self.ordre = QLineEdit(seq)
+        self.OrdreLine = QLineEdit(seq)
         # self.ordre.setMaxLength(1000)
-        self.ordre.setAlignment(Qt.AlignLeft)
-        self.ordre.setFont(QFont("Arial", 10))
+        self.OrdreLine.setAlignment(Qt.AlignLeft)
+        self.OrdreLine.setFont(QFont("Arial", 10))
 
         # Changement de couleur bouton
-        self.changeColor = QPushButton("Changer la couleur")
-        self.changeColor.clicked.connect(self.changement_de_couleur)
+        self.ChangeColorButton = QPushButton("Changer la couleur")
+        self.ChangeColorButton.clicked.connect(self.isChangeColorButtonPush)
 
         # Enregistrer Button
-        self.enregistrer_button = QPushButton("Enregistrer")
-        self.enregistrer_button.clicked.connect(self.enregistrer)
+        self.SaveButton = QPushButton("Enregistrer")
+        self.SaveButton.clicked.connect(self.SaveButtonPush)
 
         if self.greyscale:
             self.pixmap = QPixmap(
                 self.resize_image(600, 200, 'Input/grey.jpg'))
-            self.dominant_image.setPixmap(self.pixmap)
-            self.changeColor.setHidden(True)
-            self.ordre.setHidden(True)
+            self.DominantImage.setPixmap(self.pixmap)
+            self.ChangeColorButton.setHidden(True)
+            self.OrdreLine.setHidden(True)
 
         layout = QGridLayout()
 
@@ -113,15 +203,15 @@ class Window_PA(QWidget):
         layout.addWidget(self.Titre, 0, 0, 1, 4)
         layout.addWidget(self.sous_titre, 1, 0, 1, 4)
 
-        layout.addWidget(self.load, 0, 5, 4, 4)
+        layout.addWidget(self.Image, 0, 5, 4, 4)
 
         layout.addWidget(QLabel("Epaisseur de la corde:"), 2, 0, 1, 1)
-        layout.addWidget(self.epaisseur, 2, 1)
+        layout.addWidget(self.EpaisseurLine, 2, 1)
         layout.addWidget(QLabel("Poid de la ligne:"), 3, 0)
-        layout.addWidget(self.poid, 3, 1)
+        layout.addWidget(self.PoidLine, 3, 1)
 
         layout.addWidget(QLabel("Ordre des couleurs:"), 4, 0)
-        layout.addWidget(self.ordre, 4, 1)
+        layout.addWidget(self.OrdreLine, 4, 1)
 
         layout.addWidget(QLabel("Type de resolution:"), 5, 0)
         layout.addWidget(QLabel("Réel:"), 5, 1)
@@ -129,11 +219,11 @@ class Window_PA(QWidget):
         layout.addWidget(QLabel("Recadrer:"), 6, 1)
         layout.addWidget(self.checkBox_Resize, 6, 2)
         layout.addWidget(QLabel("Changer la couleur:"), 7, 0)
-        layout.addWidget(self.couleur, 7, 1)
-        layout.addWidget(self.changeColor, 7, 3)
+        layout.addWidget(self.CouleurChoiceBox, 7, 1)
+        layout.addWidget(self.ChangeColorButton, 7, 3)
 
-        layout.addWidget(self.dominant_image, 8, 0, 1, 4)
-        layout.addWidget(self.enregistrer_button, 9, 0, 1, 1)
+        layout.addWidget(self.DominantImage, 8, 0, 1, 4)
+        layout.addWidget(self.SaveButton, 9, 0, 1, 1)
 
         self.setLayout(layout)
 
@@ -161,9 +251,44 @@ class Window_PA(QWidget):
         #     else:
         #         self.checkBox_Resize.setChecked(False)
 
-    def nb_couleur_fonct(self):
-        self.numero_de_couleur = self.couleur.value()
+    def isCouleurChoiceBoxChange(self):
+        self.numero_de_couleur = self.CouleurChoiceBox.value()
         return
+
+    def isChangeColorButtonPush(self):
+
+        self.isCouleurChoiceBoxChange()
+        color = QColorDialog.getColor()
+        #self.temp = self.Realrgb.copy()
+
+        if color.isValid():
+            NewRGB = color.getRgb()
+            NewRGB = NewRGB[0:3]
+
+            # Pas le choix de faire ça sinon fonctionne pas
+            indice = self.numero_de_couleur - 1
+            indice = int(indice)
+
+            self.temp[indice] = NewRGB
+            self.redoBand(self.temp)
+
+            self.pixmap = QPixmap(self.resize_image(600, 200,
+                                                    'Input/bar.jpg'))
+            self.DominantImage.setPixmap(self.pixmap)
+
+    def SaveButtonPush(self):
+
+        if self.checkBox_Resize.checkState() == False and self.checkBox_Real.checkState() == False:
+            QMessageBox.information(self, 'ERREUR', "Il n'y a pas de type de resolution coche (;", QMessageBox.Ok)
+            return
+
+        else:
+            self.Realrgb = self.temp
+            self.valuepoid = int(self.PoidLine.text())
+            self.valueepaisseur = int(self.EpaisseurLine.text())
+            self.sequence = self.OrdreLine.text()
+            self.submitted2.emit(self.Realrgb, self.size, self.valueepaisseur, self.valuepoid, self.sequence)
+            self.close()
 
     def resize_image(self, largeur, hauteur, image_path):
 
@@ -172,39 +297,6 @@ class Window_PA(QWidget):
         resized.save(image_path)
 
         return image_path
-
-    def changement_de_couleur(self):
-
-        self.nb_couleur_fonct()
-        color = QColorDialog.getColor()
-
-        if color.isValid():
-            lol = color.getRgb()
-            lol = lol[0:3]
-
-            # Pas le choix de faire ça sinon fonctionne pas
-            indice = self.numero_de_couleur - 1
-            indice = int(indice)
-
-            self.rgb[indice] = lol
-            self.redoBand(self.rgb)
-
-            self.pixmap = QPixmap(self.resize_image(600, 200,
-                                                    'Input/bar.jpg'))
-            self.dominant_image.setPixmap(self.pixmap)
-
-    def enregistrer(self):
-
-        if self.checkBox_Resize.checkState() == False and self.checkBox_Real.checkState() == False:
-            QMessageBox.information(self, 'ERREUR', "Il n'y a pas de type de resolution coche (;", QMessageBox.Ok)
-            return
-
-        else:
-            self.valuepoid = int(self.poid.text())
-            self.valueepaisseur = int(self.epaisseur.text())
-            self.sequence = self.ordre.text()
-            self.submitted2.emit(self.rgb, self.size, self.valueepaisseur, self.valuepoid, self.sequence)
-            self.close()
 
     def redoBand(self, new_rgb):
         font = cv2.FONT_HERSHEY_SIMPLEX
@@ -232,12 +324,7 @@ class Window_PA(QWidget):
         bar[:] = (blue, green, red)
         return bar, (red, green, blue)
 
-
 class Window_GetName(QWidget):
-    """
-    This "window" is a QWidget. If it has no parent, it
-    will appear as a free-floating window as we want.
-    """
     submitted = qtc.pyqtSignal(str)
 
     def __init__(self):
@@ -280,7 +367,6 @@ class Window_GetName(QWidget):
     def canc_clique(self):
         self.close()
 
-
 class Window(QWidget):
     def __init__(self):
         super().__init__()
@@ -302,15 +388,15 @@ class Window(QWidget):
 
         # Variable Globale Necessaire
         self.fnameImage = ['Input/no.png']
-        self.flag_calculate = False
-        self.flag_couleur = True
         self.data_nbcouleur = 1
-        self.fnameCouleurBar = ""
-        self.flag_bar = False
         self.rgb_values = []
 
+        # Flags
+        self.flag_calculate = False
+        self.flag_browse = False
+
         # Parametre defaut
-        self.greyscale = False
+        self.GreyScale = False
         self.defautpoid = 10
         self.defautep = 10
         self.sequencedefaut = ""
@@ -423,16 +509,19 @@ class Window(QWidget):
         self.setLayout(layout)
 
     def isBrowseButtonClick(self):
-        self.flag_bar = True
+
+        self.flag_browse = True
+        self.flag_calculate = False
+
         self.fnameImage = QFileDialog.getOpenFileName(self, 'Open file')
-        self.image_path.setText(self.fnameImage [0])
+        self.image_path.setText(self.fnameImage[0])
 
         self.pixmap = QPixmap(self.resize_image(400, 400,  self.fnameImage[0]))
         self.VOImage.setPixmap(self.pixmap)
 
         self.analyse_image( self.fnameImage[0])
 
-        if self.greyscale:
+        if self.GreyScale:
             self.pixmap = QPixmap(
                 self.resize_image(600, 300, 'Input/grey.jpg'))
             self.DominantImage.setPixmap(self.pixmap)
@@ -440,6 +529,7 @@ class Window(QWidget):
             self.pixmap = QPixmap(
                 self.resize_image(600, 300, 'Input/bar.jpg'))
             self.DominantImage.setPixmap(self.pixmap)
+        self.flag_browse = False
 
     def isCalculateButtonClick(self):
 
@@ -467,7 +557,7 @@ class Window(QWidget):
             print("Le diametre est de:", data_dim)
 
             Radius = int(self.diam * 2)
-            if self.greyscale is False:
+            if self.GreyScale is False:
 
                 palette = {}
                 keys = range(self.data_nbcouleur)
@@ -515,26 +605,36 @@ class Window(QWidget):
             self.PreviewImage.setPixmap(pixmap)
 
     def isSendButtonClick(self):
-        if self.flag_calculate:
-            print("lol")
 
-        else:
-            QMessageBox.information(self, 'ERREUR', "Il faut calculer avant d'envoyer", QMessageBox.Ok)
+
+        self.ProgressBar= Window_Progress()
+        self.ProgressBar.show()
+
+        # if self.flag_calculate:
+        #     print("lol")
+        #
+        # else:
+        #     QMessageBox.information(self, 'ERREUR', "Il faut calculer avant d'envoyer", QMessageBox.Ok)
 
     def isNextButtonClick(self):
-        self.compteur += 1
-        if self.compteur <= self.data_nbcouleur:
-            name = "c" + str(self.compteur) + ".png"
-            filename = "Output/" + name
 
-        if self.compteur > self.data_nbcouleur:
-            self.compteur = self.data_nbcouleur
-            name = "c" + str(self.compteur) + ".png"
-            filename = "Output/" + name
+        if self.GreyScale:
+            return
 
-        pixmap = QPixmap(
-            self.resize_image(400, 400, filename))
-        self.PreviewImage.setPixmap(pixmap)
+        else:
+            self.compteur += 1
+            if self.compteur <= self.data_nbcouleur:
+                name = "c" + str(self.compteur) + ".png"
+                filename = "Output/" + name
+
+            if self.compteur > self.data_nbcouleur:
+                self.compteur = self.data_nbcouleur
+                name = "c" + str(self.compteur) + ".png"
+                filename = "Output/" + name
+
+            pixmap = QPixmap(
+                self.resize_image(400, 400, filename))
+            self.PreviewImage.setPixmap(pixmap)
 
     def isPrecedantButtonClick(self):
         self.compteur -= 1
@@ -555,7 +655,7 @@ class Window(QWidget):
         self.data_nbcouleur = self.NbCouleurBox.value()
         self.sequence()
 
-        if self.fnameImage[0] != 'Input/no.png' and self.flag_couleur == True:
+        if self.fnameImage[0] != 'Input/no.png':
             self.analyse_image(self.fnameImage[0])
             self.pixmap = QPixmap(
                 self.resize_image(600, 300, 'Input/bar.jpg'))
@@ -569,28 +669,25 @@ class Window(QWidget):
             QMessageBox.information(self, 'ERREUR', "Il n'y a pas d'image (;", QMessageBox.Ok)
 
         else:
-            # self.flag_couleur = False
-            # self.nb_couleur_fonct()
-            # self.flag_couleur = True
 
-            self.PM = Window_PA(self.data_nbcouleur, self.fnameImage[0], self.flag_bar, self.rgb_values, self.defautpoid,
-                                self.defautep, self.sequencedefaut, self.sizedef, self.greyscale)
+            self.PM = Window_PA(self.data_nbcouleur, self.fnameImage[0], self.rgb_values, self.defautpoid,
+                                self.defautep, self.sequencedefaut, self.sizedef, self.GreyScale)
             self.PM.submitted2.connect(self.UpdateValues)
             self.PM.show()
 
     def GreyBoxCheck(self):
 
         if self.GreyBox.checkState():
-            self.greyscale = True
+            self.GreyScale = True
             print("here")
             self.pixmap = QPixmap(
                 self.resize_image(600, 300, 'Input/grey.jpg'))
             self.DominantImage.setPixmap(self.pixmap)
             self.NbCouleurBox.setHidden(True)
         else:
-            self.greyscale = False
+            self.GreyScale = False
             self.NbCouleurBox.setHidden(False)
-            if self.fnameImage[0] != 'Input/no.png' and self.flag_couleur == True:
+            if self.fnameImage[0] != 'Input/no.png':
                 self.analyse_image(self.fnameImage[0])
                 self.pixmap = QPixmap(
                     self.resize_image(600, 300, 'Input/bar.jpg'))
@@ -688,7 +785,9 @@ class Window(QWidget):
 
     def saveCSV(self, name):
 
-        with open(name, 'w', newline='') as file:
+        name_fichier = "Parametre/" + name
+
+        with open(name_fichier, 'w', newline='') as file:
             writer = csv.writer(file)
 
             writer.writerow(["Nom_du_Paramètre", "Valeur"])
@@ -728,7 +827,7 @@ class Window(QWidget):
         self.sequencedefaut = seq
         self.sizedef = size
 
-        if self.greyscale:
+        if self.GreyScale:
             self.pixmap = QPixmap(
                 self.resize_image(600, 300, 'Input/grey.jpg'))
             self.DominantImage.setPixmap(self.pixmap)
@@ -740,7 +839,7 @@ class Window(QWidget):
     def sequence(self):
         self.sequencedefaut = ""
 
-        if self.greyscale:
+        if self.GreyScale:
             self.sequencedefaut = "c1 c1 c1 c1"
 
         else:
@@ -794,13 +893,18 @@ class Window(QWidget):
 
         image = Image.open(image_path)
         resized = image.resize((largeur, hauteur))
-        resized.save(image_path)
+
+        if self.flag_browse:
+            resized.save("resize_image.png")
+            image_path = "resize_image.png"
+
+        else:
+            resized.save(image_path)
 
         return image_path
 
     def NameClousCSV(self, name_new):
         self.nameFileClousCSV = name_new + '.csv'
-
 
 
 if __name__ == "__main__":

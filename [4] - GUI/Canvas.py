@@ -76,7 +76,7 @@ def ComputeThreads(img, numLines, numPins, Coords, Angles, initPin=0, minLoop=3,
         oldCoord = Coords[oldPin]
 
         # Loop over possible lines
-        for index in range(1, numPins):
+        for index in range(5, numPins-5):
             pin = (oldPin + index) % numPins
             lineSum = 0
             coord = Coords[pin]
