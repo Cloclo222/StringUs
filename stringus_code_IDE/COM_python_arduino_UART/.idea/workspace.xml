@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="a7fa07ac-0398-4e33-b67f-704ba332429f" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SerialArduinoCom/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/SerialArduinoCom/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../stringus_code_IDE/src/Scara/scara.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../stringus_code_IDE/src/Scara/scara.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../stringus_code_IDE/src/Scara/scara.h" beforeDir="false" afterPath="$PROJECT_DIR$/../stringus_code_IDE/src/Scara/scara.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../stringus_code_IDE/stringus_code_IDE.ino" beforeDir="false" afterPath="$PROJECT_DIR$/../stringus_code_IDE/stringus_code_IDE.ino" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 1
+}</component>
+  <component name="ProjectId" id="2cgTXkPcR2HhjXIkqP6zGmczxEb" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="a7fa07ac-0398-4e33-b67f-704ba332429f" name="Changes" comment="" />
+      <created>1708532264370</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1708532264370</updated>
+      <workItem from="1708532265321" duration="477000" />
+      <workItem from="1708537429127" duration="1560000" />
+      <workItem from="1708544898868" duration="899000" />
+      <workItem from="1708548185476" duration="47000" />
+      <workItem from="1708548278543" duration="117000" />
+      <workItem from="1708548461916" duration="9000" />
+      <workItem from="1708548546197" duration="1238000" />
+      <workItem from="1708550999892" duration="10000" />
+      <workItem from="1708810411411" duration="262000" />
+      <workItem from="1708955216973" duration="574000" />
+      <workItem from="1709047245140" duration="788000" />
+      <workItem from="1709048567699" duration="1082000" />
+      <workItem from="1709049683913" duration="1945000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/COM_python_arduino_UART$main.coverage" NAME="main Coverage Results" MODIFIED="1709051599416" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/SerialArduinoCom" />
+  </component>
+</project>
