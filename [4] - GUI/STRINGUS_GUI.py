@@ -606,7 +606,6 @@ class Window(QWidget):
 
     def isSendButtonClick(self):
 
-
         self.ProgressBar= Window_Progress()
         self.ProgressBar.show()
 
