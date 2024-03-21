@@ -1,3 +1,4 @@
+import pandas as pd
 import serial
 import time
 import numpy as np
@@ -10,7 +11,7 @@ class SCARA_COM:
     def __init__(self, COM):
 
         # TODO CHECK TON CRISSE DE PORT
-        arduino = serial.Serial('COM7', 115200, timeout=1)
+        arduino = serial.Serial('COM%i'%COM, 115200, timeout=1)
         time.sleep(2)  # Temps pour que la connection se fasse
         matplotlib.use("TkAgg")
 
@@ -50,6 +51,9 @@ class SCARA_COM:
         for i in range(np.shape(self.pins)[1]):
             self.pinsInPulse[0][i] = self.angles[self.pins[0][i]]
             self.pinsInPulse[1][i] = self.angles[self.pins[1][i]]
+
+    def getNumLinesCSV(self):
+        return len(self.csvfile)
 
     def readPos(self):
         self.arduino.write('{T1}'.encode())

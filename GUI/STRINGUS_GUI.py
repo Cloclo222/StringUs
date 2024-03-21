@@ -1,6 +1,8 @@
 import sys
 import cv2
 import csv
+
+import matplotlib
 import numpy as np
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QLineEdit, QFormLayout, QGridLayout, QHBoxLayout, \
     QLabel, QFileDialog, QComboBox, QMessageBox, QSpinBox, QMenu, QMenuBar, QAction, QMainWindow, QInputDialog, \
@@ -14,6 +16,9 @@ from PyQt5 import QtCore as qtc
 #from Canvas import *
 import time
 from Crop_window1 import *
+from stringus_code_IDE.COM_python_arduino_UART.SerialArduinoCom.SCARA_COM import *
+
+matplotlib.use("TkAgg")
 
 # import sys
 # sys.path.append('StringUs/ImageProcessing/Canvas.py')
@@ -27,19 +32,25 @@ class JobRunner(QRunnable):
 
     signals = WorkerSignals()
 
-    def __init__(self):
+    def __init__(self, filename, nb_clous):
         super().__init__()
 
         self.is_paused = False
         self.is_killed = False
+        self.scara_com = SCARA_COM(3) #TODO : CUM
+        self.scara_com.readThreadedCSV(filename, nb_clous)
+        self.NumCSVLines = self.scara_com.getNumLinesCSV()
 
     @pyqtSlot()
     def run(self):
-        for n in range(100):
-            self.signals.progress.emit(n+1)
+        for index, cmd in enumerate(self.send.commandes):
+            percent = int(index/self.NumCSVLines * 100)
+            self.signals.progress.emit(percent)
+            self.send.send_one_line(index,cmd)
             time.sleep(0.1)
-
+            print("not paused")
             while self.is_paused:
+                print("paused")
                 time.sleep(0)
 
             if self.is_killed:
@@ -53,10 +64,9 @@ class JobRunner(QRunnable):
 
     def kill(self):
         self.is_killed = True
-
 class Window_Progress(QWidget):
 
-    def __init__(self):
+    def __init__(self,filename, nb_clous):
         super().__init__()
 
         self.setWindowTitle("Information Robot")
@@ -72,7 +82,7 @@ class Window_Progress(QWidget):
         self.threadpool = QThreadPool()
 
         # Create a runner
-        self.runner = JobRunner()
+        self.runner = JobRunner(filename, nb_clous)
         self.runner.signals.progress.connect(self.update_progress)
         self.threadpool.start(self.runner)
 
@@ -626,8 +636,8 @@ class Window(QWidget):
             self.PreviewImage.setPixmap(pixmap)
 
     def isSendButtonClick(self):
-
-        self.ProgressBar= Window_Progress()
+        self.nbclous = int(self.ClousLine.text())
+        self.ProgressBar= Window_Progress("Output/ThreadedCSVFile.csv",self.nbclous)
         self.ProgressBar.show()
 
         # if self.flag_calculate:
