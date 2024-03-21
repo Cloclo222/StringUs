@@ -30,7 +30,7 @@ void setup() {
     Serial.println("Moteur init.");
 
     delay(2000);
-    _scara.setAcceleration(2500);
+    _scara.setAcceleration(15,3);
     _scara.homing();
     Serial.println("Homing complete.");
     
@@ -81,7 +81,7 @@ void executeCommand(const char* command) {
           _scara.setScaraPos(position);
           int current_table_pos = _scara.getLastCmd()[2];
           // Serial.println("im in isPos");
-          _scara.isPos(position, current_table_pos);
+          _scara.jointisPos(position);
           // Serial.println("im out isPos");
           
         }
@@ -97,12 +97,9 @@ void executeCommand(const char* command) {
       // 2 : ...
       case 2: {                                                    
         int angle1;
-        sscanf(command + 2, "%d", &angle1);
         if (sscanf(command + 2, "%d", &angle1) == 1) { //Regarde s'il y a 1 angle
           _scara.setTablePos(angle1);
-          int current_pos[2] = {_scara.getLastCmd()[0],_scara.getLastCmd()[1]};
-          _scara.isPos(current_pos,angle1);
-          
+          _scara.tableisPos(angle1);
         }
 
         else{
@@ -116,8 +113,6 @@ void executeCommand(const char* command) {
       // 3 : ...
       case 3: {
         int angleGauche, angleDroite, angleTable;
-
-        sscanf(command + 2, "%d %d %d", &angleGauche,  &angleDroite,  &angleTable);
         if (sscanf(command + 2, "%d %d %d", &angleGauche,  &angleDroite,  &angleTable) == 3) { //Regarde s'il y a 1 angle
           
           int position[2] = {angleGauche, angleDroite};
@@ -128,7 +123,8 @@ void executeCommand(const char* command) {
           _scara.setScaraPos(position);
 
           int current_pos[2] = {_scara.getLastCmd()[0],_scara.getLastCmd()[1]};
-          _scara.isPos(current_pos, angleTable);
+          _scara.tableisPos(angleTable);
+          _scara.jointisPos(current_pos);
 
           delay(200);
           
@@ -139,6 +135,54 @@ void executeCommand(const char* command) {
         }
         break;
       }
+
+      case 4: {
+        while(true){
+          _scara.doSeq(0);
+          _scara.setTablePos(0);
+          _scara.tableisPos(0);
+          Serial.print('1');
+          _scara.setTablePos(100);
+          _scara.doSeq(0);
+          _scara.tableisPos(100);
+          Serial.print('1');
+        }
+        
+        break;
+      }
+      
+      case 5: {
+        int angle1;
+        if (sscanf(command + 2, "%d", &angle1) == 1) { //Regarde s'il y a 1 angle
+          int CE = _scara.getLastCmd()[2];
+          int CRT = floor(CE/4096)*4096 + angle1;
+          int current_pos[2] = {_scara.getLastCmd()[0],_scara.getLastCmd()[1]};
+
+          if(abs(CRT-CE)<2048){
+            if(CRT>CE){
+              _scara.setTablePos(CRT - _scara.range);
+              _scara.tableisPos(CRT - _scara.range);
+              //_scara.doSeq(0);
+            }else{
+               _scara.setTablePos(CRT + _scara.range);
+               _scara.tableisPos(CRT + _scara.range);
+               //_scara.doSeq(1);
+            } 
+          }else{
+            if(CRT>CE){
+              _scara.setTablePos(CRT - 4096 + _scara.range);
+              _scara.tableisPos(CRT - 4096 + _scara.range);
+              //_scara.doSeq(1);
+            }else{
+               _scara.setTablePos(CRT + 4096 - _scara.range);
+               _scara.tableisPos(CRT + 4096 - _scara.range);
+               //_scara.doSeq(1);
+            } 
+          }
+        }
+        Serial.println('erreur C5');
+        break;
+      }
     }
      Serial.println('1'); // Retourne 1 au programme Python pour demander une prochaine commande
   }
@@ -146,9 +190,6 @@ void executeCommand(const char* command) {
     char command_char = command[1];
     int command_int = command_char - '0';
     switch (command_int) { // Regarde le chiffre de commande
-                  
-      //==============================================================================================================//
-      // 1 : Mouvement simple jusqu'à l'angle demandé
       case 0: {                                                      
         _scara.toggleTorque(0);
         Serial.println('1');    
@@ -156,6 +197,22 @@ void executeCommand(const char* command) {
       }
       case 1: {
         printPos();
+        break;
+      }
+      case 2: {
+        int i = 0;
+        while(i<100){
+          if(_dxl.readControlTableItem(MOVING, moteur_gauche) || _dxl.readControlTableItem(MOVING, moteur_droit))
+          {
+            _scara.seq0[i][0] = _scara.getDxlPos(moteur_gauche);
+            Serial.println(_scara.seq0[i][0]);
+            _scara.seq0[i][1] = _scara.getDxlPos(moteur_droit);
+            Serial.println(_scara.seq0[i][1]);
+            i++;
+          }
+          delay(30);
+        }
+        _scara.toggleTorque(1);
         break;
       }
     }
@@ -170,3 +227,4 @@ void printPos(){
   Serial.println(right_pos);
   Serial.println(table_pos);
 }
+
