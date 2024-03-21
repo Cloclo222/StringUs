@@ -1,6 +1,6 @@
 import itertools
 
-from Canvas import *
+#from Canvas import *
 import numpy as np
 import os
 import cv2

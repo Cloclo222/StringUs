@@ -11,8 +11,14 @@ from PyQt5.QtCore import (
 )
 from PIL import Image
 from PyQt5 import QtCore as qtc
-from Canvas import *
+#from Canvas import *
 import time
+from Crop_window1 import *
+
+# import sys
+# sys.path.append('StringUs/ImageProcessing/Canvas.py')
+from ImageProcessing.Canvas import *
+#from ImageProcessing.misc import *
 
 class WorkerSignals(QObject):
     progress = qtc.pyqtSignal(int)
@@ -30,7 +36,7 @@ class JobRunner(QRunnable):
     @pyqtSlot()
     def run(self):
         for n in range(100):
-            self.signals.progress.emit(n + 1)
+            self.signals.progress.emit(n+1)
             time.sleep(0.1)
 
             while self.is_paused:
@@ -186,6 +192,10 @@ class Window_PA(QWidget):
         self.ChangeColorButton = QPushButton("Changer la couleur")
         self.ChangeColorButton.clicked.connect(self.isChangeColorButtonPush)
 
+        # Crop Button
+        self.CropButton = QPushButton("Modifier l'image")
+        self.CropButton.clicked.connect(self.isCropButtonPush)
+
         # Enregistrer Button
         self.SaveButton = QPushButton("Enregistrer")
         self.SaveButton.clicked.connect(self.SaveButtonPush)
@@ -221,6 +231,8 @@ class Window_PA(QWidget):
         layout.addWidget(QLabel("Changer la couleur:"), 7, 0)
         layout.addWidget(self.CouleurChoiceBox, 7, 1)
         layout.addWidget(self.ChangeColorButton, 7, 3)
+
+        layout.addWidget(self.CropButton,4,5,3,4)
 
         layout.addWidget(self.DominantImage, 8, 0, 1, 4)
         layout.addWidget(self.SaveButton, 9, 0, 1, 1)
@@ -289,6 +301,12 @@ class Window_PA(QWidget):
             self.sequence = self.OrdreLine.text()
             self.submitted2.emit(self.Realrgb, self.size, self.valueepaisseur, self.valuepoid, self.sequence)
             self.close()
+
+    def isCropButtonPush(self):
+
+        lol = [self.image_a_imprimer]
+        self.window = Main(lol)
+        self.window.show()
 
     def resize_image(self, largeur, hauteur, image_path):
 
@@ -514,6 +532,9 @@ class Window(QWidget):
         self.flag_calculate = False
 
         self.fnameImage = QFileDialog.getOpenFileName(self, 'Open file')
+        #
+        # if not self.fnameImage:
+        #     return
         self.image_path.setText(self.fnameImage[0])
 
         self.pixmap = QPixmap(self.resize_image(400, 400,  self.fnameImage[0]))
@@ -894,8 +915,8 @@ class Window(QWidget):
         resized = image.resize((largeur, hauteur))
 
         if self.flag_browse:
-            resized.save("resize_image.png")
-            image_path = "resize_image.png"
+            resized.save("Output/resize_image.png")
+            image_path = "Output/resize_image.png"
 
         else:
             resized.save(image_path)

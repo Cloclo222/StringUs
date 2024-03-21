@@ -4,7 +4,6 @@ from PIL import Image, ImageDraw, ImageFilter
 import plotly.express as px
 import numba
 import cv2
-from misc import *
 
 
 @numba.njit
@@ -76,7 +75,7 @@ def ComputeThreads(img, numLines, numPins, Coords, Angles, initPin=0, minLoop=3,
         oldCoord = Coords[oldPin]
 
         # Loop over possible lines
-        for index in range(1, numPins):
+        for index in range(5, numPins - 5):
             pin = (oldPin + index) % numPins
             lineSum = 0
             coord = Coords[pin]
@@ -101,7 +100,7 @@ def ComputeThreads(img, numLines, numPins, Coords, Angles, initPin=0, minLoop=3,
         img = np.subtract(img, lineMask)
 
         progress = img / 255
-        cv2.imshow('%s'%colour, cv2.resize(progress, (1000, 1000)))
+        cv2.imshow('%s' % colour, cv2.resize(progress, (1000, 1000)))
         cv2.waitKey(1)
 
         # Save line to results\
@@ -125,6 +124,15 @@ def ComputeThreads(img, numLines, numPins, Coords, Angles, initPin=0, minLoop=3,
     return lines
 
 
+def WriteThreadedCsvFile(filename, lines, imgRadius=1000):
+    csv_output = open(filename, 'wb')
+    csv_output.write("p1,p2,R,G,B\n".encode('utf8'))
+    csver = lambda p1, p2, R, G, B: "%i" % p1 + "," + "%i" % p2 + "," + "%i" % R + "," + "%i" % G + "," + "%i" % B + "\n"
+    for l in lines:
+        csv_output.write(csver(l[0][0], l[0][1], l[1][0], l[1][1], l[1][2]).encode('utf8'))
+    csv_output.close()
+
+
 class Canvas:
 
     def __init__(self,
@@ -135,11 +143,10 @@ class Canvas:
                  lineWidth=10,
                  lineWeight=10,
                  minLoop=3,
-                 Cropping=False,
                  palette=None,
                  numLinesPerColour=None,
                  group_orders=None,
-                 fillColor=(255,255,255),
+                 fillColor=(255, 255, 255),
                  Topleftpixel=(0, 0),
                  CropDiameter=1000
                  ):
@@ -158,10 +165,9 @@ class Canvas:
 
         self.totalLines = None
 
-        if Cropping is True:
-            self.base_img = centerImg(self.filename, fillColor=fillColor, Topleftpixel=Topleftpixel, imgDiameter=CropDiameter).resize((2*img_radius+1, 2*img_radius+1))
-        else:
-            self.base_img = Image.open(self.filename,).convert('RGB').resize((self.img_radius * 2 + 1, self.img_radius * 2 + 1))
+
+        self.base_img = Image.open(self.filename, ).convert('RGB').resize(
+            (self.img_radius * 2 + 1, self.img_radius * 2 + 1))
 
         self.pinCoords(numPins=self.numPins)
 
@@ -182,7 +188,8 @@ class Canvas:
 
             self.color_names = list(self.palette.keys())
             self.color_values = list(self.palette.values())
-            first_color_letters = [color[0] for color in self.color_names]
+
+            first_color_letters = [color[1] for color in self.color_names]
             assert len(set(first_color_letters)) == len(
                 first_color_letters), "First letter of each color name must be unique."
             # assert set(first_color_letters) == set(group_orders), "Invalid letter in group_order"
@@ -225,19 +232,19 @@ class Canvas:
         if self.greyscale is True:
             # assert numLines != 0, "Must specify number of lines in buildCanvas, for Greyscale"
             Lines = ComputeThreads(self.img_couleur_sep["grey"],
-                                             numLines=numLines,
-                                             numPins=self.numPins,
-                                             Coords=self.Coords,
-                                             Angles=self.Angles,
-                                             initPin=self.initPin,
-                                             lineWidth=self.lineWidth,
-                                             lineWeight=self.lineWeight,
-                                             colour='black')
+                                   numLines=numLines,
+                                   numPins=self.numPins,
+                                   Coords=self.Coords,
+                                   Angles=self.Angles,
+                                   initPin=self.initPin,
+                                   lineWidth=self.lineWidth,
+                                   lineWeight=self.lineWeight,
+                                   colour='black')
             Lines = np.flipud(Lines)
             print("\n[+] Image threaded")
             # for line in enumerate(Lines):
             #     self.totalLines[i] = [line, "black"]
-            z = [(0,0,0) for i in range(len(Lines))]
+            z = [(0, 0, 0) for i in range(len(Lines))]
             self.totalLines = list(zip(Lines, z))
 
         else:
@@ -262,9 +269,9 @@ class Canvas:
             color_counters = {k: 0 for k in color_names}
             matching_rgb = list(self.palette.values())
 
-            for g in self.group_orders:
-                num_instances = len([c for c in self.group_orders if c == g])
-                matching_color = [c for c in color_names if c[0] == g][0]
+            for g in self.group_orders.split():
+                num_instances = len([c for c in self.group_orders.split() if c == g])
+                matching_color = [c for c in color_names if c == g][0]
                 if self.palette[matching_color] == background and excludeBackground is True:
                     continue
                 else:
@@ -288,7 +295,7 @@ class Canvas:
                 colour = line[-1]
                 outputDraw.line((self.Coords[pin1], self.Coords[pin2]), fill=colour)
         else:
-            output = Image.new('L', (self.img_radius * 2, self.img_radius * 2),255)
+            output = Image.new('L', (self.img_radius * 2, self.img_radius * 2), 255)
             outputDraw = ImageDraw.Draw(output)
             for line in self.totalLines:
                 pin1 = line[0][0]
