@@ -25,6 +25,7 @@ void Scara::init_moteur()
     //_dxl.writeControlTableItem(MAX_POSITION_LIMIT, moteur_gauche, 4095);
     _dxl.writeControlTableItem(DRIVE_MODE, moteur_gauche, 0);
     _dxl.writeControlTableItem(HOMING_OFFSET, moteur_gauche, 0);
+    _dxl.writeControlTableItem(MOVING_THRESHOLD, moteur_gauche, 1);
     _dxl.ledOn(moteur_gauche);
     _dxl.torqueOn(moteur_gauche); 
 
@@ -34,11 +35,12 @@ void Scara::init_moteur()
     //_dxl.writeControlTableItem(MAX_POSITION_LIMIT, moteur_droit, 4095);
     _dxl.writeControlTableItem(DRIVE_MODE, moteur_droit, 1);
     _dxl.writeControlTableItem(HOMING_OFFSET, moteur_droit, 0);
+    _dxl.writeControlTableItem(MOVING_THRESHOLD, moteur_droit, 1);
     _dxl.ledOn(moteur_droit);
     _dxl.torqueOn(moteur_droit);  
 
     _dxl.torqueOff(moteur_table);
-    _dxl.setOperatingMode(moteur_table, OP_POSITION);
+    _dxl.setOperatingMode(moteur_table, OP_EXTENDED_POSITION);
     //_dxl.writeControlTableItem(MIN_POSITION_LIMIT, moteur_droit, 0);
     //_dxl.writeControlTableItem(MAX_POSITION_LIMIT, moteur_droit, 4095);
     _dxl.writeControlTableItem(DRIVE_MODE, moteur_table, 0);
@@ -61,6 +63,14 @@ void Scara::setScaraPos(int jointPos[2])
 
 }
 
+void Scara::doSeq(int side){
+  for(int i = 0; i < 100; i++)
+    {
+        this->setScaraPos(this->seqOfficial[i]);
+        delay(5);
+    }
+}
+
 void Scara::setTablePos(int TablePos)
 {
     _dxl.setGoalPosition(moteur_table, TablePos);
@@ -68,21 +78,28 @@ void Scara::setTablePos(int TablePos)
 
 }
 
-void Scara::isPos(int jointPos[2], int TablePos) {
+void Scara::jointisPos(int jointPos[2]) {
     bool isMoteurGaucheInPosition = false;
     bool isMoteurDroitInPosition = false;
-    bool isMoteurTableInPosition = false;
     int marge_erreur = 2;
     
-    while (!isMoteurGaucheInPosition || !isMoteurDroitInPosition || !isMoteurTableInPosition) {
+    while (!isMoteurGaucheInPosition || !isMoteurDroitInPosition) {
         float currentPosGauche = _dxl.getPresentPosition(moteur_gauche);
         float currentPosDroit = _dxl.getPresentPosition(moteur_droit);
-        float currentPosTable = _dxl.getPresentPosition(moteur_table);
         
         isMoteurGaucheInPosition = abs(currentPosGauche - jointPos[0]) <= marge_erreur;
         isMoteurDroitInPosition = abs(currentPosDroit - jointPos[1]) <= marge_erreur;
+        delay(50); // Delay to prevent overwhelming the controller with requests.
+    }
+}
+
+void Scara::tableisPos(int TablePos) {
+    bool isMoteurTableInPosition = false;
+    int marge_erreur = 2;
+    
+    while (!isMoteurTableInPosition) {
+        float currentPosTable = _dxl.getPresentPosition(moteur_table);
         isMoteurTableInPosition = abs(currentPosTable - TablePos) <= marge_erreur;
-        
         delay(50); // Delay to prevent overwhelming the controller with requests.
     }
 }
@@ -107,7 +124,8 @@ int* Scara::getLastCmd()
 
 float Scara::getDxlPos(int moteur)
 {
-    float currentPosGauche = _dxl.getPresentPosition(moteur);
+    int currentPosGauche = _dxl.getPresentPosition(moteur);
+    return currentPosGauche;
 }
 
 void Scara::toggleTorque(int i)
@@ -161,13 +179,13 @@ void Scara::setSpeedForLinearMov(int jointPos[2], uint8_t speedLimit)
 
 }
 
-void Scara::setAcceleration(uint8_t AccelLimit)
+void Scara::setAcceleration(uint8_t AccelLimitBras, uint8_t AccelLimitTable)
 {
     using namespace ControlTableItem;
-    _dxl.writeControlTableItem(PROFILE_ACCELERATION, moteur_droit, AccelLimit);
-    _dxl.writeControlTableItem(PROFILE_ACCELERATION, moteur_gauche, AccelLimit);
-    _dxl.writeControlTableItem(PROFILE_ACCELERATION, moteur_table, AccelLimit);
-    this->SpeedAccel[1] = AccelLimit;
+    _dxl.writeControlTableItem(PROFILE_ACCELERATION, moteur_droit, AccelLimitBras);
+    _dxl.writeControlTableItem(PROFILE_ACCELERATION, moteur_gauche, AccelLimitBras);
+    _dxl.writeControlTableItem(PROFILE_ACCELERATION, moteur_table, AccelLimitTable);
+    this->SpeedAccel[1] = AccelLimitTable;
 }
 
 int* Scara::getSpeedAccel()
@@ -179,8 +197,6 @@ void Scara::homing(){
 
     this->setSpeed(20,20);
     _dxl.writeControlTableItem(PROFILE_VELOCITY, moteur_table, 40);
-    this->setAcceleration(0);
-
 
     _dxl.setGoalPosition(moteur_gauche, Pos_default[0]);
     _dxl.setGoalPosition(moteur_droit, Pos_default[1]);
