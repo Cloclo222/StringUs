@@ -13,7 +13,6 @@ from PyQt5.QtCore import (
 )
 from PIL import Image
 from PyQt5 import QtCore as qtc
-#from Canvas import *
 import time
 from Crop_window1 import *
 from stringus_code_IDE.COM_python_arduino_UART.SerialArduinoCom.SCARA_COM import *
@@ -37,16 +36,16 @@ class JobRunner(QRunnable):
 
         self.is_paused = False
         self.is_killed = False
-        self.scara_com = SCARA_COM(3) #TODO : CUM
+        self.scara_com = SCARA_COM(7) #TODO : CUM
         self.scara_com.readThreadedCSV(filename, nb_clous)
         self.NumCSVLines = self.scara_com.getNumLinesCSV()
 
     @pyqtSlot()
     def run(self):
-        for index, cmd in enumerate(self.send.commandes):
+        for index, cmd in enumerate(self.scara_com.commandes):
             percent = int(index/self.NumCSVLines * 100)
             self.signals.progress.emit(percent)
-            self.send.send_one_line(index,cmd)
+            self.scara_com.send_one_line(index, cmd)
             time.sleep(0.1)
             print("not paused")
             while self.is_paused:
