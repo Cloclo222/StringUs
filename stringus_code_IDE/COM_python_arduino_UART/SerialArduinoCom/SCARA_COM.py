@@ -30,7 +30,8 @@ class SCARA_COM:
         self.seq0 = [0]
 
         # TODO CHECK TON CRISSE DE PORT
-        self.arduino = serial.Serial('COM%i' % COM, 115200, timeout=1)
+        port = "COM%i" % COM
+        self.arduino = serial.Serial(port, 115200, timeout=1)
 
         self.seq0 = [
             (2660, 2769),
@@ -180,3 +181,10 @@ class SCARA_COM:
     #         fig.canvas.draw()
     #         plt.draw()
     #         fig.canvas.flush_events()
+
+
+if __name__ == "__main__":
+    scara_com = SCARA_COM(7)
+    # scara_com.manual_measure_dxl()
+    scara_com.envoie_commande("{C1 1952 2800}")
+    scara_com.calibrate_contour_seq()

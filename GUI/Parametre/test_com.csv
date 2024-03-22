@@ -3,7 +3,7 @@ Nombre_de_clous,150
 Diametre_du_fil,500
 Nom_du_fichier,C:/Users/guill/OneDrive - USherbrooke/S4GRO/S4Projet/StringUS/GUI/Input/work.png
 Nombre_de_couleur,2
-Epaisseur,1000
-Poid,1000
-Sequence,Real
+Epaisseur,100
+Poid,100
+Sequence,Resize
 Type_de_format,c1 c2 c1 c2 c1 c2 c1 c2 

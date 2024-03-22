@@ -34,6 +34,7 @@ class JobRunner(QRunnable):
     def __init__(self, filename, nb_clous):
         super().__init__()
 
+        self.filename = filename
         self.is_paused = False
         self.is_killed = False
         self.scara_com = SCARA_COM(7) #TODO : CUM
@@ -46,12 +47,10 @@ class JobRunner(QRunnable):
             percent = int(index/self.NumCSVLines * 100)
             self.signals.progress.emit(percent)
             self.scara_com.send_one_line(index, cmd)
+            self.EraseCSVLine()
             time.sleep(0.1)
-            print("not paused")
             while self.is_paused:
-                print("paused")
                 time.sleep(0)
-
             if self.is_killed:
                 break
 
@@ -63,6 +62,12 @@ class JobRunner(QRunnable):
 
     def kill(self):
         self.is_killed = True
+
+    def EraseCSVLine(self):
+        df = pd.read_csv(self.filename)
+        df = df.drop(0)
+        df.to_csv(self.filename, index=False)
+
 class Window_Progress(QWidget):
 
     def __init__(self,filename, nb_clous):
@@ -635,15 +640,14 @@ class Window(QWidget):
             self.PreviewImage.setPixmap(pixmap)
 
     def isSendButtonClick(self):
-        self.nbclous = int(self.ClousLine.text())
-        self.ProgressBar= Window_Progress("Output/ThreadedCSVFile.csv",self.nbclous)
-        self.ProgressBar.show()
 
-        # if self.flag_calculate:
-        #     print("lol")
-        #
-        # else:
-        #     QMessageBox.information(self, 'ERREUR', "Il faut calculer avant d'envoyer", QMessageBox.Ok)
+        if self.flag_calculate:
+            self.nbclous = int(self.ClousLine.text())
+            self.ProgressBar = Window_Progress("Output/ThreadedCSVFile.csv", self.nbclous)
+            self.ProgressBar.show()
+
+        else:
+            QMessageBox.information(self, 'ERREUR', "Il faut calculer avant d'envoyer", QMessageBox.Ok)
 
     def isNextButtonClick(self):
 
@@ -727,10 +731,14 @@ class Window(QWidget):
         fileMenu = QMenu("&File", self)
         menuBar.addMenu(fileMenu)
         fileMenu.addAction(self.openAction)
+        fileMenu.addAction(self.LastRunResume)
 
         # Open Recent submenu
         self.openRecentMenu = fileMenu.addMenu("Open Recent")
         fileMenu.addAction(self.saveAction)
+
+        fileMenu.addAction(self.LastRunResume)
+
         # Separator
         fileMenu.addSeparator()
         fileMenu.addAction(self.exitAction)
@@ -745,6 +753,7 @@ class Window(QWidget):
         self.openAction = QAction(QIcon(":file-open.svg"), "&Open...", self)
         self.saveAction = QAction(QIcon(":file-save.svg"), "&Save", self)
         self.exitAction = QAction("&Exit", self)
+        self.LastRunResume = QAction("&Last Run Resume", self)
 
         # String-based key sequences
         self.openAction.setShortcut("Ctrl+O")
@@ -764,6 +773,7 @@ class Window(QWidget):
         self.openAction.triggered.connect(self.openFile)
         self.saveAction.triggered.connect(self.saveFile)
         self.exitAction.triggered.connect(self.close)
+        self.LastRunResume.triggered.connect(self.last_run_resume)
 
         # Connect Edit actions
         self.copyAction.triggered.connect(self.copyContent)
@@ -771,6 +781,11 @@ class Window(QWidget):
         self.cutAction.triggered.connect(self.cutContent)
 
         # Slots
+    def last_run_resume(self):
+        self.nbclous = int(self.ClousLine.text())
+        self.ProgressBar = Window_Progress("Output/ThreadedCSVFile.csv", self.nbclous)
+        self.ProgressBar.show()
+
 
     def openFile(self):
         valeur = [None] * 10

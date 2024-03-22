@@ -161,22 +161,34 @@ void executeCommand(const char* command) {
           if(abs(CRT-CE)<2048){
             if(CRT>CE){
               _scara.setTablePos(CRT - _scara.range);
+              _scara.setScaraPos(_scara.jointDefaultLeft);
+              _scara.jointisPos(_scara.jointDefaultLeft);
               _scara.tableisPos(CRT - _scara.range);
-              //_scara.doSeq(0);
+              _scara.doSeq(0);
+              _scara.jointisPos(_scara.jointDefaultLeft);
             }else{
                _scara.setTablePos(CRT + _scara.range);
+               _scara.setScaraPos(_scara.jointDefaultRight);
+               _scara.jointisPos(_scara.jointDefaultRight);
                _scara.tableisPos(CRT + _scara.range);
-               //_scara.doSeq(1);
+               _scara.doSeq(1);
+               _scara.jointisPos(_scara.jointDefaultRight);
             } 
           }else{
             if(CRT>CE){
               _scara.setTablePos(CRT - 4096 + _scara.range);
+              _scara.setScaraPos(_scara.jointDefaultRight);
+              _scara.jointisPos(_scara.jointDefaultRight);
               _scara.tableisPos(CRT - 4096 + _scara.range);
-              //_scara.doSeq(1);
+              _scara.doSeq(1);
+              _scara.jointisPos(_scara.jointDefaultRight);
             }else{
                _scara.setTablePos(CRT + 4096 - _scara.range);
+               _scara.setScaraPos(_scara.jointDefaultLeft);
+               _scara.jointisPos(_scara.jointDefaultLeft);
                _scara.tableisPos(CRT + 4096 - _scara.range);
-               //_scara.doSeq(1);
+               _scara.doSeq(0);
+               _scara.jointisPos(_scara.jointDefaultLeft);
             } 
           }
         }
@@ -204,10 +216,10 @@ void executeCommand(const char* command) {
         while(i<100){
           if(_dxl.readControlTableItem(MOVING, moteur_gauche) || _dxl.readControlTableItem(MOVING, moteur_droit))
           {
-            _scara.seq0[i][0] = _scara.getDxlPos(moteur_gauche);
-            Serial.println(_scara.seq0[i][0]);
-            _scara.seq0[i][1] = _scara.getDxlPos(moteur_droit);
-            Serial.println(_scara.seq0[i][1]);
+            _scara.seqCalib[i][0] = _scara.getDxlPos(moteur_gauche);
+            Serial.println(_scara.seqCalib[i][0]);
+            _scara.seqCalib[i][1] = _scara.getDxlPos(moteur_droit);
+            Serial.println(_scara.seqCalib[i][1]);
             i++;
           }
           delay(30);

@@ -66,7 +66,7 @@ void Scara::setScaraPos(int jointPos[2])
 void Scara::doSeq(int side){
   for(int i = 0; i < 100; i++)
     {
-        this->setScaraPos(this->seqOfficial[i]);
+        this->setScaraPos(this->seqClou[side][i]);
         delay(5);
     }
 }
