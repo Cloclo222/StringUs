@@ -11,6 +11,7 @@ class SCARA_COM:
     def __init__(self, COM):
 
         # TODO CHECK TON CRISSE DE PORT
+        self.pinColours = None
         self.pinsInPulse = None
         self.angles = None
         self.csvfile = None
@@ -59,6 +60,7 @@ class SCARA_COM:
 
         self.pins = np.array((self.csvfile.p1, self.csvfile.p2))
         self.pinsInPulse = np.zeros_like(self.pins).astype(np.float32)
+        self.pinColours = list(zip(self.csvfile.R, self.csvfile.G, self.csvfile.B))
 
         for i in range(np.shape(self.pins)[1]):
             self.pinsInPulse[0][i] = self.angles[self.pins[0][i]]
@@ -69,7 +71,7 @@ class SCARA_COM:
             self.Pos["table"].append(pin)
 
     def getNumLinesCSV(self):
-        return len(self.csvfile)
+        return len(self.csvfile.p1)
 
     def readPos(self):
         self.arduino.write('{T1}'.encode())
@@ -186,5 +188,6 @@ class SCARA_COM:
 if __name__ == "__main__":
     scara_com = SCARA_COM(7)
     # scara_com.manual_measure_dxl()
-    scara_com.envoie_commande("{C1 1952 2800}")
-    scara_com.calibrate_contour_seq()
+    # scara_com.envoie_commande("{C1 1952 2800}")
+    # scara_com.calibrate_contour_seq()
+    scara_com.readThreadedCSV("GUI/Output/ThreadedCSVFile.csv", 125)

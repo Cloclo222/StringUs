@@ -22,13 +22,15 @@ matplotlib.use("TkAgg")
 # import sys
 # sys.path.append('StringUs/ImageProcessing/Canvas.py')
 from ImageProcessing.Canvas import *
-#from ImageProcessing.misc import *
+
+
+# from ImageProcessing.misc import *
 
 class WorkerSignals(QObject):
     progress = qtc.pyqtSignal(int)
 
-class JobRunner(QRunnable):
 
+class JobRunner(QRunnable):
     signals = WorkerSignals()
 
     def __init__(self, filename, nb_clous):
@@ -37,14 +39,17 @@ class JobRunner(QRunnable):
         self.filename = filename
         self.is_paused = False
         self.is_killed = False
-        self.scara_com = SCARA_COM(7) #TODO : CUM
+        self.scara_com = SCARA_COM(7)  # TODO : CUM
         self.scara_com.readThreadedCSV(filename, nb_clous)
         self.NumCSVLines = self.scara_com.getNumLinesCSV()
 
     @pyqtSlot()
     def run(self):
         for index, cmd in enumerate(self.scara_com.commandes):
-            percent = int(index/self.NumCSVLines * 100)
+            if self.scara_com.pinColours[index] != self.scara_com.pinColours[index - 1] and index > 0:
+                #     fait qqc ici xav (auto pause + pop up)
+                print("time to change colour")
+            percent = int(index / self.NumCSVLines * 100)
             self.signals.progress.emit(percent)
             self.scara_com.send_one_line(index, cmd)
             self.EraseCSVLine()
@@ -68,9 +73,10 @@ class JobRunner(QRunnable):
         df = df.drop(0)
         df.to_csv(self.filename, index=False)
 
+
 class Window_Progress(QWidget):
 
-    def __init__(self,filename, nb_clous):
+    def __init__(self, filename, nb_clous):
         super().__init__()
 
         self.setWindowTitle("Information Robot")
@@ -90,36 +96,37 @@ class Window_Progress(QWidget):
         self.runner.signals.progress.connect(self.update_progress)
         self.threadpool.start(self.runner)
 
-        #Stop Button
+        # Stop Button
         self.StopButton = QPushButton("Stop")
         self.StopButton.pressed.connect(self.runner.kill)
 
-        #Pause Button
+        # Pause Button
         self.PauseButton = QPushButton("Pause")
-        #self.PauseButton.setGeometry(2, 2, 2, 2)
+        # self.PauseButton.setGeometry(2, 2, 2, 2)
         self.PauseButton.pressed.connect(self.runner.pause)
 
-        #Resume Button
+        # Resume Button
         self.ResumeButton = QPushButton("Resume")
         self.ResumeButton.pressed.connect(self.runner.resume)
 
-        #self.status = self.statusBar()
+        # self.status = self.statusBar()
         self.progress = QProgressBar()
-        #self.status.addPermanentWidget(self.progress)
+        # self.status.addPermanentWidget(self.progress)
 
         layout = QGridLayout()
 
         # Add widgets to the layout
         layout.addWidget(self.Titre, 0, 0, 2, 4)
         layout.addWidget(self.sous_titre, 1, 0, 1, 2)
-        layout.addWidget(self.PauseButton, 2, 0,2,2)
-        layout.addWidget(self.ResumeButton, 2, 2,2,2)
+        layout.addWidget(self.PauseButton, 2, 0, 2, 2)
+        layout.addWidget(self.ResumeButton, 2, 2, 2, 2)
         layout.addWidget(self.progress, 3, 0, 1, 4)
 
         self.setLayout(layout)
 
     def update_progress(self, n):
         self.progress.setValue(n)
+
 
 class Window_PA(QWidget):
     submitted2 = qtc.pyqtSignal(list, str, int, int, str)
@@ -246,7 +253,7 @@ class Window_PA(QWidget):
         layout.addWidget(self.CouleurChoiceBox, 7, 1)
         layout.addWidget(self.ChangeColorButton, 7, 3)
 
-        layout.addWidget(self.CropButton,4,5,3,4)
+        layout.addWidget(self.CropButton, 4, 5, 3, 4)
 
         layout.addWidget(self.DominantImage, 8, 0, 1, 4)
         layout.addWidget(self.SaveButton, 9, 0, 1, 1)
@@ -285,7 +292,7 @@ class Window_PA(QWidget):
 
         self.isCouleurChoiceBoxChange()
         color = QColorDialog.getColor()
-        #self.temp = self.Realrgb.copy()
+        # self.temp = self.Realrgb.copy()
 
         if color.isValid():
             NewRGB = color.getRgb()
@@ -356,6 +363,7 @@ class Window_PA(QWidget):
         bar[:] = (blue, green, red)
         return bar, (red, green, blue)
 
+
 class Window_GetName(QWidget):
     submitted = qtc.pyqtSignal(str)
 
@@ -399,6 +407,7 @@ class Window_GetName(QWidget):
     def canc_clique(self):
         self.close()
 
+
 class Window(QWidget):
     def __init__(self):
         super().__init__()
@@ -438,7 +447,6 @@ class Window(QWidget):
         self.diam = 500
         self.compteur = 0
 
-
         # Box Nombre de clous
         self.ClousLine = QLineEdit(str(self.nbclous))
         self.ClousLine.setValidator(QIntValidator())
@@ -460,7 +468,7 @@ class Window(QWidget):
         self.image_path.setMaximumWidth(299)
 
         # Calculate Button
-        CalculateButton= QPushButton("Calculer")
+        CalculateButton = QPushButton("Calculer")
         CalculateButton.clicked.connect(self.isCalculateButtonClick)
 
         # Envoie Button
@@ -485,7 +493,7 @@ class Window(QWidget):
 
         # Image a imprimer Stringus
         self.VOImage = QLabel()
-        self.pixmap = QPixmap(self.resize_image(400, 400,  self.fnameImage[0]))
+        self.pixmap = QPixmap(self.resize_image(400, 400, self.fnameImage[0]))
         self.VOImage.setPixmap(self.pixmap)
 
         # Image Couleur Dominante
@@ -551,10 +559,10 @@ class Window(QWidget):
         #     return
         self.image_path.setText(self.fnameImage[0])
 
-        self.pixmap = QPixmap(self.resize_image(400, 400,  self.fnameImage[0]))
+        self.pixmap = QPixmap(self.resize_image(400, 400, self.fnameImage[0]))
         self.VOImage.setPixmap(self.pixmap)
 
-        self.analyse_image( self.fnameImage[0])
+        self.analyse_image(self.fnameImage[0])
 
         if self.GreyScale:
             self.pixmap = QPixmap(
@@ -578,7 +586,7 @@ class Window(QWidget):
         else:
             self.flag_calculate = True
 
-            #self.nameFile = None
+            # self.nameFile = None
             # self.window2 = Window_GetName()
             # self.window2.submitted.connect(self.NameClousCSV)
             # self.window2.setAttribute(Qt.WA_DeleteOnClose)
@@ -598,7 +606,7 @@ class Window(QWidget):
                 keys = range(self.data_nbcouleur)
                 values = self.rgb_values
                 for i in keys:
-                    palette["c%i"%(i+1)] = values[i]
+                    palette["c%i" % (i + 1)] = values[i]
 
                 args = dict(
                     filename=self.fnameImage[0],
@@ -781,11 +789,11 @@ class Window(QWidget):
         self.cutAction.triggered.connect(self.cutContent)
 
         # Slots
+
     def last_run_resume(self):
         self.nbclous = int(self.ClousLine.text())
         self.ProgressBar = Window_Progress("Output/ThreadedCSVFile.csv", self.nbclous)
         self.ProgressBar.show()
-
 
     def openFile(self):
         valeur = [None] * 10
