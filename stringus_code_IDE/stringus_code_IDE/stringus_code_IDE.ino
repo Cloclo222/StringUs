@@ -2,11 +2,11 @@
 #include <Dynamixel2Arduino.h> //Installer par le gestionnaire de librarie Arduino IDE
 #include "src/Scara/Scara.h" //Dans le fichier src, c'est notre propre librarie
 #include "Arduino.h"
-#include <string>
+//#include <string>
 
 #define DXL_SERIAL   Serial1
 #define BUFFER_LENGTH 64
-#define MAX_SCARA_SPEED 50
+#define MAX_SCARA_SPEED 70
 #define MAX_TABLE_SPEED 40
 
 char serialBuffer[BUFFER_LENGTH]; // Buffer pour les messages Serial
@@ -30,7 +30,7 @@ void setup() {
     Serial.println("Moteur init.");
 
     delay(2000);
-    _scara.setAcceleration(15,3);
+    _scara.setAcceleration(15,1);
     _scara.homing();
     Serial.println("Homing complete.");
     
@@ -87,7 +87,7 @@ void executeCommand(const char* command) {
         }
 
         else{
-        Serial.print("C1_error : La commande n'a pas reçu deux angles."); 
+        // Serial.print("C1_error : La commande n'a pas reçu deux angles."); 
         }
 
         break;
@@ -103,7 +103,7 @@ void executeCommand(const char* command) {
         }
 
         else{
-        Serial.print("C2_error : La commande n'a pas reçu 1 angle."); 
+        // Serial.print("C2_error : La commande n'a pas reçu 1 angle."); 
         }
 
         break;
@@ -131,22 +131,22 @@ void executeCommand(const char* command) {
         }
 
         else{
-        Serial.print("C3_error : La commande n'a pas reçu 3 angle."); 
+        // Serial.print("C3_error : La commande n'a pas reçu 3 angle."); 
         }
         break;
       }
 
       case 4: {
-        while(true){
-          _scara.doSeq(0);
-          _scara.setTablePos(0);
-          _scara.tableisPos(0);
-          Serial.print('1');
-          _scara.setTablePos(100);
-          _scara.doSeq(0);
-          _scara.tableisPos(100);
-          Serial.print('1');
-        }
+        // while(true){
+        //   _scara.doSeq(0);
+        //   _scara.setTablePos(0);
+        //   _scara.tableisPos(0);
+        //   Serial.print('1');
+        //   _scara.setTablePos(100);
+        //   _scara.doSeq(0);
+        //   _scara.tableisPos(100);
+        //   Serial.print('1');
+        // }
         
         break;
       }
@@ -165,6 +165,7 @@ void executeCommand(const char* command) {
               _scara.jointisPos(_scara.jointDefaultLeft);
               _scara.tableisPos(CRT - _scara.range);
               _scara.doSeq(0);
+              _scara.setScaraPos(_scara.jointDefaultLeft);
               _scara.jointisPos(_scara.jointDefaultLeft);
             }else{
                _scara.setTablePos(CRT + _scara.range);
@@ -172,6 +173,7 @@ void executeCommand(const char* command) {
                _scara.jointisPos(_scara.jointDefaultRight);
                _scara.tableisPos(CRT + _scara.range);
                _scara.doSeq(1);
+               _scara.setScaraPos(_scara.jointDefaultRight);
                _scara.jointisPos(_scara.jointDefaultRight);
             } 
           }else{
@@ -181,6 +183,7 @@ void executeCommand(const char* command) {
               _scara.jointisPos(_scara.jointDefaultRight);
               _scara.tableisPos(CRT - 4096 + _scara.range);
               _scara.doSeq(1);
+              _scara.setScaraPos(_scara.jointDefaultRight);
               _scara.jointisPos(_scara.jointDefaultRight);
             }else{
                _scara.setTablePos(CRT + 4096 - _scara.range);
@@ -188,15 +191,16 @@ void executeCommand(const char* command) {
                _scara.jointisPos(_scara.jointDefaultLeft);
                _scara.tableisPos(CRT + 4096 - _scara.range);
                _scara.doSeq(0);
+               _scara.setScaraPos(_scara.jointDefaultLeft);
                _scara.jointisPos(_scara.jointDefaultLeft);
             } 
           }
         }
-        Serial.println('erreur C5');
+        // Serial.println('erreur C5');
         break;
       }
     }
-     Serial.println('1'); // Retourne 1 au programme Python pour demander une prochaine commande
+    Serial.println('1'); // Retourne 1 au programme Python pour demander une prochaine commande
   }
   else if (command[0] == 'T') {            // Regarde si le string commence par C
     char command_char = command[1];
@@ -239,4 +243,3 @@ void printPos(){
   Serial.println(right_pos);
   Serial.println(table_pos);
 }
-

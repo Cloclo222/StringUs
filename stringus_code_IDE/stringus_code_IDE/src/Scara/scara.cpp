@@ -1,5 +1,5 @@
 #include "scara.h"
-#include <cmath>
+//#include <cmath>
 
 
 Scara::Scara(Dynamixel2Arduino &dxl) : _dxl(dxl) {}
@@ -64,44 +64,53 @@ void Scara::setScaraPos(int jointPos[2])
 }
 
 void Scara::doSeq(int side){
+// Serial.println("Je suis entre dans doSeq");
   for(int i = 0; i < 100; i++)
     {
         this->setScaraPos(this->seqClou[side][i]);
         delay(5);
     }
+// Serial.println("Je suis sorti de doSeq");
 }
 
 void Scara::setTablePos(int TablePos)
 {
+    // Serial.println("Je suis entre dans setTablepos");
     _dxl.setGoalPosition(moteur_table, TablePos);
     Pos_current[2] = TablePos;
+    // Serial.println("Je suis sorti de setTablepos");
 
 }
 
 void Scara::jointisPos(int jointPos[2]) {
     bool isMoteurGaucheInPosition = false;
     bool isMoteurDroitInPosition = false;
-    int marge_erreur = 2;
+    int marge_erreur = 5;
     
+    Serial.println("Je suis entre dans jointispos");
     while (!isMoteurGaucheInPosition || !isMoteurDroitInPosition) {
-        float currentPosGauche = _dxl.getPresentPosition(moteur_gauche);
-        float currentPosDroit = _dxl.getPresentPosition(moteur_droit);
-        
-        isMoteurGaucheInPosition = abs(currentPosGauche - jointPos[0]) <= marge_erreur;
-        isMoteurDroitInPosition = abs(currentPosDroit - jointPos[1]) <= marge_erreur;
-        delay(50); // Delay to prevent overwhelming the controller with requests.
+        int currentPosGauche = _dxl.getPresentPosition(moteur_gauche);
+        int currentPosDroit = _dxl.getPresentPosition(moteur_droit);
+        // Serial.println(abs(jointPos[0]- currentPosGauche));
+        // Serial.println(abs(jointPos[1]- currentPosDroit));
+        isMoteurGaucheInPosition = abs(jointPos[0]- currentPosGauche) <= marge_erreur;
+        isMoteurDroitInPosition = abs(jointPos[1]- currentPosDroit) <= marge_erreur;
+        delay(50);
     }
+    Serial.println("Je suis sorti de jointispos");
 }
 
 void Scara::tableisPos(int TablePos) {
     bool isMoteurTableInPosition = false;
     int marge_erreur = 2;
     
+    // Serial.println("Je suis entre dans tableispos");
     while (!isMoteurTableInPosition) {
-        float currentPosTable = _dxl.getPresentPosition(moteur_table);
+        int currentPosTable = _dxl.getPresentPosition(moteur_table);
         isMoteurTableInPosition = abs(currentPosTable - TablePos) <= marge_erreur;
         delay(50); // Delay to prevent overwhelming the controller with requests.
     }
+    // Serial.println("Je suis sorti de tableispos");
 }
 
 bool Scara::buildInvJacobienne()

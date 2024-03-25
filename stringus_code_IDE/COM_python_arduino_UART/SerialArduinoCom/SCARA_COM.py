@@ -124,7 +124,7 @@ class SCARA_COM:
         # for index, cmd in enumerate(commandes):
 
         self.envoie_commande(cmd)
-        self.readPos()
+        # self.readPos()
 
         # self.et[index] = (np.abs(self.Pos['table'][index] - self.ActualPos['table'][index]))
         # self.line3.set_ydata(self.et)
@@ -186,8 +186,8 @@ class SCARA_COM:
 
 
 if __name__ == "__main__":
-    scara_com = SCARA_COM(7)
+    scara_com = SCARA_COM(3)
     # scara_com.manual_measure_dxl()
-    # scara_com.envoie_commande("{C1 1952 2800}")
-    # scara_com.calibrate_contour_seq()
-    scara_com.readThreadedCSV("GUI/Output/ThreadedCSVFile.csv", 125)
+    scara_com.readThreadedCSV("GUI/Output/ThreadedCSVFile.csv", 150)
+    for cmd in scara_com.commandes:
+        scara_com.envoie_commande(cmd)
