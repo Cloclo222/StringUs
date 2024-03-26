@@ -23,7 +23,7 @@ from ImageProcessing.Canvas import *
 
 class WorkerSignals(QObject):
     progress = qtc.pyqtSignal(int, bool, tuple)
-    #color = qtc.pyqtSignal(bool)
+    # color = qtc.pyqtSignal(bool)
 
 
 class JobRunner(QRunnable):
@@ -41,7 +41,6 @@ class JobRunner(QRunnable):
         self.NumCSVLines = self.scara_com.getNumLinesCSV()
         self.need_change = False
 
-
     @pyqtSlot()
     def run(self):
         percent = 0
@@ -55,7 +54,6 @@ class JobRunner(QRunnable):
                 self.need_change = True
                 self.is_paused = True
                 self.signals.progress.emit(percent, self.need_change, self.scara_com.pinColours[index])
-
 
             self.scara_com.send_one_line(index, cmd)
             self.EraseCSVLine()
@@ -147,8 +145,8 @@ class Window_Progress(QWidget):
         layout.addWidget(self.PauseButton, 2, 0, 1, 2)
         layout.addWidget(self.ResumeButton, 2, 2, 1, 2)
         layout.addWidget(self.progress, 3, 0, 1, 4)
-        layout.addWidget(self.text_couleur,4,0,1,4)
-        layout.addWidget(self.Image,5,0,1,4)
+        layout.addWidget(self.text_couleur, 4, 0, 1, 4)
+        layout.addWidget(self.Image, 5, 0, 1, 4)
 
         self.setLayout(layout)
 
@@ -240,12 +238,12 @@ class Window_PA(QWidget):
         # Couleur Dominant_image
         self.DominantImage = QLabel()
         self.pixmap = QPixmap(
-            self.resize_image(600, 200, 'Input/bar.jpg'))
+            self.resize_image(600, 200, 'Input/bar.jpg', 'Input/bar.jpg'))
         self.DominantImage.setPixmap(self.pixmap)
 
         # Image a imprimer
         self.Image = QLabel()
-        self.pixmap = QPixmap(self.resize_image(400, 400, self.image_a_imprimer))
+        self.pixmap = QPixmap(self.resize_image(400, 400, self.image_a_imprimer, 'Output/resize_image.png'))
         self.Image.setPixmap(self.pixmap)
 
         # Box ordre
@@ -268,7 +266,7 @@ class Window_PA(QWidget):
 
         if self.greyscale:
             self.pixmap = QPixmap(
-                self.resize_image(600, 200, 'Input/grey.jpg'))
+                self.resize_image(600, 200, 'Input/grey.jpg', 'Input/grey.jpg'))
             self.DominantImage.setPixmap(self.pixmap)
             self.ChangeColorButton.setHidden(True)
             self.OrdreLine.setHidden(True)
@@ -351,7 +349,7 @@ class Window_PA(QWidget):
             self.redoBand(self.temp)
 
             self.pixmap = QPixmap(self.resize_image(600, 200,
-                                                    'Input/bar.jpg'))
+                                                    'Input/bar.jpg', 'Input/bar.jpg'))
             self.DominantImage.setPixmap(self.pixmap)
 
     def SaveButtonPush(self):
@@ -374,13 +372,13 @@ class Window_PA(QWidget):
         self.window = Main(lol)
         self.window.show()
 
-    def resize_image(self, largeur, hauteur, image_path):
+    def resize_image(self, largeur, hauteur, image_path, save_as):
 
         image = Image.open(image_path)
         resized = image.resize((largeur, hauteur))
-        resized.save(image_path)
+        resized.save(save_as)
 
-        return image_path
+        return save_as
 
     def redoBand(self, new_rgb):
         font = cv2.FONT_HERSHEY_SIMPLEX
@@ -407,6 +405,7 @@ class Window_PA(QWidget):
         red, green, blue = int(color[0]), int(color[1]), int(color[2])
         bar[:] = (blue, green, red)
         return bar, (red, green, blue)
+
 
 class Window_GetName(QWidget):
     submitted = qtc.pyqtSignal(str)
@@ -450,6 +449,7 @@ class Window_GetName(QWidget):
 
     def canc_clique(self):
         self.close()
+
 
 class Window(QWidget):
     def __init__(self):
@@ -536,19 +536,19 @@ class Window(QWidget):
 
         # Image a imprimer Stringus
         self.VOImage = QLabel()
-        self.pixmap = QPixmap(self.resize_image(400, 400, self.fnameImage[0]))
+        self.pixmap = QPixmap(self.resize_image(400, 400, self.fnameImage[0], 'Input/no.png'))
         self.VOImage.setPixmap(self.pixmap)
 
         # Image Couleur Dominante
         self.DominantImage = QLabel()
         self.pixmap = QPixmap(
-            self.resize_image(600, 300, 'Input/grey.jpg'))
+            self.resize_image(600, 300, 'Input/grey.jpg', 'Input/no.png'))
         self.DominantImage.setPixmap(self.pixmap)
 
         # Preview de l'oeuvre
         self.PreviewImage = QLabel()
         pixmap = QPixmap(
-            self.resize_image(400, 400, 'Input/work.png'))
+            self.resize_image(400, 400, 'Input/work.png', 'Input/work.png'))
         self.PreviewImage.setPixmap(pixmap)
 
         # Check Box grey
@@ -602,18 +602,18 @@ class Window(QWidget):
         #     return
         self.image_path.setText(self.fnameImage[0])
 
-        self.pixmap = QPixmap(self.resize_image(400, 400, self.fnameImage[0]))
+        self.pixmap = QPixmap(self.resize_image(400, 400, self.fnameImage[0],"Output/resize_image.png" ))
         self.VOImage.setPixmap(self.pixmap)
 
         self.analyse_image(self.fnameImage[0])
 
         if self.GreyScale:
             self.pixmap = QPixmap(
-                self.resize_image(600, 300, 'Input/grey.jpg'))
+                self.resize_image(600, 300, 'Input/grey.jpg','Input/grey.jpg'))
             self.DominantImage.setPixmap(self.pixmap)
         else:
             self.pixmap = QPixmap(
-                self.resize_image(600, 300, 'Input/bar.jpg'))
+                self.resize_image(600, 300, 'Input/bar.jpg', 'Input/bar.jpg'))
             self.DominantImage.setPixmap(self.pixmap)
         self.flag_browse = False
 
@@ -687,7 +687,7 @@ class Window(QWidget):
                     im.save("Output/%s.png" % keys)
 
             pixmap = QPixmap(
-                self.resize_image(400, 400, 'Output/c0.png'))
+                self.resize_image(400, 400, 'Output/c0.png', 'Output/c0.png'))
             self.PreviewImage.setPixmap(pixmap)
 
     def isSendButtonClick(self):
@@ -717,7 +717,7 @@ class Window(QWidget):
                 filename = "Output/" + name
 
             pixmap = QPixmap(
-                self.resize_image(400, 400, filename))
+                self.resize_image(400, 400, filename, filename))
             self.PreviewImage.setPixmap(pixmap)
 
     def isPrecedantButtonClick(self):
@@ -732,7 +732,7 @@ class Window(QWidget):
             filename = "Output/" + name
 
         pixmap = QPixmap(
-            self.resize_image(400, 400, filename))
+            self.resize_image(400, 400, filename, filename))
         self.PreviewImage.setPixmap(pixmap)
 
     def isNbCouleurChange(self):
@@ -742,7 +742,7 @@ class Window(QWidget):
         if self.fnameImage[0] != 'Input/no.png':
             self.analyse_image(self.fnameImage[0])
             self.pixmap = QPixmap(
-                self.resize_image(600, 300, 'Input/bar.jpg'))
+                self.resize_image(600, 300, 'Input/bar.jpg', 'Input/bar.jpg'))
             self.DominantImage.setPixmap(self.pixmap)
 
     def isPAButtonClick(self):
@@ -765,7 +765,7 @@ class Window(QWidget):
             self.GreyScale = True
             print("here")
             self.pixmap = QPixmap(
-                self.resize_image(600, 300, 'Input/grey.jpg'))
+                self.resize_image(600, 300, 'Input/grey.jpg','Input/grey.jpg'))
             self.DominantImage.setPixmap(self.pixmap)
             self.NbCouleurBox.setHidden(True)
         else:
@@ -774,7 +774,7 @@ class Window(QWidget):
             if self.fnameImage[0] != 'Input/no.png':
                 self.analyse_image(self.fnameImage[0])
                 self.pixmap = QPixmap(
-                    self.resize_image(600, 300, 'Input/bar.jpg'))
+                    self.resize_image(600, 300, 'Input/bar.jpg', 'Input/bar.jpg'))
                 self.DominantImage.setPixmap(self.pixmap)
 
     def _createMenuBar(self):
@@ -861,14 +861,14 @@ class Window(QWidget):
 
         self.image_path.setText(self.fnameImage[0])
 
-        self.pixmap = QPixmap(self.resize_image(400, 400, self.fnameImage[0]))
+        self.pixmap = QPixmap(self.resize_image(400, 400, self.fnameImage[0], 'Output/parametre.jpg'))
         self.VOImage.setPixmap(self.pixmap)
         self.DimLine.setText(valeur[2])
         self.ClousLine.setText(valeur[1])
 
         self.analyse_image(self.fnameImage[0])
         self.pixmap = QPixmap(
-            self.resize_image(600, 300, 'Input/bar.jpg'))
+            self.resize_image(600, 300, 'Input/bar.jpg', 'Input/bar.jpg'))
         self.DominantImage.setPixmap(self.pixmap)
         self.NbCouleurBox.setValue(self.data_nbcouleur)
 
@@ -924,11 +924,11 @@ class Window(QWidget):
 
         if self.GreyScale:
             self.pixmap = QPixmap(
-                self.resize_image(600, 300, 'Input/grey.jpg'))
+                self.resize_image(600, 300, 'Input/grey.jpg', 'Input/grey.jpg'))
             self.DominantImage.setPixmap(self.pixmap)
         else:
             self.pixmap = QPixmap(
-                self.resize_image(600, 300, 'Input/bar.jpg'))
+                self.resize_image(600, 300, 'Input/bar.jpg', 'Input/bar.jpg'))
             self.DominantImage.setPixmap(self.pixmap)
 
     def sequence(self):
@@ -984,19 +984,19 @@ class Window(QWidget):
 
         cv2.waitKey(0)
 
-    def resize_image(self, largeur, hauteur, image_path):
+    def resize_image(self, largeur, hauteur, image_path, save_as):
 
         image = Image.open(image_path)
         resized = image.resize((largeur, hauteur))
 
-        if self.flag_browse:
-            resized.save("Output/resize_image.png")
-            image_path = "Output/resize_image.png"
+        # if self.flag_browse:
+        #     resized.save("Output/resize_image.png")
+        #     image_path = "Output/resize_image.png"
+        #
+        # else:
+        resized.save(save_as)
 
-        else:
-            resized.save(image_path)
-
-        return image_path
+        return save_as
 
     def NameClousCSV(self, name_new):
         self.nameFileClousCSV = name_new + '.csv'

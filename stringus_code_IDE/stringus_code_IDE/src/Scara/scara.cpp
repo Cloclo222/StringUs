@@ -97,7 +97,7 @@ void Scara::jointisPos(int jointPos[2]) {
         isMoteurDroitInPosition = abs(jointPos[1]- currentPosDroit) <= marge_erreur;
         delay(50);
     }
-    Serial.println("Je suis sorti de jointispos");
+    // Serial.println("Je suis sorti de jointispos");
 }
 
 void Scara::tableisPos(int TablePos) {
@@ -156,6 +156,12 @@ void Scara::setSpeed(uint8_t speedLimitLeft, uint8_t speedLimitRight)
     _dxl.writeControlTableItem(PROFILE_VELOCITY, moteur_droit, speedLimitRight);
     _dxl.writeControlTableItem(PROFILE_VELOCITY, moteur_gauche, speedLimitLeft);
     this->SpeedAccel[0] = speedLimitRight;
+}
+
+void Scara::setTableSpeed(uint8_t speedLimitTable)
+{
+    using namespace ControlTableItem;
+    _dxl.writeControlTableItem(PROFILE_VELOCITY, moteur_table, speedLimitTable);
 }
 
 void Scara::setSpeedForLinearMov(int jointPos[2], uint8_t speedLimit)

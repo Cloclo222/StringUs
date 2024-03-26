@@ -187,7 +187,10 @@ class SCARA_COM:
 
 if __name__ == "__main__":
     scara_com = SCARA_COM(3)
+    scara_com.envoie_commande("{C1 2825 1925}")
+    scara_com.envoie_commande("{C4}")
+    #scara_com.calibrate_contour_seq()
     # scara_com.manual_measure_dxl()
-    scara_com.readThreadedCSV("GUI/Output/ThreadedCSVFile.csv", 150)
-    for cmd in scara_com.commandes:
-        scara_com.envoie_commande(cmd)
+    # scara_com.readThreadedCSV("GUI/Output/ThreadedCSVFile.csv", 150)
+    # for cmd in scara_com.commandes:
+    #     scara_com.envoie_commande(cmd)
