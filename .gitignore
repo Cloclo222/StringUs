@@ -3,14 +3,6 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
-/[1] - ImageProcessing/imgs
-/[1] - ImageProcessing/outputs
-/[4] - GUI/Outputs
-/[4] - GUI/Inputs
-/[4] - GUI/Parametre
-
-stringus_code_IDE/COM_python_arduino_UART/SerialArduinoCom/main.py
+/GUI/Parametre
 /GUI/Output
 /GUI/Input
-/GUI/icon
-/GUI/Parametre

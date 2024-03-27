@@ -2,10 +2,10 @@
 # Personal use is allowed
 # Commercial use is prohibited
 
-from widgets import *
+from .widgets import *
 
 
-class Main(QWidget):
+class Crop(QWidget):
     def __init__(self, files):
         # initialize
         super().__init__()
