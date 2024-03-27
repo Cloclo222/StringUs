@@ -4,6 +4,7 @@ from PIL import Image, ImageDraw, ImageFilter
 import plotly.express as px
 import numba
 import cv2
+import imageio.v2
 
 
 @numba.njit
@@ -165,9 +166,7 @@ class Canvas:
 
         self.totalLines = None
 
-
-        self.base_img = Image.open(self.filename, ).convert('RGB').resize(
-            (self.img_radius * 2 + 1, self.img_radius * 2 + 1))
+        self.base_img = Image.open(self.filename, ).convert('RGB').resize((self.img_radius * 2 + 1, self.img_radius * 2 + 1))
 
         self.pinCoords(numPins=self.numPins)
 
@@ -328,3 +327,18 @@ class Canvas:
         for i, color_name in enumerate(self.palette.keys()):
             fig.layout.sliders[0].steps[i].label = color_name
         fig.show()
+
+    def animate(self,lines,fps):
+        output = Image.new('RGB', (self.img_radius * 2, self.img_radius * 2), (255, 255, 255))
+        outputDraw = ImageDraw.Draw(output)
+
+        writer = imageio.get_writer('Videos_Animation/Animation.avi', fps=fps)
+
+        for i in range(len(lines)):
+            outputDraw.line((self.Coords[lines[i][0][0]], self.Coords[lines[i][0][1]]), fill=lines[i][-1], width=2)
+            print("%i"%i)
+            output.save("Animation/Animation_%i.jpg" %i)
+            writer.append_data(np.array(output))
+        writer.close()
+
+
