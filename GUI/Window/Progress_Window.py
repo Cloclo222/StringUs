@@ -157,5 +157,5 @@ class Window_Progress(QWidget):
             self.text_couleur.setHidden(True)
 
     def CreatePicture(self, rgb):
-        image = Image.new("RGB", (400, 100), rgb)
+        image = Image.new("RGB", (600, 100), rgb)
         image.save('Output/Couleur_a_changer.png')

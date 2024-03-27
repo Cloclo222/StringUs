@@ -3,6 +3,7 @@ import cv2
 import csv
 import numpy as np
 from PIL import Image
+import os
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import *
@@ -435,7 +436,17 @@ class Window(QWidget):
 
         self.image_path.setText(self.fnameImage[0])
 
-        self.pixmap = QPixmap(self.resize_image(400, 400, self.fnameImage[0], 'Output/parametre.jpg'))
+        _, extension = os.path.splitext(self.fnameImage[0])
+
+        # Vérifier l'extension
+        file_to_save = []
+
+        if extension.lower() == '.jpg':
+            file_to_save = 'Output/parametre.jpg'
+        elif extension.lower() == '.png':
+            file_to_save = 'Output/parametre.png'
+
+        self.pixmap = QPixmap(self.resize_image(400, 400, self.fnameImage[0], file_to_save))
         self.VOImage.setPixmap(self.pixmap)
         self.DimLine.setText(valeur[2])
         self.ClousLine.setText(valeur[1])

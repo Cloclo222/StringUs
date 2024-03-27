@@ -61,10 +61,12 @@ class Crop(QWidget):
 
     def click_save(self):
         try:
-            file, _ = QFileDialog.getSaveFileName(self, 'Save File', f"{self.img_class.img_name}."
-                                                                     f"{self.img_class.img_format}",
-                                                  "Image Files (*.jpg *.png *.jpeg *.ico);;All Files (*)")
-            self.img_class.save_img(file)
+            # file, _ = QFileDialog.getSaveFileName(self, 'Save File', f"{self.img_class.img_name}."
+            #                                                          f"{self.img_class.img_format}",
+            #                                       "Image Files (*.jpg *.png *.jpeg *.ico);;All Files (*)")
+            fichier = "/Ouput/" + self.img_class.img_name
+            self.img_class.save_img(fichier)
+
         except Exception:
             pass
 
