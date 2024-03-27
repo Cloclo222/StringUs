@@ -7,7 +7,7 @@ import cv2
 import qimage2ndarray
 import pathlib
 from copy import deepcopy
-from scripts import Images
+from .scripts import Images
 import numpy as np
 from PyQt5 import uic
 from PyQt5.QtGui import *
