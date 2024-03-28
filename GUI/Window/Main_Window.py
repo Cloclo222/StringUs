@@ -46,13 +46,14 @@ class Window(QWidget):
         self._connectActions()
 
         # Variable Globale Necessaire
-        self.fnameImage = ['Input/no.png']
+        self.fnameImage = 'Input/no.png'
         self.data_nbcouleur = 1
         self.rgb_values = []
 
         # Flags
         self.flag_calculate = False
         self.flag_browse = False
+        self.flag_send = False
 
         # Parametre defaut
         self.GreyScale = False
@@ -111,7 +112,7 @@ class Window(QWidget):
 
         # Image a imprimer Stringus
         self.VOImage = QLabel()
-        self.pixmap = QPixmap(self.resize_image(400, 400, self.fnameImage[0], 'Input/no.png'))
+        self.pixmap = QPixmap(self.resize_image(400, 400, self.fnameImage, 'Input/no.png'))
         self.VOImage.setPixmap(self.pixmap)
 
         # Image Couleur Dominante
@@ -171,16 +172,17 @@ class Window(QWidget):
         self.flag_browse = True
         self.flag_calculate = False
 
-        self.fnameImage = QFileDialog.getOpenFileName(self, 'Open file')
+        transit = QFileDialog.getOpenFileName(self, 'Open file')
+        self.fnameImage = transit[0]
         #
         # if not self.fnameImage:
         #     return
-        self.image_path.setText(self.fnameImage[0])
+        self.image_path.setText(self.fnameImage)
 
-        self.pixmap = QPixmap(self.resize_image(400, 400, self.fnameImage[0],"Output/resize_image.png" ))
+        self.pixmap = QPixmap(self.resize_image(400, 400, self.fnameImage,"Output/resize_image.png" ))
         self.VOImage.setPixmap(self.pixmap)
 
-        self.analyse_image(self.fnameImage[0])
+        self.analyse_image(self.fnameImage)
 
         if self.GreyScale:
             self.pixmap = QPixmap(
@@ -227,7 +229,7 @@ class Window(QWidget):
                     palette["c%i" % (i + 1)] = values[i]
 
                 args = dict(
-                    filename=self.fnameImage[0],
+                    filename=self.fnameImage,
                     palette=palette,
                     group_orders=self.sequencedefaut,
                     img_radius=Radius,
@@ -246,7 +248,7 @@ class Window(QWidget):
 
             else:
                 args = dict(
-                    filename=self.fnameImage[0],
+                    filename=self.fnameImage,
                     img_radius=Radius,
                     numPins=self.nbclous,
                     lineWidth=self.defautep,
@@ -268,9 +270,13 @@ class Window(QWidget):
     def isSendButtonClick(self):
 
         if self.flag_calculate:
+
+            self.flag_send = True
+            self.saveCSV()
             self.nbclous = int(self.ClousLine.text())
             self.ProgressBar = Window_Progress("Output/ThreadedCSVFile.csv", self.nbclous)
             self.ProgressBar.show()
+            self.flag_send = False
 
         else:
             QMessageBox.information(self, 'ERREUR', "Il faut calculer avant d'envoyer", QMessageBox.Ok)
@@ -314,8 +320,8 @@ class Window(QWidget):
         self.data_nbcouleur = self.NbCouleurBox.value()
         self.sequence()
 
-        if self.fnameImage[0] != 'Input/no.png':
-            self.analyse_image(self.fnameImage[0])
+        if self.fnameImage != 'Input/no.png':
+            self.analyse_image(self.fnameImage)
             self.pixmap = QPixmap(
                 self.resize_image(600, 300, 'Input/bar.jpg', 'Input/bar.jpg'))
             self.DominantImage.setPixmap(self.pixmap)
@@ -329,7 +335,7 @@ class Window(QWidget):
 
         else:
 
-            self.PM = Window_PA(self.data_nbcouleur, self.fnameImage[0], self.rgb_values, self.defautpoid,
+            self.PM = Window_PA(self.data_nbcouleur, self.fnameImage, self.rgb_values, self.defautpoid,
                                 self.defautep, self.sequencedefaut, self.sizedef, self.GreyScale)
             self.PM.submitted2.connect(self.UpdateValues)
             self.PM.show()
@@ -346,8 +352,8 @@ class Window(QWidget):
         else:
             self.GreyScale = False
             self.NbCouleurBox.setHidden(False)
-            if self.fnameImage[0] != 'Input/no.png':
-                self.analyse_image(self.fnameImage[0])
+            if self.fnameImage != 'Input/no.png':
+                self.analyse_image(self.fnameImage)
                 self.pixmap = QPixmap(
                     self.resize_image(600, 300, 'Input/bar.jpg', 'Input/bar.jpg'))
                 self.DominantImage.setPixmap(self.pixmap)
@@ -409,23 +415,39 @@ class Window(QWidget):
         # Slots
 
     def last_run_resume(self):
+
+        self.openFile("Parametre/LastRunResume.csv")
         self.nbclous = int(self.ClousLine.text())
+
         self.ProgressBar = Window_Progress("Output/ThreadedCSVFile.csv", self.nbclous)
         self.ProgressBar.show()
 
     def openFile(self):
         valeur = [None] * 10
         i = 0
-        self.fichier = QFileDialog.getOpenFileName(self, 'Open file', "CSV files")
+        fichier = [None]*1000
 
-        with open(self.fichier[0], newline='') as csvfile:
-            fichierCSV = csv.reader(csvfile)
+        if self.flag_send:
+            fichier = "Parametre\LastRunResume.csv"
 
-            for row in fichierCSV:
-                valeur[i] = row[1]
-                i += 1
+            with open(fichier, newline='') as csvfile:
+                fichierCSV = csv.reader(csvfile)
 
-        self.fnameImage[0] = valeur[3]
+                for row in fichierCSV:
+                    valeur[i] = row[1]
+                    i += 1
+
+        else:
+            fichier = QFileDialog.getOpenFileName(self, 'Open file', "CSV files")
+
+            with open(fichier[0], newline='') as csvfile:
+                fichierCSV = csv.reader(csvfile)
+
+                for row in fichierCSV:
+                    valeur[i] = row[1]
+                    i += 1
+
+        self.fnameImage = valeur[3]
         self.data_nbcouleur = int(valeur[4])
         self.defautpoid = int(valeur[6])
         self.defautep = int(valeur[5])
@@ -434,9 +456,9 @@ class Window(QWidget):
         self.nbclous = int(valeur[1])
         self.diam = int(valeur[2])
 
-        self.image_path.setText(self.fnameImage[0])
+        self.image_path.setText(self.fnameImage)
 
-        _, extension = os.path.splitext(self.fnameImage[0])
+        _, extension = os.path.splitext(self.fnameImage)
 
         # Vérifier l'extension
         file_to_save = []
@@ -446,12 +468,12 @@ class Window(QWidget):
         elif extension.lower() == '.png':
             file_to_save = 'Output/parametre.png'
 
-        self.pixmap = QPixmap(self.resize_image(400, 400, self.fnameImage[0], file_to_save))
+        self.pixmap = QPixmap(self.resize_image(400, 400, self.fnameImage, file_to_save))
         self.VOImage.setPixmap(self.pixmap)
         self.DimLine.setText(valeur[2])
         self.ClousLine.setText(valeur[1])
 
-        self.analyse_image(self.fnameImage[0])
+        self.analyse_image(self.fnameImage)
         self.pixmap = QPixmap(
             self.resize_image(600, 300, 'Input/bar.jpg', 'Input/bar.jpg'))
         self.DominantImage.setPixmap(self.pixmap)
@@ -473,7 +495,7 @@ class Window(QWidget):
             writer.writerow(["Nom_du_Paramètre", "Valeur"])
             writer.writerow(["Nombre_de_clous", self.nbclous])
             writer.writerow(["Diametre_du_fil", self.diam])
-            writer.writerow(["Nom_du_fichier", self.fnameImage[0]])
+            writer.writerow(["Nom_du_fichier", self.fnameImage])
             writer.writerow(["Nombre_de_couleur", self.data_nbcouleur])
             writer.writerow(["Epaisseur", self.defautep])
             writer.writerow(["Poid", self.defautpoid])

@@ -163,8 +163,8 @@ class Images:
                 image[:height // 2, width // 2 + 1:] = smaller_img
         self.img = image
 
-    def save_img(self, file):
-        cv2.imwrite(file, self.img)
+    def save_img(self):
+        self.img.save("Output/Crop_Picture.png")
 
     def reset(self, flip=None):
         if flip is None:
