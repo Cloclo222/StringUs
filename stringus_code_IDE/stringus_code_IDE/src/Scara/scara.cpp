@@ -85,9 +85,9 @@ void Scara::setTablePos(int TablePos)
 void Scara::jointisPos(int jointPos[2]) {
     bool isMoteurGaucheInPosition = false;
     bool isMoteurDroitInPosition = false;
-    int marge_erreur = 5;
+    int marge_erreur = 10;
     
-    Serial.println("Je suis entre dans jointispos");
+    // Serial.println("Je suis entre dans jointispos");
     while (!isMoteurGaucheInPosition || !isMoteurDroitInPosition) {
         int currentPosGauche = _dxl.getPresentPosition(moteur_gauche);
         int currentPosDroit = _dxl.getPresentPosition(moteur_droit);

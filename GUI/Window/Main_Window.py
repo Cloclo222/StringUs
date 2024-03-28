@@ -15,7 +15,7 @@ from PyQt5.QtCore import (
 from PyQt5 import QtCore as qtc
 
 import matplotlib
-matplotlib.use("TkAgg")
+# matplotlib.use("TkAgg")
 
 from stringus_code_IDE.COM_python_arduino_UART.SerialArduinoCom.SCARA_COM import *
 

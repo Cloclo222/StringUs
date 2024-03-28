@@ -33,7 +33,6 @@ class JobRunner(QRunnable):
 
     @pyqtSlot()
     def run(self):
-        percent = 0
 
         for index, cmd in enumerate(self.scara_com.commandes):
 
@@ -61,6 +60,7 @@ class JobRunner(QRunnable):
 
             if self.is_killed:
                 break
+
 
     def CreatePicture(self, rgb):
         image = Image.new("RGB", (100, 100), rgb)

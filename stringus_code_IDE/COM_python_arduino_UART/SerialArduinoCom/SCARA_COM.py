@@ -10,24 +10,16 @@ class SCARA_COM:
 
     def __init__(self, COM):
 
-        # TODO CHECK TON CRISSE DE PORT
         self.pinColours = None
         self.pinsInPulse = None
         self.angles = None
         self.csvfile = None
         self.numPins = None
         self.pins = None
-        matplotlib.use("TkAgg")
+        # matplotlib.use("TkAgg")
 
-        self.ActualPos = dict()
-        self.ActualPos['left'] = []
-        self.ActualPos['right'] = []
-        self.ActualPos['table'] = []
+        self.ActualPos = []
 
-        self.Pos = dict()
-        self.Pos['left'] = []
-        self.Pos['right'] = []
-        self.Pos['table'] = []
         self.seq0 = [0]
 
         # TODO CHECK TON CRISSE DE PORT
@@ -42,6 +34,7 @@ class SCARA_COM:
             (2560, 2560),
         ]
         self.commandes = []
+
 
     def envoie_commande(self, commande):
         print(f"Python: {commande}")
@@ -68,24 +61,28 @@ class SCARA_COM:
 
         for pin in self.pinsInPulse[0]:
             self.commandes.append("{C5 %d}" % pin)
-            self.Pos["table"].append(pin)
+
 
     def getNumLinesCSV(self):
         return len(self.csvfile.p1)
 
-    def readPos(self):
+    def readPos(self, index):
         self.arduino.write('{T1}'.encode())
         while True:
             if self.arduino.in_waiting > 0:
                 response = self.arduino.readline().decode().strip()
-                self.ActualPos['left'].append(int(response))
-                print(f"position gauche : {response}")
+                # print(f"position gauche : {response}")
                 response = self.arduino.readline().decode().strip()
-                self.ActualPos['right'].append(int(response))
-                print(f"position droite : {response}")
+                # print(f"position droite : {response}")
                 response = self.arduino.readline().decode().strip()
-                self.ActualPos['table'].append(int(response))
-                print(f"position table : {response}\n")
+                print(f"position table : {response}")
+                response = int(response)
+                pin = (response - np.floor(response/4096)*4096)*(125/4096)
+                self.ActualPos.append(np.round(pin))
+                erreur = abs(self.ActualPos[index] - self.pins[0][index])
+                erreur_pulse = self.pinsInPulse[0][index] - response
+                print(f"erreur pulse : {erreur_pulse}")
+                print(f"erreur : {erreur}\n")
                 break
 
     def readSeq(self):
@@ -121,68 +118,11 @@ class SCARA_COM:
                     self.readSeq()
 
     def send_one_line(self, index, cmd):
-        # for index, cmd in enumerate(commandes):
 
         self.envoie_commande(cmd)
-        # self.readPos()
+        # self.readPos(index)
 
-        # self.et[index] = (np.abs(self.Pos['table'][index] - self.ActualPos['table'][index]))
-        # self.line3.set_ydata(self.et)
-        #
-        # self.eg[index] = (np.abs(self.Pos['left'][index] - self.ActualPos['left'][index]))
-        # self.ed[index] = (np.abs(self.Pos['right'][index] - self.ActualPos['right'][index]))
-        # self.line1.set_ydata(self.eg)
-        # self.line2.set_ydata(self.ed)
-        #
-        # self.ax.set_xlim(0, index + 1)
-        # self.fig.canvas.draw()
-        # plt.draw()
-        # self.fig.canvas.flush_events()
 
-    # def start_run(self, filepath, numPins):
-    #
-    #     self.readThreadedCSV(filepath, numPins)
-    #
-    #     for pin in self.pinsInPulse[0]:
-    #         commandes.append("{C2 %d}" % pin)
-    #         self.Pos["table"].append(pin)
-    #         # self.Pos["left"].append(seq0[4][0])
-    #         # self.Pos["right"].append(seq0[4][1])
-    #         # for s in seq0:
-    #         #     commandes.append(f"{{C1 {s[0]} {s[1]}}}")
-    #         #     self.Pos["left"].append(s[0])
-    #         #     self.Pos["right"].append(s[1])
-    #         #     self.Pos["table"].append(pin)
-    #
-    #     x = np.arange(len(commandes))
-    #     eg = np.zeros(len(commandes))
-    #     ed = np.zeros(len(commandes))
-    #     et = np.zeros(len(commandes))
-    #
-    #     plt.ion()
-    #     fig = plt.figure()
-    #     ax = fig.add_subplot(111)
-    #     ax.set_ylim((0, 10))
-    #     line1, = ax.plot(x, eg, 'b-')
-    #     line2, = ax.plot(x, ed, 'r-')
-    #     line3, = ax.plot(x, et, 'g-')
-    #
-    #     for i, cmd in enumerate(commandes):
-    #         self.envoie_commande(cmd)
-    #         self.readPos()
-    #
-    #         et[i] = (np.abs(self.Pos['table'][i] - self.ActualPos['table'][i]))
-    #         line3.set_ydata(et)
-    #
-    #         # eg[i] = (np.abs(self.Pos['left'][i] - self.ActualPos['left'][i]))
-    #         # ed[i] = (np.abs(self.Pos['right'][i] - self.ActualPos['right'][i]))
-    #         # line1.set_ydata(eg)
-    #         # line2.set_ydata(ed)
-    #
-    #         ax.set_xlim(0, i + 1)
-    #         fig.canvas.draw()
-    #         plt.draw()
-    #         fig.canvas.flush_events()
 
 
 if __name__ == "__main__":
