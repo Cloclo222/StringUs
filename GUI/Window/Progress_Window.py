@@ -26,7 +26,7 @@ class JobRunner(QRunnable):
         self.filename = filename
         self.is_paused = False
         self.is_killed = False
-        self.scara_com = SCARA_COM(3)  # TODO : CUM
+        self.scara_com = SCARA_COM(7)  # TODO : CUM
         self.scara_com.readThreadedCSV(filename, nb_clous)
         self.NumCSVLines = self.scara_com.getNumLinesCSV()
         self.need_change = False

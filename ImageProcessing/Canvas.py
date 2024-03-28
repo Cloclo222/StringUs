@@ -100,9 +100,9 @@ def ComputeThreads(img, numLines, numPins, Coords, Angles, initPin=0, minLoop=3,
         cv2.line(lineMask, oldCoord, Coords[bestPin], lineWeight, lineWidth)
         img = np.subtract(img, lineMask)
 
-        progress = img / 255
-        cv2.imshow('%s' % colour, cv2.resize(progress, (1000, 1000)))
-        cv2.waitKey(1)
+        # progress = img / 255
+        # cv2.imshow('%s' % colour, cv2.resize(progress, (1000, 1000)))
+        # cv2.waitKey(1)
 
         # Save line to results\
 
@@ -116,12 +116,12 @@ def ComputeThreads(img, numLines, numPins, Coords, Angles, initPin=0, minLoop=3,
         oldPin = bestPin
 
         # Print progress
-        # sys.stdout.write("\b\b")
-        # sys.stdout.write("\r")
-        # sys.stdout.write("[+] Computing " + colour + " line " + str(line + 1) + " of " + str(numLines) + " max")
-        # sys.stdout.flush()
-
-    cv2.destroyAllWindows()
+        sys.stdout.write("\b\b")
+        sys.stdout.write("\r")
+        sys.stdout.write("[+] Computing " + colour + " line " + str(line + 1))
+        sys.stdout.flush()
+    sys.stdout.write("\n")
+    # cv2.destroyAllWindows()
     return lines
 
 

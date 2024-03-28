@@ -272,7 +272,7 @@ class Window(QWidget):
         if self.flag_calculate:
 
             self.flag_send = True
-            self.saveCSV()
+            self.saveCSV("LastRunResume.csv")
             self.nbclous = int(self.ClousLine.text())
             self.ProgressBar = Window_Progress("Output/ThreadedCSVFile.csv", self.nbclous)
             self.ProgressBar.show()
@@ -415,9 +415,10 @@ class Window(QWidget):
         # Slots
 
     def last_run_resume(self):
-
-        self.openFile("Parametre/LastRunResume.csv")
+        self.flag_send = True
+        self.openFile()
         self.nbclous = int(self.ClousLine.text())
+        self.flag_send = False
 
         self.ProgressBar = Window_Progress("Output/ThreadedCSVFile.csv", self.nbclous)
         self.ProgressBar.show()
@@ -428,7 +429,7 @@ class Window(QWidget):
         fichier = [None]*1000
 
         if self.flag_send:
-            fichier = "Parametre\LastRunResume.csv"
+            fichier = "Parametre/LastRunResume.csv"
 
             with open(fichier, newline='') as csvfile:
                 fichierCSV = csv.reader(csvfile)
