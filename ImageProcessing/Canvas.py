@@ -100,9 +100,9 @@ def ComputeThreads(img, numLines, numPins, Coords, Angles, initPin=0, minLoop=3,
         cv2.line(lineMask, oldCoord, Coords[bestPin], lineWeight, lineWidth)
         img = np.subtract(img, lineMask)
 
-        # progress = img / 255
-        # cv2.imshow('%s' % colour, cv2.resize(progress, (1000, 1000)))
-        # cv2.waitKey(1)
+        progress = img / 255
+        cv2.imshow('%s' % colour, cv2.resize(progress, (1000, 1000)))
+        cv2.waitKey(1)
 
         # Save line to results\
 
@@ -121,7 +121,7 @@ def ComputeThreads(img, numLines, numPins, Coords, Angles, initPin=0, minLoop=3,
         sys.stdout.write("[+] Computing " + colour + " line " + str(line + 1))
         sys.stdout.flush()
     sys.stdout.write("\n")
-    # cv2.destroyAllWindows()
+    cv2.destroyAllWindows()
     return lines
 
 
@@ -328,17 +328,20 @@ class Canvas:
             fig.layout.sliders[0].steps[i].label = color_name
         fig.show()
 
-    def animate(self,lines,fps):
-        output = Image.new('RGB', (self.img_radius * 2, self.img_radius * 2), (255, 255, 255))
+    def getNumLines(self):
+        return len(self.totalLines)
+
+    def animate(self,fps):
+        output = Image.new('RGB', (self.img_radius * 2, self.img_radius * 2), (0,0,0))
         outputDraw = ImageDraw.Draw(output)
 
-        writer = imageio.get_writer('Videos_Animation/Animation.avi', fps=fps)
+        writer = imageio.get_writer('Output/Videos_Animation/Animation.avi', fps=fps)
 
-        for i in range(len(lines)):
-            outputDraw.line((self.Coords[lines[i][0][0]], self.Coords[lines[i][0][1]]), fill=lines[i][-1], width=2)
-            print("%i"%i)
-            output.save("Animation/Animation_%i.jpg" %i)
+        for i in range(len(self.totalLines)):
+            outputDraw.line((self.Coords[self.totalLines[i][0][0]], self.Coords[self.totalLines[i][0][1]]), fill=self.totalLines[i][-1], width=2)
+            output.save("Output/Animation/Animation_%i.jpg" %i)
             writer.append_data(np.array(output))
         writer.close()
+        print("done animation")
 
 

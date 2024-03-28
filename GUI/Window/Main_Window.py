@@ -65,6 +65,7 @@ class Window(QWidget):
         self.nbclous = 150
         self.diam = 500
         self.compteur = 0
+        self.TotalNumberLines = 0
 
         # Box Nombre de clous
         self.ClousLine = QLineEdit(str(self.nbclous))
@@ -245,6 +246,7 @@ class Window(QWidget):
                 for keys in canvas.img_couleur_sep.keys():
                     im = Image.fromarray(np.uint8(canvas.img_couleur_sep[keys]))
                     im.save("Output/%s.png" % keys)
+                canvas.animate(fps=60)
 
             else:
                 args = dict(
@@ -262,10 +264,13 @@ class Window(QWidget):
                 for keys in canvas.img_couleur_sep.keys():
                     im = Image.fromarray(np.uint8(canvas.img_couleur_sep[keys]))
                     im.save("Output/%s.png" % keys)
+                canvas.animate(fps=60)
 
             pixmap = QPixmap(
                 self.resize_image(400, 400, 'Output/c0.png', 'Output/c0.png'))
             self.PreviewImage.setPixmap(pixmap)
+
+            self.TotalNumberLines = canvas.getNumLines()
 
     def isSendButtonClick(self):
 
@@ -274,7 +279,7 @@ class Window(QWidget):
             self.flag_send = True
             self.saveCSV("LastRunResume.csv")
             self.nbclous = int(self.ClousLine.text())
-            self.ProgressBar = Window_Progress("Output/ThreadedCSVFile.csv", self.nbclous)
+            self.ProgressBar = Window_Progress("Output/ThreadedCSVFile.csv", self.nbclous, self.TotalNumberLines)
             self.ProgressBar.show()
             self.flag_send = False
 
@@ -420,7 +425,7 @@ class Window(QWidget):
         self.nbclous = int(self.ClousLine.text())
         self.flag_send = False
 
-        self.ProgressBar = Window_Progress("Output/ThreadedCSVFile.csv", self.nbclous)
+        self.ProgressBar = Window_Progress("Output/ThreadedCSVFile.csv", self.nbclous, self.TotalNumberLines)
         self.ProgressBar.show()
 
     def openFile(self):
@@ -456,6 +461,7 @@ class Window(QWidget):
         self.sizedef = valeur[8]
         self.nbclous = int(valeur[1])
         self.diam = int(valeur[2])
+        self.TotalNumberLines = int(valeur[9])
 
         self.image_path.setText(self.fnameImage)
 
@@ -468,6 +474,8 @@ class Window(QWidget):
             file_to_save = 'Output/parametre.jpg'
         elif extension.lower() == '.png':
             file_to_save = 'Output/parametre.png'
+        elif extension.lower() == '.jpeg':
+            file_to_save = 'Output/parametre.jpeg'
 
         self.pixmap = QPixmap(self.resize_image(400, 400, self.fnameImage, file_to_save))
         self.VOImage.setPixmap(self.pixmap)
@@ -490,6 +498,9 @@ class Window(QWidget):
 
         name_fichier = "Parametre/" + name
 
+        self.nbclous = int(self.ClousLine.text())
+        self.diam = int(self.DimLine.text())
+
         with open(name_fichier, 'w', newline='') as file:
             writer = csv.writer(file)
 
@@ -502,6 +513,8 @@ class Window(QWidget):
             writer.writerow(["Poid", self.defautpoid])
             writer.writerow(["Sequence", self.sizedef])
             writer.writerow(["Type_de_format", self.sequencedefaut])
+            writer.writerow(["Nombre_de_ligne_total_canvas", self.TotalNumberLines])
+
 
     def copyContent(self):
         # Logic for copying content goes here...
