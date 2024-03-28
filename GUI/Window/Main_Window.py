@@ -395,6 +395,7 @@ class Window(QWidget):
         # String-based key sequences
         self.openAction.setShortcut("Ctrl+O")
         self.saveAction.setShortcut("Ctrl+S")
+        self.LastRunResume.setShortcut("Ctrl+L")
 
         # Edit actions
         self.copyAction = QAction(QIcon(":edit-copy.svg"), "&Copy", self)
@@ -444,7 +445,9 @@ class Window(QWidget):
                     i += 1
 
         else:
-            fichier = QFileDialog.getOpenFileName(self, 'Open file', "CSV files")
+            fichier = QFileDialog.getOpenFileName(self,
+                                                  'Open file',
+                                                  "Parametre")
 
             with open(fichier[0], newline='') as csvfile:
                 fichierCSV = csv.reader(csvfile)
