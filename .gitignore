@@ -8,3 +8,8 @@
 /GUI/Input
 /GUI/Animation
 /GUI/Videos_Animation
+/GUI/Output
+*.jpg
+*.png
+*.csv
+*.pyc

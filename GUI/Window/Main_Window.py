@@ -246,7 +246,7 @@ class Window(QWidget):
                 for keys in canvas.img_couleur_sep.keys():
                     im = Image.fromarray(np.uint8(canvas.img_couleur_sep[keys]))
                     im.save("Output/%s.png" % keys)
-                canvas.animate(fps=60)
+                # canvas.animate(fps=120)
 
             else:
                 args = dict(
@@ -264,7 +264,7 @@ class Window(QWidget):
                 for keys in canvas.img_couleur_sep.keys():
                     im = Image.fromarray(np.uint8(canvas.img_couleur_sep[keys]))
                     im.save("Output/%s.png" % keys)
-                canvas.animate(fps=60)
+                # canvas.animate(fps=120)
 
             pixmap = QPixmap(
                 self.resize_image(400, 400, 'Output/c0.png', 'Output/c0.png'))

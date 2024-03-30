@@ -38,7 +38,7 @@ class JobRunner(QRunnable):
 
         for index, cmd in enumerate(self.scara_com.commandes):
 
-            percent = int(index + (self.TotalLinesCanvas - self.NumCSVLines) / self.TotalLinesCanvas * 100)
+            percent = int((index + (self.TotalLinesCanvas - self.NumCSVLines)) / self.TotalLinesCanvas * 100)
             self.signals.progress.emit(percent, self.need_change, self.scara_com.pinColours[index], index,
                                        self.NumCSVLines)
 

@@ -128,7 +128,8 @@ def ComputeThreads(img, numLines, numPins, Coords, Angles, initPin=0, minLoop=3,
 def WriteThreadedCsvFile(filename, lines, imgRadius=1000):
     csv_output = open(filename, 'wb')
     csv_output.write("p1,p2,R,G,B\n".encode('utf8'))
-    csver = lambda p1, p2, R, G, B: "%i" % p1 + "," + "%i" % p2 + "," + "%i" % R + "," + "%i" % G + "," + "%i" % B + "\n"
+    csver = lambda p1, p2, R, G,
+                   B: "%i" % p1 + "," + "%i" % p2 + "," + "%i" % R + "," + "%i" % G + "," + "%i" % B + "\n"
     for l in lines:
         csv_output.write(csver(l[0][0], l[0][1], l[1][0], l[1][1], l[1][2]).encode('utf8'))
     csv_output.close()
@@ -166,7 +167,8 @@ class Canvas:
 
         self.totalLines = None
 
-        self.base_img = Image.open(self.filename, ).convert('RGB').resize((self.img_radius * 2 + 1, self.img_radius * 2 + 1))
+        self.base_img = Image.open(self.filename, ).convert('RGB').resize(
+            (self.img_radius * 2 + 1, self.img_radius * 2 + 1))
 
         self.pinCoords(numPins=self.numPins)
 
@@ -264,25 +266,29 @@ class Canvas:
                     self.d_couleur_threaded[key] = np.flip(self.d_couleur_threaded[key])
                     print("Threaded %i %s lines" % (len(self.d_couleur_threaded[key]), key))
 
-            color_names = list(self.palette.keys())
-            color_counters = {k: 0 for k in color_names}
-            matching_rgb = list(self.palette.values())
+            self.OrderColours(background, excludeBackground)
 
-            for g in self.group_orders.split():
-                num_instances = len([c for c in self.group_orders.split() if c == g])
-                matching_color = [c for c in color_names if c == g][0]
-                if self.palette[matching_color] == background and excludeBackground is True:
-                    continue
-                else:
-                    color_value = self.palette[matching_color]
-                    color_counters[matching_color] += 1
-                    color_len = len(self.d_couleur_threaded[matching_color])
-                    start = int(color_len * (color_counters[matching_color] - 1) / num_instances)
-                    end = int(color_len * color_counters[matching_color] / num_instances)
-                    next_lines = self.d_couleur_threaded[matching_color][start: end]
-                    for line in next_lines:
-                        self.totalLines.append((line, color_value))
             print("[+] Image threaded\n")
+
+    def OrderColours(self, background=(255, 255, 255), excludeBackground=False):
+        color_names = list(self.palette.keys())
+        color_counters = {k: 0 for k in color_names}
+        matching_rgb = list(self.palette.values())
+
+        for g in self.group_orders.split():
+            num_instances = len([c for c in self.group_orders.split() if c == g])
+            matching_color = [c for c in color_names if c == g][0]
+            if self.palette[matching_color] == background and excludeBackground is True:
+                continue
+            else:
+                color_value = self.palette[matching_color]
+                color_counters[matching_color] += 1
+                color_len = len(self.d_couleur_threaded[matching_color])
+                start = int(color_len * (color_counters[matching_color] - 1) / num_instances)
+                end = int(color_len * color_counters[matching_color] / num_instances)
+                next_lines = self.d_couleur_threaded[matching_color][start: end]
+                for line in next_lines:
+                    self.totalLines.append((line, color_value))
 
     def paintCanvas(self, background=(255, 255, 255)):
         if self.greyscale is False:
@@ -331,17 +337,16 @@ class Canvas:
     def getNumLines(self):
         return len(self.totalLines)
 
-    def animate(self,fps):
-        output = Image.new('RGB', (self.img_radius * 2, self.img_radius * 2), (0,0,0))
+    def animate(self, fps):
+        output = Image.new('RGB', (self.img_radius * 2, self.img_radius * 2), (0, 0, 0))
         outputDraw = ImageDraw.Draw(output)
 
         writer = imageio.get_writer('Output/Videos_Animation/Animation.avi', fps=fps)
 
         for i in range(len(self.totalLines)):
-            outputDraw.line((self.Coords[self.totalLines[i][0][0]], self.Coords[self.totalLines[i][0][1]]), fill=self.totalLines[i][-1], width=2)
-            output.save("Output/Animation/Animation_%i.jpg" %i)
+            outputDraw.line((self.Coords[self.totalLines[i][0][0]], self.Coords[self.totalLines[i][0][1]]),
+                            fill=self.totalLines[i][-1], width=2)
+            output.save("Output/Animation/Animation_%i.jpg" % i)
             writer.append_data(np.array(output))
         writer.close()
         print("done animation")
-
-
