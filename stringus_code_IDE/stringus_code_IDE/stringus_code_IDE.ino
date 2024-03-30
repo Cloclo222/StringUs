@@ -7,7 +7,7 @@
 #define DXL_SERIAL   Serial1
 #define BUFFER_LENGTH 64
 #define MAX_SCARA_SPEED 70
-#define MAX_TABLE_SPEED 50
+#define MAX_TABLE_SPEED 60
 
 char serialBuffer[BUFFER_LENGTH]; // Buffer pour les messages Serial
 int bufferIndex = 0;              // Index pour le char dans serialBuffer
@@ -30,7 +30,7 @@ void setup() {
     Serial.println("Moteur init.");
 
     delay(2000);
-    _scara.setAcceleration(15,3);
+    _scara.setAcceleration(15,5);
     _scara.homing();
     _scara.setSpeed(MAX_SCARA_SPEED, MAX_SCARA_SPEED);
     _scara.setTableSpeed(MAX_TABLE_SPEED);
