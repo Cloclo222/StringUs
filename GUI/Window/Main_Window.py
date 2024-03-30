@@ -57,6 +57,7 @@ class Window(QWidget):
         self.flag_send = False
         self.flag_simulation = False
         self.flag_OpenCSV = False
+        self.flag_sequenceCalculate = False
 
         # Parametre defaut
         self.GreyScale = False
@@ -105,10 +106,18 @@ class Window(QWidget):
         PrecedantButton.clicked.connect(self.isPrecedantButtonClick)
         PrecedantButton.setMinimumHeight(50)
 
+        self.SimulationButton = QPushButton("Créer la simulation")
+        self.SimulationButton.clicked.connect(self.isSimulationButtonClick)
+        self.SimulationButton.setMinimumHeight(20)
+
         # Suivant Button
         NextButton = QPushButton("Suivant")
         NextButton.clicked.connect(self.isNextButtonClick)
         NextButton.setMinimumHeight(50)
+
+        self.RecalculateSequenceButton = QPushButton("Recalculer avec nouvelle séquence")
+        self.RecalculateSequenceButton.clicked.connect(self.isRecalculateSequenceButtonClick)
+        self.RecalculateSequenceButton.setMinimumHeight(20)
 
         # Advanced Setting
         PAButton = QPushButton("Paramètre avancés")
@@ -144,13 +153,13 @@ class Window(QWidget):
         self.GreyBox.setGeometry(qtc.QRect(170, 120, 81, 20))
         self.GreyBox.stateChanged.connect(self.GreyBoxCheck)
 
-        self.SimulationBox = QCheckBox()
-        self.SimulationBox.setGeometry(qtc.QRect(170, 120, 81, 20))
-        self.SimulationBox.stateChanged.connect(self.SimulationBoxCheck)
+        # self.SimulationBox = QCheckBox()
+        # self.SimulationBox.setGeometry(qtc.QRect(170, 120, 81, 20))
+        # self.SimulationBox.stateChanged.connect(self.SimulationBoxCheck)
 
-        self.SenquenceCalculateBox = QCheckBox()
-        self.SenquenceCalculateBox.setGeometry(qtc.QRect(170, 120, 81, 20))
-        self.SenquenceCalculateBox.stateChanged.connect(self.SenquenceCalculateBoxCheck)
+        # self.SenquenceCalculateBox = QCheckBox()
+        # self.SenquenceCalculateBox.setGeometry(qtc.QRect(170, 120, 81, 20))
+        # self.SenquenceCalculateBox.stateChanged.connect(self.SenquenceCalculateBoxCheck)
 
         # Affichage
         layout = QGridLayout()
@@ -179,11 +188,10 @@ class Window(QWidget):
 
         layout.addWidget(PAButton, 11, 0, 1, 4)
 
-        layout.addWidget(QLabel("Créer la simulation:"), 13, 0)
-        layout.addWidget(self.SimulationBox, 13, 1)
+        layout.addWidget(self.SimulationButton, 12, 0,1,2)
 
-        layout.addWidget(QLabel("Calculer seulement avec la nouvelle séquence:"), 14, 0)
-        layout.addWidget(self.SenquenceCalculateBox, 14, 1)
+
+        layout.addWidget(self.RecalculateSequenceButton, 14, 0,1,2)
 
         layout.addWidget(CalculateButton, 15, 0, 1, 2)
         layout.addWidget(SendButton, 15, 2, 1, 2)
@@ -191,16 +199,23 @@ class Window(QWidget):
         layout.addWidget(PrecedantButton, 14, 4, 1, 2)
         layout.addWidget(NextButton, 14, 7, 1, 2)
 
+        self.RecalculateSequenceButton.setHidden(True)
+        self.SimulationButton.setHidden(True)
         # Set the layout on the application's window
         self.setLayout(layout)
 
-    def SenquenceCalculateBoxCheck(self):
-        print("kol")
+    def isSimulationButtonClick(self):
+        self.flag_simulation = True
+        self.canvas.animate(fps=60)
+        QMessageBox.information(self, 'Simulation', "La simulation est prête et elle se trouve maintenant dans vos dossiers", QMessageBox.Ok)
+
+
 
     def isBrowseButtonClick(self):
 
         self.flag_browse = True
         self.flag_calculate = False
+        self.flag_simulation = False
 
         self.transit = QFileDialog.getOpenFileName(self, 'Open file')
         self.fnameImage = self.transit[0]
@@ -224,11 +239,29 @@ class Window(QWidget):
             self.DominantImage.setPixmap(self.pixmap)
         self.flag_browse = False
 
-    def SimulationBoxCheck(self):
-        if self.SimulationBox.checkState():
-            self.flag_simulation = True
-        else:
-            self.flag_simulation = False
+        self.RecalculateSequenceButton.setHidden(True)
+        self.SimulationButton.setHidden(True)
+
+    # def SimulationBoxCheck(self):
+    #     if self.SimulationBox.checkState():
+    #         self.flag_simulation = True
+    #     else:
+    #         self.flag_simulation = False
+
+    def isRecalculateSequenceButtonClick(self):
+
+        self.canvas.group_orders = self.sequencedefaut
+        self.canvas.OrderColours()
+        output = self.canvas.paintCanvas()
+        output.save('Output/c0.png')
+        WriteThreadedCsvFile("Output/ThreadedCSVFile.csv", self.canvas.totalLines)
+
+
+        pixmap = QPixmap(
+            self.resize_image(400, 400, 'Output/c0.png', 'Output/c0.png'))
+        self.PreviewImage.setPixmap(pixmap)
+
+        self.TotalNumberLines = self.canvas.getNumLines()
 
     def isCalculateButtonClick(self):
 
@@ -263,19 +296,18 @@ class Window(QWidget):
                     lineWidth=self.defautep,
                     lineWeight=self.defautpoid
                 )
-                canvas = Canvas(**args)
-                canvas.buildCanvas()
-                output = canvas.paintCanvas()
+                self.canvas = Canvas(**args)
+                self.canvas.buildCanvas()
+                output = self.canvas.paintCanvas()
                 output.save('Output/c0.png')
-                WriteThreadedCsvFile("Output/ThreadedCSVFile.csv", canvas.totalLines)
-                for keys in canvas.img_couleur_sep.keys():
-                    im = Image.fromarray(np.uint8(canvas.img_couleur_sep[keys]))
+                WriteThreadedCsvFile("Output/ThreadedCSVFile.csv", self.canvas.totalLines)
+                for keys in self.canvas.img_couleur_sep.keys():
+                    im = Image.fromarray(np.uint8(self.canvas.img_couleur_sep[keys]))
                     im.save("Output/%s.png" % keys)
 
-                if self.flag_simulation:
-                    canvas.animate(fps=60)
 
             else:
+
                 args = dict(
                     filename=self.fnameImage,
                     img_radius=Radius,
@@ -283,27 +315,30 @@ class Window(QWidget):
                     lineWidth=self.defautep,
                     lineWeight=self.defautpoid
                 )
-                canvas = Canvas(**args)
-                canvas.buildCanvas()
-                output = canvas.paintCanvas()
+                self.canvas = Canvas(**args)
+                self.canvas.buildCanvas()
+                output = self.canvas.paintCanvas()
                 output.save('Output/c0.png')
-                WriteThreadedCsvFile("Output/ThreadedCSVFile.csv", canvas.totalLines)
-                for keys in canvas.img_couleur_sep.keys():
-                    im = Image.fromarray(np.uint8(canvas.img_couleur_sep[keys]))
+                WriteThreadedCsvFile("Output/ThreadedCSVFile.csv", self.canvas.totalLines)
+                for keys in self.canvas.img_couleur_sep.keys():
+                    im = Image.fromarray(np.uint8(self.canvas.img_couleur_sep[keys]))
                     im.save("Output/%s.png" % keys)
 
-                if self.flag_simulation:
-                    canvas.animate(fps=60)
 
             pixmap = QPixmap(
                 self.resize_image(400, 400, 'Output/c0.png', 'Output/c0.png'))
             self.PreviewImage.setPixmap(pixmap)
 
-            self.TotalNumberLines = canvas.getNumLines()
+            self.TotalNumberLines = self.canvas.getNumLines()
+            self.RecalculateSequenceButton.setHidden(False)
+            self.SimulationButton.setHidden(False)
 
     def isSendButtonClick(self):
 
         if self.flag_calculate:
+
+            if not self.flag_simulation:
+                self.canvas.animate(fps=60)
 
             self.flag_send = True
             self.saveCSV("LastRunResume.csv")
@@ -311,6 +346,8 @@ class Window(QWidget):
             self.ProgressBar = Window_Progress("Output/ThreadedCSVFile.csv", self.nbclous, self.TotalNumberLines)
             self.ProgressBar.show()
             self.flag_send = False
+
+            QMessageBox.information(self, 'ENVOYER', "Assurer vous d'avoir recalculer si vous avez changé des données depuis le dernier calcul", QMessageBox.Ok)
 
         else:
             QMessageBox.information(self, 'ERREUR', "Il faut calculer avant d'envoyer", QMessageBox.Ok)
@@ -352,6 +389,9 @@ class Window(QWidget):
 
     def isNbCouleurChange(self):
 
+        self.RecalculateSequenceButton.setHidden(True)
+        self.SimulationButton.setHidden(True)
+        self.flag_calculate = False
         if not self.flag_OpenCSV:
             self.data_nbcouleur = self.NbCouleurBox.value()
             self.sequence()

@@ -128,8 +128,7 @@ def ComputeThreads(img, numLines, numPins, Coords, Angles, initPin=0, minLoop=3,
 def WriteThreadedCsvFile(filename, lines, imgRadius=1000):
     csv_output = open(filename, 'wb')
     csv_output.write("p1,p2,R,G,B\n".encode('utf8'))
-    csver = lambda p1, p2, R, G,
-                   B: "%i" % p1 + "," + "%i" % p2 + "," + "%i" % R + "," + "%i" % G + "," + "%i" % B + "\n"
+    csver = lambda p1, p2, R, G,B: "%i" % p1 + "," + "%i" % p2 + "," + "%i" % R + "," + "%i" % G + "," + "%i" % B + "\n"
     for l in lines:
         csv_output.write(csver(l[0][0], l[0][1], l[1][0], l[1][1], l[1][2]).encode('utf8'))
     csv_output.close()
