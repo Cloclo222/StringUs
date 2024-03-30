@@ -28,7 +28,7 @@ class JobRunner(QRunnable):
         self.filename = filename
         self.is_paused = False
         self.is_killed = False
-        self.scara_com = SCARA_COM(7)  # TODO : CUM
+        self.scara_com = SCARA_COM(3)  # TODO : CUM
         self.scara_com.readThreadedCSV(filename, nb_clous)
         self.NumCSVLines = self.scara_com.getNumLinesCSV()
         self.need_change = False
@@ -38,7 +38,7 @@ class JobRunner(QRunnable):
 
         for index, cmd in enumerate(self.scara_com.commandes):
 
-            percent = int(index + (self.TotalLinesCanvas - self.NumCSVLines) / self.TotalLinesCanvas * 100)
+            percent = int(((index + (self.TotalLinesCanvas - self.NumCSVLines)) / (self.TotalLinesCanvas)) * 100)
             self.signals.progress.emit(percent, self.need_change, self.scara_com.pinColours[index], index,
                                        self.NumCSVLines)
 

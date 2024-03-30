@@ -16,6 +16,7 @@ from PyQt5 import QtCore as qtc
 from PIL import Image
 from .Crop_window1 import *
 
+
 class Window_PA(QWidget):
     submitted2 = qtc.pyqtSignal(list, str, int, int, str)
 
@@ -31,17 +32,32 @@ class Window_PA(QWidget):
         self.sous_titre = QLabel("Parametres avances")
         self.sous_titre.setFont(QFont('Arial', 20))
 
+        self.LargeurPhoto = QLabel("Largeur")
+        self.LargeurPhoto.setFont(QFont('Arial', 9))
+
+        self.HauteurPhoto = QLabel("Hauteur")
+        self.HauteurPhoto.setFont(QFont('Arial', 9))
+
+        # Crop Button
+        self.CropButton = QPushButton("Crop l'image")
+        self.CropButton.clicked.connect(self.isCropButtonPush)
+
         # Variable
         self.nb_couleur = number_of_color_set
-        self.image_a_imprimer = filename
+        self.real = filename
+        self.size = sizedef
+
         self.Realrgb = []
         self.Realrgb = rgb_image
-        self.size = sizedef
+
+        self.valueepaisseur = ep
         self.valueepaisseur = ep
         self.valuepoid = pd
         self.sequence = seq
         self.greyscale = grey
         self.temp = self.Realrgb.copy()
+
+        self.image_a_imprimer = self.real
 
         # Box Epaisseur de la ligne
         self.EpaisseurLine = QLineEdit(str(ep))
@@ -58,6 +74,38 @@ class Window_PA(QWidget):
         self.PoidLine.setAlignment(Qt.AlignLeft)
         self.PoidLine.setFont(QFont("Arial", 10))
 
+        self.ResizeButton = QPushButton("Recadrer")
+        self.ResizeButton.clicked.connect(self.isResizeButtonPush)
+
+        self.LargeurPhotoLine = QLineEdit()
+        self.LargeurPhotoLine.setValidator(QIntValidator())
+        self.LargeurPhotoLine.setMaxLength(5)
+        self.LargeurPhotoLine.setAlignment(Qt.AlignLeft)
+        self.LargeurPhotoLine.setFont(QFont("Arial", 10))
+
+        self.HauteurPhotoLine = QLineEdit()
+        self.HauteurPhotoLine.setValidator(QIntValidator())
+        self.HauteurPhotoLine.setMaxLength(5)
+        self.HauteurPhotoLine.setAlignment(Qt.AlignLeft)
+        self.HauteurPhotoLine.setFont(QFont("Arial", 10))
+
+        # Image a imprimer
+        if sizedef == "Real":
+            self.Image = QLabel()
+            self.pixmap = QPixmap(self.resize_image(400, 400, self.image_a_imprimer, 'Output/resize_image.png'))
+            self.Image.setPixmap(self.pixmap)
+
+        elif sizedef == "Resize":
+            self.Image = QLabel()
+            self.pixmap = QPixmap(self.image_a_imprimer)
+            self.Image.setPixmap(self.pixmap)
+
+        else:  #TEMPORAIRE
+            self.Image = QLabel()
+            self.pixmap = QPixmap(self.resize_image(400, 400, self.image_a_imprimer, 'Output/resize_image.png'))
+            self.Image.setPixmap(self.pixmap)
+
+
         # Check Box RealSize
         self.checkBox_Real = QCheckBox()
         self.checkBox_Real.setGeometry(qtc.QRect(170, 120, 81, 20))
@@ -68,13 +116,9 @@ class Window_PA(QWidget):
         self.checkBox_Resize.setGeometry(qtc.QRect(170, 120, 81, 20))
         self.checkBox_Resize.stateChanged.connect(self.checkeResize)
 
-        if self.size == "Real":
-            self.checkBox_Resize.setChecked(False)
-            self.checkBox_Real.setChecked(True)
-
-        else:
-            self.checkBox_Resize.setChecked(True)
-            self.checkBox_Real.setChecked(False)
+        self.checkBox_Crop = QCheckBox()
+        self.checkBox_Crop.setGeometry(qtc.QRect(170, 120, 81, 20))
+        self.checkBox_Crop.stateChanged.connect(self.checkCrop)
 
         # Selection Couleur
         self.CouleurChoiceBox = QSpinBox(minimum=1, maximum=self.nb_couleur, value=1)
@@ -83,13 +127,10 @@ class Window_PA(QWidget):
         # Couleur Dominant_image
         self.DominantImage = QLabel()
         self.pixmap = QPixmap(
-            self.resize_image(600, 200, 'Input/bar.jpg', 'Input/bar.jpg'))
+            self.resize_image(700, 200, 'Input/bar.jpg', 'Input/bar.jpg'))
         self.DominantImage.setPixmap(self.pixmap)
 
-        # Image a imprimer
-        self.Image = QLabel()
-        self.pixmap = QPixmap(self.resize_image(400, 400, self.image_a_imprimer, 'Output/resize_image.png'))
-        self.Image.setPixmap(self.pixmap)
+
 
         # Box ordre
         self.OrdreLine = QLineEdit(seq)
@@ -101,9 +142,9 @@ class Window_PA(QWidget):
         self.ChangeColorButton = QPushButton("Changer la couleur")
         self.ChangeColorButton.clicked.connect(self.isChangeColorButtonPush)
 
-        # Crop Button
-        self.CropButton = QPushButton("Modifier l'image")
-        self.CropButton.clicked.connect(self.isCropButtonPush)
+
+
+
 
         # Enregistrer Button
         self.SaveButton = QPushButton("Enregistrer")
@@ -111,7 +152,7 @@ class Window_PA(QWidget):
 
         if self.greyscale:
             self.pixmap = QPixmap(
-                self.resize_image(600, 200, 'Input/grey.jpg', 'Input/grey.jpg'))
+                self.resize_image(700, 200, 'Input/grey.jpg', 'Input/grey.jpg'))
             self.DominantImage.setPixmap(self.pixmap)
             self.ChangeColorButton.setHidden(True)
             self.OrdreLine.setHidden(True)
@@ -124,57 +165,136 @@ class Window_PA(QWidget):
 
         layout.addWidget(self.Image, 0, 5, 4, 4)
 
-        layout.addWidget(QLabel("Epaisseur de la corde:"), 2, 0, 1, 1)
-        layout.addWidget(self.EpaisseurLine, 2, 1)
-        layout.addWidget(QLabel("Poid de la ligne:"), 3, 0)
-        layout.addWidget(self.PoidLine, 3, 1)
+        layout.addWidget(QLabel("Epaisseur de la corde:"), 2, 0, 1, 2)
+        layout.addWidget(self.EpaisseurLine, 2, 1, 1, 2)
+        layout.addWidget(QLabel("Poid de la ligne:"), 3, 0, 1, 2)
+        layout.addWidget(self.PoidLine, 3, 1, 1, 2)
 
-        layout.addWidget(QLabel("Ordre des couleurs:"), 4, 0)
-        layout.addWidget(self.OrdreLine, 4, 1)
+        layout.addWidget(QLabel("Ordre des couleurs:"), 4, 0, 1, 2)
+        layout.addWidget(self.OrdreLine, 4, 1, 1, 2)
 
         layout.addWidget(QLabel("Type de resolution:"), 5, 0)
         layout.addWidget(QLabel("Réel:"), 5, 1)
         layout.addWidget(self.checkBox_Real, 5, 2)
+
+        layout.addWidget(self.LargeurPhoto, 6, 6)
+        layout.addWidget(self.HauteurPhoto, 6, 7)
+
+        layout.addWidget(self.LargeurPhotoLine, 7, 6)
+        layout.addWidget(self.HauteurPhotoLine, 7, 7)
+        layout.addWidget(self.ResizeButton, 8, 6)
+
         layout.addWidget(QLabel("Recadrer:"), 6, 1)
         layout.addWidget(self.checkBox_Resize, 6, 2)
-        layout.addWidget(QLabel("Changer la couleur:"), 7, 0)
-        layout.addWidget(self.CouleurChoiceBox, 7, 1)
-        layout.addWidget(self.ChangeColorButton, 7, 3)
+        layout.addWidget(QLabel("Crop:"), 7, 1)
+        layout.addWidget(self.checkBox_Crop, 7, 2)
+
+        layout.addWidget(QLabel("Changer la couleur:"), 8, 0)
+        layout.addWidget(self.CouleurChoiceBox, 8, 1)
+        layout.addWidget(self.ChangeColorButton, 8, 3, 1, 2)
 
         layout.addWidget(self.CropButton, 4, 5, 3, 4)
 
-        layout.addWidget(self.DominantImage, 8, 0, 1, 4)
-        layout.addWidget(self.SaveButton, 9, 0, 1, 1)
+        layout.addWidget(self.DominantImage, 9, 0, 1, 4)
+        layout.addWidget(self.SaveButton, 10, 0, 1, 1)
+
+        # self.LargeurPhotoLine.setHidden(True)
+        # self.HauteurPhotoLine.setHidden(True)
+        # self.LargeurPhoto.setHidden(True)
+        # self.HauteurPhoto.setHidden(True)
+        # self.ResizeButton.setHidden(True)
+
+        if self.size == "Real":
+            self.checkBox_Resize.setChecked(False)
+            self.checkBox_Crop.setChecked(False)
+            self.checkBox_Real.setChecked(True)
+
+        elif self.size == "Resize":
+            self.checkBox_Resize.setChecked(True)
+            self.checkBox_Real.setChecked(False)
+            self.checkBox_Crop.setChecked(False)
+
+            self.LargeurPhotoLine.setHidden(False)
+            self.HauteurPhotoLine.setHidden(False)
+            self.LargeurPhoto.setHidden(False)
+            self.HauteurPhoto.setHidden(False)
+            self.ResizeButton.setHidden(False)
+
+        else:
+            self.checkBox_Resize.setChecked(False)
+            self.checkBox_Real.setChecked(False)
+            self.checkBox_Crop.setChecked(True)
+            self.CropButton.setHidden(False)
 
         self.setLayout(layout)
+
+    def checkCrop(self):
+
+        if self.checkBox_Crop.checkState():
+            self.size = "Crop"
+            self.checkBox_Resize.setChecked(False)
+            self.checkBox_Real.setChecked(False)
+
+            self.LargeurPhotoLine.setHidden(True)
+            self.HauteurPhotoLine.setHidden(True)
+            self.LargeurPhoto.setHidden(True)
+            self.HauteurPhoto.setHidden(True)
+            self.ResizeButton.setHidden(True)
+
+            self.CropButton.setHidden(False)
+
+            print("Crop")
 
     def checkeReal(self):
 
         if self.checkBox_Real.checkState():
+
             self.size = "Real"
             self.checkBox_Resize.setChecked(False)
+            self.checkBox_Crop.setChecked(False)
+
+            self.LargeurPhotoLine.setHidden(True)
+            self.HauteurPhotoLine.setHidden(True)
+            self.LargeurPhoto.setHidden(True)
+            self.HauteurPhoto.setHidden(True)
+            self.ResizeButton.setHidden(True)
+
+            self.CropButton.setHidden(True)
+
+            self.image_a_imprimer = self.real
+            self.pixmap = QPixmap(self.resize_image(400, 400, self.image_a_imprimer, 'Output/resize_image.png'))
+            self.Image.setPixmap(self.pixmap)
+
             print("Real")
-        # else:
-        #     if self.checkBox_Resize.isCheck():
-        #         self.checkBox_Real.setChecked(False)
-        #     else:
-        #         self.checkBox_Real.setChecked(True)
 
     def checkeResize(self):
 
         if self.checkBox_Resize.checkState():
             self.size = "Resize"
             self.checkBox_Real.setChecked(False)
+            self.checkBox_Crop.setChecked(False)
+
+            self.LargeurPhotoLine.setHidden(False)
+            self.HauteurPhotoLine.setHidden(False)
+            self.LargeurPhoto.setHidden(False)
+            self.HauteurPhoto.setHidden(False)
+            self.CropButton.setHidden(True)
+            self.ResizeButton.setHidden(False)
+
             print("Resize")
-        # else:
-        #     if self.checkBox_Real.checkState() == False:
-        #         self.checkBox_Resize.setChecked(True)
-        #     else:
-        #         self.checkBox_Resize.setChecked(False)
 
     def isCouleurChoiceBoxChange(self):
         self.numero_de_couleur = self.CouleurChoiceBox.value()
         return
+
+    def isResizeButtonPush(self):
+
+        largeur = int(self.LargeurPhotoLine.text())
+        hauteur = int(self.HauteurPhotoLine.text())
+
+        self.image_a_imprimer = self.resize_image(largeur, hauteur, self.image_a_imprimer, 'Output/BoxResize.png')
+        self.pixmap = QPixmap(self.image_a_imprimer)
+        self.Image.setPixmap(self.pixmap)
 
     def isChangeColorButtonPush(self):
 
@@ -193,13 +313,13 @@ class Window_PA(QWidget):
             self.temp[indice] = NewRGB
             self.redoBand(self.temp)
 
-            self.pixmap = QPixmap(self.resize_image(600, 200,
+            self.pixmap = QPixmap(self.resize_image(700, 200,
                                                     'Input/bar.jpg', 'Input/bar.jpg'))
             self.DominantImage.setPixmap(self.pixmap)
 
     def SaveButtonPush(self):
 
-        if self.checkBox_Resize.checkState() == False and self.checkBox_Real.checkState() == False:
+        if self.checkBox_Resize.checkState() == False and self.checkBox_Real.checkState() == False and self.checkBox_Crop.checkState() == False:
             QMessageBox.information(self, 'ERREUR', "Il n'y a pas de type de resolution coche (;", QMessageBox.Ok)
             return
 
@@ -213,7 +333,7 @@ class Window_PA(QWidget):
 
     def isCropButtonPush(self):
 
-        lol = [self.image_a_imprimer]
+        lol = ['Output/resize_image.png']
         self.window = Crop(lol)
         self.window.show()
 

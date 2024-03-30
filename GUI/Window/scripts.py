@@ -164,7 +164,7 @@ class Images:
         self.img = image
 
     def save_img(self):
-        self.img.save("Output/Crop_Picture.png")
+        self.img.save('Crop_Picture.png')
 
     def reset(self, flip=None):
         if flip is None:
