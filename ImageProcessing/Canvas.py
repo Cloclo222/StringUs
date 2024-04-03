@@ -337,7 +337,7 @@ class Canvas:
         return len(self.totalLines)
 
     def animate(self, fps):
-        output = Image.new('RGB', (self.img_radius * 2, self.img_radius * 2), (0, 0, 0))
+        output = Image.new('RGB', (self.img_radius * 2, self.img_radius * 2), (188, 188, 175))
         outputDraw = ImageDraw.Draw(output)
 
         writer = imageio.get_writer('Output/Videos_Animation/Animation.avi', fps=fps)

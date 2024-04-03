@@ -153,13 +153,6 @@ class Window(QWidget):
         self.GreyBox.setGeometry(qtc.QRect(170, 120, 81, 20))
         self.GreyBox.stateChanged.connect(self.GreyBoxCheck)
 
-        # self.SimulationBox = QCheckBox()
-        # self.SimulationBox.setGeometry(qtc.QRect(170, 120, 81, 20))
-        # self.SimulationBox.stateChanged.connect(self.SimulationBoxCheck)
-
-        # self.SenquenceCalculateBox = QCheckBox()
-        # self.SenquenceCalculateBox.setGeometry(qtc.QRect(170, 120, 81, 20))
-        # self.SenquenceCalculateBox.stateChanged.connect(self.SenquenceCalculateBoxCheck)
 
         # Affichage
         layout = QGridLayout()
@@ -241,12 +234,6 @@ class Window(QWidget):
 
         self.RecalculateSequenceButton.setHidden(True)
         self.SimulationButton.setHidden(True)
-
-    # def SimulationBoxCheck(self):
-    #     if self.SimulationBox.checkState():
-    #         self.flag_simulation = True
-    #     else:
-    #         self.flag_simulation = False
 
     def isRecalculateSequenceButtonClick(self):
 
