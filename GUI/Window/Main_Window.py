@@ -325,7 +325,7 @@ class Window(QWidget):
         if self.flag_calculate:
 
             if not self.flag_simulation:
-                self.canvas.animate(fps=60)
+                self.canvas.generateImgs()
 
             self.flag_send = True
             self.saveCSV("LastRunResume.csv")

@@ -5,137 +5,144 @@ import plotly.express as px
 import numba
 import cv2
 import imageio.v2
+import os
+import glob
 
 
-@numba.njit
+@numba.njit  # Ce décorateur indique que la fonction sera compilée avec le compilateur JIT de Numba pour une exécution plus rapide.
 def LineSum(img, x, y):
-    acc = 0
-    for i, j in zip(x, y):
-        acc += img[j, i]
-    return acc
+    acc = 0  # Initialiser une variable d'accumulateur pour stocker la somme des valeurs des pixels.
+    for i, j in zip(x, y):  # Parcourir les coordonnées x et y simultanément en utilisant zip.
+        acc += img[j, i]  # Ajouter la valeur du pixel à la position (j, i) à l'accumulateur.
+    return acc  # Renvoyer la somme accumulée.
 
 
 @numba.njit
 def linePixels(pin0, pin1):
-    length = int(np.hypot(pin1[0] - pin0[0], pin1[1] - pin0[1]))
-    x = np.linspace(pin0[0], pin1[0], length)
-    y = np.linspace(pin0[1], pin1[1], length)
-    x = np.array([int(x[i]) for i in range(len(x))]) - 1
-    y = np.array([int(y[i]) for i in range(len(y))]) - 1
-    return x, y
+    length = int(np.hypot(pin1[0] - pin0[0], pin1[1] - pin0[1]))  # Calcul de la longueur de la ligne utilisant l'hypoténuse
+    x = np.linspace(pin0[0], pin1[0], length)  # Générer une séquence linéaire de coordonnées x entre pin0 et pin1
+    y = np.linspace(pin0[1], pin1[1], length)  # Générer une séquence linéaire de coordonnées y entre pin0 et pin1
+    x = np.array([int(x[i]) for i in range(len(x))]) - 1  # Convertir les coordonnées x en entiers et ajuster de -1
+    y = np.array([int(y[i]) for i in range(len(y))]) - 1  # Convertir les coordonnées y en entiers et ajuster de -1
+    return x, y  # Renvoyer les coordonnées x et y de la ligne
 
 
 @numba.njit
 def ditherImg(arr, colors_array):
-    arr_shape = np.shape(arr)
+    arr_shape = np.shape(arr)  # Obtenir la forme de l'array d'entrée
 
-    num_imgs = len(colors_array)
-    res_shape = num_imgs, arr_shape[0], arr_shape[1]
-    res_dithered = np.zeros(arr_shape)
-    result_sep = np.zeros(res_shape)
+    num_imgs = len(colors_array)  # Nombre d'images de sortie (une par couleur dans colors_array)
+    res_shape = num_imgs, arr_shape[0], arr_shape[1]  # Forme de l'array de résultat
+    res_dithered = np.zeros(arr_shape)  # Initialiser l'array de résultat de la même forme que l'array d'entrée
+    result_sep = np.zeros(res_shape)  # Initialiser l'array de séparation de résultat
 
-    height, width = arr.shape[0:2]
-    for ir in range(height):
-        for ic in range(width):
-            old_val = arr[ir, ic].copy()
-            distances = np.sqrt(np.sum((colors_array - old_val) ** 2, axis=1))
-            closest = np.where(distances == np.amin(distances))[0][0]
-            new_val = colors_array[closest]
-            result_sep[closest, ir, ic] = 255
-            res_dithered[ir, ic] = new_val
-            err = old_val - new_val
+    height, width = arr.shape[0:2]  # Obtenir la hauteur et la largeur de l'image d'entrée
+    for ir in range(height):  # Boucle sur les lignes de l'image
+        for ic in range(width):  # Boucle sur les colonnes de l'image
+            old_val = arr[ir, ic].copy()  # Valeur de pixel d'entrée à la position (ir, ic)
+            distances = np.sqrt(np.sum((colors_array - old_val) ** 2, axis=1))  # Calculer les distances aux couleurs
+            closest = np.where(distances == np.amin(distances))[0][0]  # Trouver l'index de la couleur la plus proche
+            new_val = colors_array[closest]  # Nouvelle valeur de pixel sélectionnée
+            result_sep[closest, ir, ic] = 255  # Marquer la position de la couleur la plus proche dans l'array de séparation
+            res_dithered[ir, ic] = new_val  # Affecter la nouvelle valeur de pixel à l'array de résultat
+            err = old_val - new_val  # Calculer l'erreur de quantification
 
-            if ic < width - 1:
-                arr[ir, ic + 1] += err * 3 / 16
-            if ir < height - 1:
+            if ic < width - 1:  # Si nous ne sommes pas à la dernière colonne
+                arr[ir, ic + 1] += err * 3 / 16  # Diffuser l'erreur à la colonne suivante
+            if ir < height - 1:  # Si nous ne sommes pas à la dernière ligne
                 if ic > 0:
-                    arr[ir + 1, ic - 1] += err * 3 / 16
-                arr[ir + 1, ic] += err * 5 / 16
+                    arr[ir + 1, ic - 1] += err * 3 / 16  # Diffuser l'erreur à la colonne précédente de la ligne suivante
+                arr[ir + 1, ic] += err * 5 / 16  # Diffuser l'erreur à la ligne suivante
                 if ic < width - 1:
-                    arr[ir + 1, ic + 1] += err / 16
+                    arr[ir + 1, ic + 1] += err / 16  # Diffuser l'erreur à la colonne suivante de la ligne suivante
 
-        # sys.stdout.write("\b\b")
-        # sys.stdout.write("\r")
-        # sys.stdout.write("[+] Dithering " + str(int(ir / height * 100)) + "% complete")
-        # sys.stdout.flush()
-    return [res_dithered, result_sep]
+    return [res_dithered, result_sep]  # Renvoyer l'array de résultat et l'array de séparation
+
 
 
 def ComputeThreads(img, numLines, numPins, Coords, Angles, initPin=0, minLoop=3, lineWeight=10, lineWidth=10,
                    colour=(0, 0, 0)) -> []:
     # Initialize variables
-    i = 0
-    lines = []
-    previousPins = []
-    oldPin = initPin
-    lineMask = np.zeros_like(img)
+    i = 0  # Variable pour compter les lignes
+    lines = []  # Liste pour stocker les paires de broches formant chaque ligne
+    previousPins = []  # Liste pour stocker les broches précédentes pour éviter la répétition
+    oldPin = initPin  # Broche de départ
+    lineMask = np.zeros_like(img)  # Masque pour soustraire la ligne de l'image
 
+    # Boucle sur le nombre de lignes à calculer
     for line in range(numLines):
-        i += 1
-        bestLine = 0
-        oldCoord = Coords[oldPin]
+        i += 1  # Incrémenter le compteur de ligne
+        bestLine = 0  # Initialiser la meilleure ligne à 0
+        oldCoord = Coords[oldPin]  # Coordonnées de la broche de départ
 
-        # Loop over possible lines
+        # Boucle sur les broches potentielles pour former la ligne
         for index in range(5, numPins - 5):
-            pin = (oldPin + index) % numPins
-            lineSum = 0
-            coord = Coords[pin]
+            pin = (oldPin + index) % numPins  # Calculer l'index de la broche actuelle
+            lineSum = 0  # Initialiser la somme de la ligne à 0
+            coord = Coords[pin]  # Coordonnées de la broche actuelle
 
-            xLine, yLine = linePixels(oldCoord, coord)
+            xLine, yLine = linePixels(oldCoord, coord)  # Obtenir les coordonnées des pixels de la ligne
 
-            # Fitness function
+            # Calculer la somme des valeurs de pixels le long de la ligne
             Sum = LineSum(img, xLine, yLine)
+
+            # Vérifier si la somme est meilleure que la meilleure ligne précédente et si la broche actuelle n'a pas déjà été utilisée
             if (Sum > bestLine) and not (pin in previousPins):
-                bestLine = Sum
-                bestPin = pin
+                bestLine = Sum  # Mettre à jour la meilleure ligne
+                bestPin = pin  # Mettre à jour la meilleure broche
 
-        # Update previous pins
+        # Mettre à jour les broches précédentes
         if len(previousPins) >= minLoop:
-            previousPins.pop(0)
-        previousPins.append(bestPin)
+            previousPins.pop(0)  # Supprimer la plus ancienne broche de la liste
+        previousPins.append(bestPin)  # Ajouter la meilleure broche à la liste
 
-        # Subtract new line from image
-        lineMask = lineMask * 0
+        # Soustraire la nouvelle ligne de l'image
+        lineMask = lineMask * 0  # Réinitialiser le masque de ligne
+        cv2.line(lineMask, oldCoord, Coords[bestPin], lineWeight, lineWidth)  # Dessiner la ligne sur le masque
+        img = np.subtract(img, lineMask)  # Soustraire la ligne de l'image
 
-        cv2.line(lineMask, oldCoord, Coords[bestPin], lineWeight, lineWidth)
-        img = np.subtract(img, lineMask)
-
+        # Afficher la progression du calcul
         progress = img / 255
         cv2.imshow('%s' % colour, cv2.resize(progress, (1000, 1000)))
         cv2.waitKey(1)
 
-        # Save line to results\
-
+        # Enregistrer la ligne dans les résultats
         lines.append((oldPin, bestPin))
 
-        # Break if no lines possible
+        # Arrêter la boucle si aucune ligne n'est possible
         if bestPin == oldPin:
             break
 
-        # Prepare for next loop
-        oldPin = bestPin
+        # Préparer la boucle suivante
+        oldPin = bestPin  # Mettre à jour la broche de départ pour la prochaine itération
 
-        # Print progress
+        # Afficher la progression
         sys.stdout.write("\b\b")
         sys.stdout.write("\r")
-        sys.stdout.write("[+] Computing " + colour + " line " + str(line + 1))
+        sys.stdout.write("[+] Calcul de la ligne " + colour + " " + str(line + 1))
         sys.stdout.flush()
+
     sys.stdout.write("\n")
-    cv2.destroyAllWindows()
-    return lines
+    cv2.destroyAllWindows()  # Fermer toutes les fenêtres d'affichage
+    return lines  # Renvoyer les lignes calculées
+
 
 
 def WriteThreadedCsvFile(filename, lines, imgRadius=1000):
-    csv_output = open(filename, 'wb')
-    csv_output.write("p1,p2,R,G,B\n".encode('utf8'))
-    csver = lambda p1,p2,R,G,B: "%i" % p1 + "," + "%i" % p2 + "," + "%i" % R + "," + "%i" % G + "," + "%i" % B + "\n"
+    csv_output = open(filename, 'wb')  # Ouvrir le fichier CSV en mode écriture binaire
+    csv_output.write("p1,p2,R,G,B\n".encode('utf8'))  # Écrire l'en-tête du fichier CSV
+
+    # Fonction lambda pour formater les lignes de données en CSV
+    csver = lambda p1, p2, R, G, B: "%i" % p1 + "," + "%i" % p2 + "," + "%i" % R + "," + "%i" % G + "," + "%i" % B + "\n"
+
+    # Boucle sur les lignes de données et écrire dans le fichier CSV
     for l in lines:
         csv_output.write(csver(l[0][0], l[0][1], l[1][0], l[1][1], l[1][2]).encode('utf8'))
-    csv_output.close()
+
+    csv_output.close()  # Fermer le fichier CSV
 
 
 class Canvas:
-
     def __init__(self,
                  filename,
                  img_radius=1000,
@@ -151,7 +158,24 @@ class Canvas:
                  Topleftpixel=(0, 0),
                  CropDiameter=1000
                  ):
+        """
+        Initialisateur de la classe Canvas.
 
+        Paramètres :
+            - filename : Le nom du fichier de l'image.
+            - img_radius : Le rayon de l'image.
+            - numPins : Le nombre de broches.
+            - initPin : La broche initiale.
+            - lineWidth : La largeur de la ligne.
+            - lineWeight : Le poids de la ligne.
+            - minLoop : Le nombre minimal d'itérations.
+            - palette : La palette de couleurs.
+            - numLinesPerColour : Le nombre de lignes par couleur.
+            - group_orders : Les ordres de groupe.
+            - fillColor : La couleur de remplissage.
+            - Topleftpixel : Le pixel en haut à gauche.
+            - CropDiameter : Le diamètre de recadrage.
+        """
         self.numLinesPerColour = numLinesPerColour
         self.filename = filename
         self.img_radius = img_radius
@@ -166,11 +190,13 @@ class Canvas:
 
         self.totalLines = None
 
+        # Charger l'image et initialiser les attributs en fonction des paramètres
         self.base_img = Image.open(self.filename, ).convert('RGB').resize(
             (self.img_radius * 2 + 1, self.img_radius * 2 + 1))
 
         self.pinCoords(numPins=self.numPins)
 
+        # Créer l'image dithered si une palette est fournie, sinon convertir l'image en niveaux de gris
         if palette is not None:
             self.greyscale = False
             if numLinesPerColour is None:
@@ -179,7 +205,7 @@ class Canvas:
                     self.numLinesPerColour[key] = 100000
             else:
                 assert set(palette.keys()) == set(
-                    numLinesPerColour.keys()), "Palette keys and numLinesPerColour keys don't match"
+                    numLinesPerColour.keys()), "Les clés de la palette et de numLinesPerColour ne correspondent pas"
             self.palette = palette
             self.colors_array = np.array(list(self.palette.values()))
             self.np_img = np.array(self.base_img, dtype=float)
@@ -191,8 +217,8 @@ class Canvas:
 
             first_color_letters = [color[1] for color in self.color_names]
             assert len(set(first_color_letters)) == len(
-                first_color_letters), "First letter of each color name must be unique."
-            # assert set(first_color_letters) == set(group_orders), "Invalid letter in group_order"
+                first_color_letters), "La première lettre de chaque nom de couleur doit être unique."
+            # assert set(first_color_letters) == set(group_orders), "Lettre invalide dans group_order"
             self.group_orders = group_orders
 
             for keys in self.palette.keys():
@@ -211,6 +237,15 @@ class Canvas:
             # Image.fromarray(self.img).show()
 
     def pinCoords(self, numPins, offset=0, x0=None, y0=None):
+        """
+        Méthode pour calculer les coordonnées des broches.
+
+        Paramètres :
+            - numPins : Le nombre de broches.
+            - offset : Le décalage d'angle.
+            - x0 : La coordonnée x du centre de l'image.
+            - y0 : La coordonnée y du centre de l'image.
+        """
         self.numPins = numPins
         alpha = np.linspace(0 + offset, 2 * np.pi + offset, self.numPins + 1)
 
@@ -228,9 +263,17 @@ class Canvas:
         self.Angles = alpha[0:-1]
 
     def buildCanvas(self, numLines=10000, background=(255, 255, 255), excludeBackground=False):
+        """
+        Méthode pour construire le canvas.
+
+        Paramètres :
+            - numLines : Le nombre de lignes à créer.
+            - background : La couleur de fond.
+            - excludeBackground : Indicateur pour exclure le fond lors de la création des lignes.
+        """
         self.totalLines = []
         if self.greyscale is True:
-            # assert numLines != 0, "Must specify number of lines in buildCanvas, for Greyscale"
+            # assert numLines != 0, "Doit spécifier le nombre de lignes dans buildCanvas, pour Greyscale"
             Lines = ComputeThreads(self.img_couleur_sep["grey"],
                                    numLines=numLines,
                                    numPins=self.numPins,
@@ -270,6 +313,13 @@ class Canvas:
             print("[+] Image threaded\n")
 
     def OrderColours(self, background=(255, 255, 255), excludeBackground=False):
+        """
+        Méthode pour ordonner les couleurs.
+
+        Paramètres :
+            - background : La couleur de fond.
+            - excludeBackground : Indicateur pour exclure le fond lors de l'ordonnancement des couleurs.
+        """
         self.totalLines = []
         color_names = list(self.palette.keys())
         color_counters = {k: 0 for k in color_names}
@@ -291,6 +341,12 @@ class Canvas:
                     self.totalLines.append((line, color_value))
 
     def paintCanvas(self, background=(255, 255, 255)):
+        """
+        Méthode pour peindre le canvas.
+
+        Paramètres :
+            - background : La couleur de fond.
+        """
         if self.greyscale is False:
             output = Image.new('RGB', (self.img_radius * 2, self.img_radius * 2), background)
             outputDraw = ImageDraw.Draw(output)
@@ -310,6 +366,9 @@ class Canvas:
         return output
 
     def fs_dither(self):
+        """
+        Méthode pour effectuer le dithering Floyd-Steinberg.
+        """
         res = ditherImg(self.np_img, self.colors_array)
         self.img_dithered = np.array(res[0])
         for i, key in enumerate(self.palette.keys()):
@@ -321,23 +380,42 @@ class Canvas:
 
     # Invert grayscale image
     def invertImage(self):
+        """
+        Méthode pour inverser l'image en niveaux de gris.
+        """
         self.np_img = 255 - self.np_img
 
     def showDitheredImage(self):
+        """
+        Méthode pour afficher l'image dithered.
+        """
         px.imshow(self.img_dithered, template="plotly_dark").show()
         fig = px.imshow(
             np.array(list(self.img_couleur_sep.values())), template="plotly_dark",
-            title="Images per color", animation_frame=0, color_continuous_scale="gray"
+            title="Images par couleur", animation_frame=0, color_continuous_scale="gray"
         ).update_layout(coloraxis_showscale=False)
-        fig.layout.sliders[0].currentvalue.prefix = "color = "
+        fig.layout.sliders[0].currentvalue.prefix = "couleur = "
         for i, color_name in enumerate(self.palette.keys()):
             fig.layout.sliders[0].steps[i].label = color_name
         fig.show()
 
     def getNumLines(self):
+        """
+        Méthode pour obtenir le nombre total de lignes.
+        """
         return len(self.totalLines)
 
     def animate(self, fps):
+        """
+        Méthode pour générer une animation avec les images de l'animation.
+
+        Paramètres :
+            - fps : Les images par seconde de l'animation.
+        """
+        files = glob.glob('Output/Animation/*')
+        for f in files:
+            os.remove(f)
+
         output = Image.new('RGB', (self.img_radius * 2, self.img_radius * 2), (188, 188, 175))
         outputDraw = ImageDraw.Draw(output)
 
@@ -348,5 +426,24 @@ class Canvas:
                             fill=self.totalLines[i][-1], width=2)
             output.save("Output/Animation/Animation_%i.jpg" % i)
             writer.append_data(np.array(output))
+            print("1")
         writer.close()
         print("done animation")
+
+    def generateImgs(self):
+        """
+        Méthode pour générer des images de la simulation
+        """
+        files = glob.glob('Output/Animation/*')
+        for f in files:
+            os.remove(f)
+
+        output = Image.new('RGB', (self.img_radius * 2, self.img_radius * 2), (188, 188, 175))
+        outputDraw = ImageDraw.Draw(output)
+
+        for i in range(len(self.totalLines)):
+            outputDraw.line((self.Coords[self.totalLines[i][0][0]], self.Coords[self.totalLines[i][0][1]]),
+                            fill=self.totalLines[i][-1], width=2)
+            output.save("Output/Animation/Animation_%i.jpg" % i)
+            print('2')
+
