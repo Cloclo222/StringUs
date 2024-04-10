@@ -412,6 +412,11 @@ class Canvas:
         Paramètres :
             - fps : Les images par seconde de l'animation.
         """
+        if os.path.exists('Output/Animation') is False:
+            os.makedirs('Output/Animation')
+        if os.path.exists('Output/Videos_Animation') is False:
+            os.makedirs('Output/Videos_Animation')
+
         files = glob.glob('Output/Animation/*')
         for f in files:
             os.remove(f)
@@ -434,6 +439,9 @@ class Canvas:
         """
         Méthode pour générer des images de la simulation
         """
+        if os.path.exists('Output/Animation') is False:
+            os.makedirs('Output/Animation')
+
         files = glob.glob('Output/Animation/*')
         for f in files:
             os.remove(f)
