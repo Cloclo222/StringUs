@@ -3,38 +3,57 @@
 #include "src/Scara/Scara.h" //Dans le fichier src, c'est notre propre librarie
 #include "Arduino.h"
 //#include <string>
+#include "Wire.h"
 
 #define DXL_SERIAL   Serial1
 #define BUFFER_LENGTH 64
 #define MAX_SCARA_SPEED 70
 #define MAX_TABLE_SPEED 60
+#define EEPROM_I2C_ADDRESS 0x50
+#define LEFT_APPROACH_ADDRESS 0 // address to store left scara approach position in EEPROM (2x uint16_t = 4 bytes)
+#define RIGHT_APPROACH_ADDRESS 4 // address to store right scara approach position in EEPROM (2x uint16_t = 4 bytes)
+#define LEFT_SEQ_BASE_ADDRESS 8 // address of first element to store left scara circle sequence in EEPROM (50x2x uint16_t = 200 bytes)
+#define RIGHT_SEQ_BASE_ADDRESS 208 // address of first element to store right scara circle sequence in EEPROM (50x2x uint16_t = 200 bytes)
 
 char serialBuffer[BUFFER_LENGTH]; // Buffer pour les messages Serial
 int bufferIndex = 0;              // Index pour le char dans serialBuffer
 
+Dynamixel2Arduino _dxl(DXL_SERIAL, -1); 
+Scara _scara(_dxl);
+
 void serialControl(); 
 void executeCommand(const char* command);
+void updateScaraApproach(uint16_t * array, int address, int i2c_address = EEPROM_I2C_ADDRESS);
+void updateScaraSeq(uint16_t array[SCARA_SEQ_RES][2], int address, int num_pos = SCARA_SEQ_RES, int i2c_address = EEPROM_I2C_ADDRESS);
+void write_uint16_EEPROM(int address, uint16_t val, int i2c_address = EEPROM_I2C_ADDRESS);
+uint16_t read_uint16_EEPROM(int address, int i2c_address = 0x50, int numBytes = 2);
 
-Dynamixel2Arduino _dxl(DXL_SERIAL, -1); //Si variable définit avec un "_" à l'avant, c'est un objet!
 
-Scara _scara(_dxl);
 
 void setup() {
     Serial.begin(115200);
-    _dxl.begin(57600);
-    Serial.println("Baudrate init.");
+    // _dxl.begin(57600);
+    // Serial.println("Baudrate init.");
 
-    _scara.init_com();
-    Serial.println("Comunication init.");
-    _scara.init_moteur();
-    Serial.println("Moteur init.");
+    // _scara.init_com();
+    // Serial.println("Comunication init.");
+    // _scara.init_moteur();
+    // Serial.println("Moteur init.");
 
-    delay(2000);
-    _scara.setAcceleration(15,5);
-    _scara.homing();
-    _scara.setSpeed(MAX_SCARA_SPEED, MAX_SCARA_SPEED);
-    _scara.setTableSpeed(MAX_TABLE_SPEED);
-    Serial.println("Homing complete.");
+    Wire.begin();
+    //Serial.println("I2C init");
+    
+    //updateScaraApproach(_scara.LeftApproach, LEFT_APPROACH_ADDRESS, 2);
+    //updateScaraApproach(_scara.RightApproach, RIGHT_APPROACH_ADDRESS, 2);
+    updateScaraSeq(_scara.seqClou[0], LEFT_SEQ_BASE_ADDRESS, SCARA_SEQ_RES);
+    //updateScaraSeq(_scara.seqClou[1], RIGHT_SEQ_BASE_ADDRESS, SCARA_SEQ_RES);
+    
+    //delay(2000);
+    // _scara.setAcceleration(15,5);
+    // _scara.homing();
+    // _scara.setSpeed(MAX_SCARA_SPEED, MAX_SCARA_SPEED);
+    // _scara.setTableSpeed(MAX_TABLE_SPEED);
+    // Serial.println("Homing complete.");
     
 }
 
@@ -149,45 +168,45 @@ void executeCommand(const char* command) {
       case 5: {
         int angle1;
         if (sscanf(command + 2, "%d", &angle1) == 1) { //Regarde s'il y a 1 angle
-          int CE = _scara.getLastCmd()[2];
-          int CRT = floor(CE/4096)*4096 + angle1;
+          int CE = _scara.getLastCmd()[2]; // Current Encoder position
+          int CRT = floor(CE/4096)*4096 + angle1; // Current Revolution Target
           int current_pos[2] = {_scara.getLastCmd()[0],_scara.getLastCmd()[1]};
 
           if(abs(CRT-CE)<2048){
             if(CRT>CE){
               _scara.setTablePos(CRT - _scara.range);
-              _scara.setScaraPos(_scara.jointDefaultLeft);
-              _scara.jointisPos(_scara.jointDefaultLeft);
+              _scara.setScaraPos(_scara.LeftApproach);
+              _scara.jointisPos(_scara.LeftApproach);
               _scara.tableisPos(CRT - _scara.range);
               _scara.doSeq(0);
-              _scara.setScaraPos(_scara.jointDefaultLeft);
-              _scara.jointisPos(_scara.jointDefaultLeft);
+              _scara.setScaraPos(_scara.LeftApproach);
+              _scara.jointisPos(_scara.LeftApproach);
             }else{
                _scara.setTablePos(CRT + _scara.range);
-               _scara.setScaraPos(_scara.jointDefaultRight);
-               _scara.jointisPos(_scara.jointDefaultRight);
+               _scara.setScaraPos(_scara.RightApproach);
+               _scara.jointisPos(_scara.RightApproach);
                _scara.tableisPos(CRT + _scara.range);
                _scara.doSeq(1);
-               _scara.setScaraPos(_scara.jointDefaultRight);
-               _scara.jointisPos(_scara.jointDefaultRight);
+               _scara.setScaraPos(_scara.RightApproach);
+               _scara.jointisPos(_scara.RightApproach);
             } 
           }else{
             if(CRT>CE){
               _scara.setTablePos(CRT - 4096 + _scara.range);
-              _scara.setScaraPos(_scara.jointDefaultRight);
-              _scara.jointisPos(_scara.jointDefaultRight);
+              _scara.setScaraPos(_scara.RightApproach);
+              _scara.jointisPos(_scara.RightApproach);
               _scara.tableisPos(CRT - 4096 + _scara.range);
               _scara.doSeq(1);
-              _scara.setScaraPos(_scara.jointDefaultRight);
-              _scara.jointisPos(_scara.jointDefaultRight);
+              _scara.setScaraPos(_scara.RightApproach);
+              _scara.jointisPos(_scara.RightApproach);
             }else{
                _scara.setTablePos(CRT + 4096 - _scara.range);
-               _scara.setScaraPos(_scara.jointDefaultLeft);
-               _scara.jointisPos(_scara.jointDefaultLeft);
+               _scara.setScaraPos(_scara.LeftApproach);
+               _scara.jointisPos(_scara.LeftApproach);
                _scara.tableisPos(CRT + 4096 - _scara.range);
                _scara.doSeq(0);
-               _scara.setScaraPos(_scara.jointDefaultLeft);
-               _scara.jointisPos(_scara.jointDefaultLeft);
+               _scara.setScaraPos(_scara.LeftApproach);
+               _scara.jointisPos(_scara.LeftApproach);
             } 
           }
         }
@@ -212,7 +231,7 @@ void executeCommand(const char* command) {
       }
       case 2: {
         int i = 0;
-        while(i<100){
+        while(i<SCARA_SEQ_RES){
           if(_dxl.readControlTableItem(MOVING, moteur_gauche) || _dxl.readControlTableItem(MOVING, moteur_droit))
           {
             _scara.seqCalib[i][0] = _scara.getDxlPos(moteur_gauche);
@@ -228,6 +247,61 @@ void executeCommand(const char* command) {
       }
     }
   }
+  else if (command[0] == 'W') {          
+    char command_char = command[1];
+    int command_int = command_char - '0';
+    switch (command_int) { // Regarde le chiffre de commande
+      case 0: {   
+        write_uint16_EEPROM(LEFT_APPROACH_ADDRESS, (uint16_t) _scara.getDxlPos(moteur_gauche));
+        write_uint16_EEPROM(LEFT_APPROACH_ADDRESS + 2, (uint16_t) _scara.getDxlPos(moteur_droit));
+        updateScaraApproach(_scara.LeftApproach, LEFT_APPROACH_ADDRESS, 2);                                                      
+        break;
+      }
+      case 1: {
+        write_uint16_EEPROM(RIGHT_APPROACH_ADDRESS, (uint16_t) _scara.getDxlPos(moteur_gauche));
+        write_uint16_EEPROM(RIGHT_APPROACH_ADDRESS + 2, (uint16_t) _scara.getDxlPos(moteur_droit));      
+        updateScaraApproach(_scara.RightApproach, RIGHT_APPROACH_ADDRESS, 2);     
+        break;
+      }
+      case 2: {
+        int i = 0;
+        while(i< 4 * SCARA_SEQ_RES){
+          while(!_dxl.readControlTableItem(MOVING, moteur_gauche) && !_dxl.readControlTableItem(MOVING, moteur_droit))
+          {
+          }
+          write_uint16_EEPROM(LEFT_SEQ_BASE_ADDRESS+i, (uint16_t) _scara.getDxlPos(moteur_gauche));
+          write_uint16_EEPROM(LEFT_SEQ_BASE_ADDRESS+i+2, (uint16_t) _scara.getDxlPos(moteur_droit));
+          delay(30);
+          i += 4;
+        }
+        updateScaraSeq(_scara.seqClou[0], LEFT_SEQ_BASE_ADDRESS);
+        break;
+      }
+      case 3: {
+        int i = 0;
+        while(i< 4 * SCARA_SEQ_RES){
+          while(!_dxl.readControlTableItem(MOVING, moteur_gauche) && !_dxl.readControlTableItem(MOVING, moteur_droit))
+          {
+          }
+          write_uint16_EEPROM(RIGHT_SEQ_BASE_ADDRESS+i, (uint16_t) _scara.getDxlPos(moteur_gauche));
+          write_uint16_EEPROM(RIGHT_SEQ_BASE_ADDRESS+i+2, (uint16_t) _scara.getDxlPos(moteur_droit));
+          delay(30);
+          i += 4;
+        }
+        updateScaraSeq(_scara.seqClou[1], RIGHT_SEQ_BASE_ADDRESS);
+        break;
+      }
+      // case 4: {
+      //   for(int i = 0; i<50; i++){
+      //     write_uint16_EEPROM(LEFT_SEQ_BASE_ADDRESS+(4*i), i*100);
+      //     write_uint16_EEPROM(LEFT_SEQ_BASE_ADDRESS+(4*i)+2, i*100 + 2);
+      //     break;
+      //   }
+      // }
+     _scara.toggleTorque(1);
+     break;
+    }
+  }
 }
 
 void printPos(){
@@ -237,4 +311,72 @@ void printPos(){
   Serial.println(left_pos);
   Serial.println(right_pos);
   Serial.println(table_pos);
+}
+
+void updateScaraApproach(uint16_t * array, int address, int i2c_address = EEPROM_I2C_ADDRESS){
+  array[0] = read_uint16_EEPROM(address, i2c_address, 2);
+  array[1] = read_uint16_EEPROM(address+2, i2c_address, 2);
+}
+
+void updateScaraSeq(uint16_t array[SCARA_SEQ_RES][2], int address, int num_pos = SCARA_SEQ_RES, int i2c_address = EEPROM_I2C_ADDRESS){
+  for(int i = 0; i<num_pos; i++){
+    array[i][0] = read_uint16_EEPROM(address+(4*i), i2c_address, 2);
+    array[i][1] = read_uint16_EEPROM(address+(4*i)+2, i2c_address, 2);
+  }
+}
+
+// Function to write to EEPROOM
+void write_uint16_EEPROM(int address, uint16_t val, int i2c_address = EEPROM_I2C_ADDRESS)
+{
+  // Begin transmission to I2C EEPROM
+  Wire.beginTransmission(i2c_address);
+
+  // Send memory address as two 8-bit bytes
+  Wire.write((int)(address >> 8));   // MSB
+  Wire.write((int)(address & 0xFF)); // LSB
+
+  // Send data to be stored
+  char buff[64];
+  sprintf(buff, "value to be written at address %d : %d", address, val);
+  byte data[2] = {(val >> 8), (val & 0xff)};
+
+  Serial.println(buff);
+  Wire.write(data, 2);
+
+  // End the transmission
+  Wire.endTransmission();
+
+  // Add 5ms delay for EEPROM
+  delay(5);
+}
+
+// Function to read from EEPROM
+uint16_t read_uint16_EEPROM(int address, int i2c_address = EEPROM_I2C_ADDRESS, int numBytes = 2)
+{
+  // Define byte for received data
+  uint16_t rcvData = 0;
+
+  // Begin transmission to I2C EEPROM
+  Wire.beginTransmission(i2c_address);
+
+  // Send memory address as two 8-bit bytes
+  Wire.write((int)(address >> 8));   // MSB
+  Wire.write((int)(address & 0xFF)); // LSB
+
+  int ret;
+  // End the transmission
+  ret = Wire.endTransmission();
+  //Serial.println(ret);
+  
+  Wire.requestFrom(i2c_address, 2);
+
+  // Read the data and assign to variable
+  byte MSB =  Wire.read();
+  byte LSB = Wire.read();
+  rcvData = ((uint16_t) MSB << 8) | LSB;
+  char buff[64];
+  sprintf(buff, "value read at address %d : %d", address, rcvData);
+  Serial.println(buff);
+  // Return the data as function output
+  return rcvData;
 }

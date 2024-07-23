@@ -1,7 +1,6 @@
 #include "scara.h"
 //#include <cmath>
 
-
 Scara::Scara(Dynamixel2Arduino &dxl) : _dxl(dxl) {}
 
 Scara::~Scara() {}
