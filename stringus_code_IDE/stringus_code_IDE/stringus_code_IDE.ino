@@ -254,13 +254,15 @@ void executeCommand(const char* command) {
       case 0: {   
         write_uint16_EEPROM(LEFT_APPROACH_ADDRESS, (uint16_t) _scara.getDxlPos(moteur_gauche));
         write_uint16_EEPROM(LEFT_APPROACH_ADDRESS + 2, (uint16_t) _scara.getDxlPos(moteur_droit));
-        updateScaraApproach(_scara.LeftApproach, LEFT_APPROACH_ADDRESS, 2);                                                      
+        updateScaraApproach(_scara.LeftApproach, LEFT_APPROACH_ADDRESS, 2);
+        Serial.println('1');                                                      
         break;
       }
       case 1: {
         write_uint16_EEPROM(RIGHT_APPROACH_ADDRESS, (uint16_t) _scara.getDxlPos(moteur_gauche));
         write_uint16_EEPROM(RIGHT_APPROACH_ADDRESS + 2, (uint16_t) _scara.getDxlPos(moteur_droit));      
-        updateScaraApproach(_scara.RightApproach, RIGHT_APPROACH_ADDRESS, 2);     
+        updateScaraApproach(_scara.RightApproach, RIGHT_APPROACH_ADDRESS, 2); 
+        Serial.println('1');    
         break;
       }
       case 2: {
@@ -271,10 +273,12 @@ void executeCommand(const char* command) {
           }
           write_uint16_EEPROM(LEFT_SEQ_BASE_ADDRESS+i, (uint16_t) _scara.getDxlPos(moteur_gauche));
           write_uint16_EEPROM(LEFT_SEQ_BASE_ADDRESS+i+2, (uint16_t) _scara.getDxlPos(moteur_droit));
-          delay(30);
+          delay(60);
           i += 4;
         }
+        _scara.toggleTorque(1);
         updateScaraSeq(_scara.seqClou[0], LEFT_SEQ_BASE_ADDRESS);
+        Serial.println('1');
         break;
       }
       case 3: {
@@ -285,21 +289,32 @@ void executeCommand(const char* command) {
           }
           write_uint16_EEPROM(RIGHT_SEQ_BASE_ADDRESS+i, (uint16_t) _scara.getDxlPos(moteur_gauche));
           write_uint16_EEPROM(RIGHT_SEQ_BASE_ADDRESS+i+2, (uint16_t) _scara.getDxlPos(moteur_droit));
-          delay(30);
+          delay(60);
           i += 4;
         }
+        _scara.toggleTorque(1);
         updateScaraSeq(_scara.seqClou[1], RIGHT_SEQ_BASE_ADDRESS);
+        Serial.println('1');
         break;
       }
-      // case 4: {
-      //   for(int i = 0; i<50; i++){
-      //     write_uint16_EEPROM(LEFT_SEQ_BASE_ADDRESS+(4*i), i*100);
-      //     write_uint16_EEPROM(LEFT_SEQ_BASE_ADDRESS+(4*i)+2, i*100 + 2);
-      //     break;
-      //   }
-      // }
-     _scara.toggleTorque(1);
-     break;
+      case 4: {
+        _scara.setScaraPos(_scara.LeftApproach);
+        _scara.jointisPos(_scara.LeftApproach);
+        _scara.doSeq(0);
+        _scara.setScaraPos(_scara.LeftApproach);
+        _scara.jointisPos(_scara.LeftApproach);
+        Serial.println('1');
+        break;
+      }
+      case 5: {
+        _scara.setScaraPos(_scara.RightApproach);
+        _scara.jointisPos(_scara.RightApproach);
+        _scara.doSeq(1);
+        _scara.setScaraPos(_scara.RightApproach);
+        _scara.jointisPos(_scara.RightApproach);
+        Serial.println('1');
+        break;
+      }
     }
   }
 }
