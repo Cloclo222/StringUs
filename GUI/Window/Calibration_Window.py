@@ -205,6 +205,9 @@ class Window_Calibration(QMainWindow):
         self.right_layout.addWidget(self.right_group)
         self.horizontal_layout.addLayout(self.right_layout)
 
+        self.scara_com = SCARA_COM(3)
+
+
     def create_group_box(self, title):
         group_box = QGroupBox(title)
         return group_box
@@ -212,27 +215,34 @@ class Window_Calibration(QMainWindow):
 
     # Méthode pour mettre à jour la progression
     def LeftPositionCalibrationButtonIsPressed(self):
-        print("LeftPositionCalibrationButtonIsPressed")
+        #print("LeftPositionCalibrationButtonIsPressed")
+        self.scara_com.envoie_commande("{W0}")
 
     def LeftPositionSeePositionButtonIsPressed(self):
-        print("LeftPositionSeePositionButtonIsPressed")
+        #print("LeftPositionSeePositionButtonIsPressed")
+        self.scara_com.envoie_commande("{W4}")
 
     def LeftPositionCalibrationRoundButtonIsPressed(self):
-        print("LeftPositionCalibrationRoundButtonIsPressed")
+        #print("LeftPositionCalibrationRoundButtonIsPressed")
+        self.scara_com.envoie_commande("{W2}")
 
     def LeftPositionSeeRoundButtonIsPressed(self):
-        print("LeftPositionSeeRoundButtonIsPressed")
+        #print("LeftPositionSeeRoundButtonIsPressed")
+        self.scara_com.envoie_commande("{W6}")
 
     def RightPositionCalibrationButtonIsPressed(self):
-        print("RightPositionCalibrationButtonIsPressed")
+        #print("RightPositionCalibrationButtonIsPressed")
+        self.scara_com.envoie_commande("{W1}")
 
     def RightPositionSeePositionButtonIsPressed(self):
-        print("RightPositionSeePositionButtonIsPressed")
+        #print("RightPositionSeePositionButtonIsPressed")
+        self.scara_com.envoie_commande("{W5}")
 
     def RightPositionCalibrationRoundButtonIsPressed(self):
-        print("RightPositionCalibrationRoundButtonIsPressed")
+        #print("RightPositionCalibrationRoundButtonIsPressed")
+        self.scara_com.envoie_commande("{W3}")
 
     def RightPositionSeeRoundButtonIsPressed(self):
-        print("RightPositionSeeRoundButtonIsPressed")
-
+        #print("RightPositionSeeRoundButtonIsPressed")
+        self.scara_com.envoie_commande("{W7}")
 
