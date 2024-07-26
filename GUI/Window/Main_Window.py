@@ -25,6 +25,7 @@ from ImageProcessing.Canvas import *
 from .PA_Window import *
 from .Progress_Window import *
 from .GetName_Window import *
+from .Calibration_Window import *
 
 
 class Window(QWidget):
@@ -70,6 +71,7 @@ class Window(QWidget):
         self.diam = 500
         self.compteur = 0
         self.TotalNumberLines = 0
+        self.offset = 0
 
         # Box Nombre de clous
         self.ClousLine = QLineEdit(str(self.nbclous))
@@ -426,13 +428,16 @@ class Window(QWidget):
         fileMenu = QMenu("&File", self)
         menuBar.addMenu(fileMenu)
         fileMenu.addAction(self.openAction)
-        fileMenu.addAction(self.LastRunResume)
+        #fileMenu.addAction(self.LastRunResume)
+
 
         # Open Recent submenu
         self.openRecentMenu = fileMenu.addMenu("Open Recent")
         fileMenu.addAction(self.saveAction)
 
         fileMenu.addAction(self.LastRunResume)
+
+        fileMenu.addAction(self.Calibration)
 
         # Separator
         fileMenu.addSeparator()
@@ -449,6 +454,7 @@ class Window(QWidget):
         self.saveAction = QAction(QIcon(":file-save.svg"), "&Save", self)
         self.exitAction = QAction("&Exit", self)
         self.LastRunResume = QAction("&Last Run Resume", self)
+        self.Calibration = QAction("&Calibration", self)
 
         # String-based key sequences
         self.openAction.setShortcut("Ctrl+O")
@@ -470,6 +476,7 @@ class Window(QWidget):
         self.saveAction.triggered.connect(self.saveFile)
         self.exitAction.triggered.connect(self.close)
         self.LastRunResume.triggered.connect(self.last_run_resume)
+        self.Calibration.triggered.connect(self.CalibrationIsTriggered)
 
         # Connect Edit actions
         self.copyAction.triggered.connect(self.copyContent)
@@ -486,6 +493,9 @@ class Window(QWidget):
 
         self.ProgressBar = Window_Progress("Output/ThreadedCSVFile.csv", self.nbclous, self.TotalNumberLines)
         self.ProgressBar.show()
+    def CalibrationIsTriggered(self):
+        self.Cal= Window_Calibration()
+        self.Cal.show()
 
     def openFile(self):
         valeur = [None] * 15

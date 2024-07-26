@@ -43,7 +43,7 @@ void Scara::init_moteur()
     //_dxl.writeControlTableItem(MIN_POSITION_LIMIT, moteur_droit, 0);
     //_dxl.writeControlTableItem(MAX_POSITION_LIMIT, moteur_droit, 4095);
     _dxl.writeControlTableItem(DRIVE_MODE, moteur_table, 0);
-    _dxl.writeControlTableItem(HOMING_OFFSET, moteur_table, 0);
+    _dxl.writeControlTableItem(HOMING_OFFSET, moteur_table,10);
     _dxl.ledOn(moteur_table);
     _dxl.torqueOn(moteur_table); 
 }

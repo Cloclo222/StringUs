@@ -66,23 +66,23 @@ class SCARA_COM:
     def getNumLinesCSV(self):
         return len(self.csvfile.p1)
 
-    def readPos(self, index):
+    def readPos(self): #, index
         self.arduino.write('{T1}'.encode())
         while True:
             if self.arduino.in_waiting > 0:
                 response = self.arduino.readline().decode().strip()
-                # print(f"position gauche : {response}")
+                print(f"position gauche : {response}")
                 response = self.arduino.readline().decode().strip()
-                # print(f"position droite : {response}")
+                print(f"position droite : {response}")
                 response = self.arduino.readline().decode().strip()
                 print(f"position table : {response}")
                 response = int(response)
                 pin = (response - np.floor(response/4096)*4096)*(125/4096)
                 self.ActualPos.append(np.round(pin))
-                erreur = abs(self.ActualPos[index] - self.pins[0][index])
-                erreur_pulse = self.pinsInPulse[0][index] - response
-                print(f"erreur pulse : {erreur_pulse}")
-                print(f"erreur : {erreur}\n")
+                #erreur = abs(self.ActualPos[index] - self.pins[0][index])
+                #erreur_pulse = self.pinsInPulse[0][index] - response
+                #print(f"erreur pulse : {erreur_pulse}")
+                #print(f"erreur : {erreur}\n")
                 break
 
     def readSeq(self):
@@ -127,10 +127,10 @@ class SCARA_COM:
 
 if __name__ == "__main__":
     scara_com = SCARA_COM(3)
-    scara_com.envoie_commande("{C1 2825 1925}")
-    scara_com.envoie_commande("{C4}")
-    #scara_com.calibrate_contour_seq()
-    # scara_com.manual_measure_dxl()
+    scara_com.envoie_commande("{C1 2449 3125}")
+    #scara_com.envoie_commande("{C2}")
+    scara_com.calibrate_contour_seq()
+    #scara_com.manual_measure_dxl()
     # scara_com.readThreadedCSV("GUI/Output/ThreadedCSVFile.csv", 150)
     # for cmd in scara_com.commandes:
-    #     scara_com.envoie_commande(cmd)
+    # scara_com.envoie_commande(cmd)
