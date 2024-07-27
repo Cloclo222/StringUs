@@ -53,7 +53,7 @@ void Scara::update()
 
 }
 
-void Scara::setScaraPos(int jointPos[2])
+void Scara::setScaraPos(uint16_t jointPos[2])
 {
     _dxl.setGoalPosition(moteur_gauche, jointPos[0]);
     _dxl.setGoalPosition(moteur_droit, jointPos[1]);
@@ -64,12 +64,18 @@ void Scara::setScaraPos(int jointPos[2])
 
 void Scara::doSeq(int side){
 // Serial.println("Je suis entre dans doSeq");
-  for(int i = 0; i < 100; i++)
+  for(int i = 0; i < SCARA_SEQ_RES; i++)
     {
         this->setScaraPos(this->seqClou[side][i]);
-        delay(5);
+        Serial.print("i = ");
+        Serial.print(i);
+        Serial.print(", val = ");
+        Serial.print(seqClou[side][i][0]);
+        Serial.print(" ");
+        Serial.println(seqClou[side][i][1]);
+        delay(30);
     }
-// Serial.println("Je suis sorti de doSeq");
+
 }
 
 void Scara::setTablePos(int TablePos)
@@ -81,7 +87,7 @@ void Scara::setTablePos(int TablePos)
 
 }
 
-void Scara::jointisPos(int jointPos[2]) {
+void Scara::jointisPos(uint16_t jointPos[2]) {
     bool isMoteurGaucheInPosition = false;
     bool isMoteurDroitInPosition = false;
     int marge_erreur = 10;
@@ -119,7 +125,7 @@ return false;
 
 void Scara::sendDefaultPos()
 {
-    int jointPos[2] = {Pos_default[0], Pos_default[1]}; // or replace with your default positions
+    uint16_t jointPos[2] = {Pos_default[0], Pos_default[1]}; // or replace with your default positions
     int TablePos = Pos_default[2];
     this->setScaraPos(jointPos);
     this->setTablePos(TablePos);
@@ -163,7 +169,7 @@ void Scara::setTableSpeed(uint8_t speedLimitTable)
     _dxl.writeControlTableItem(PROFILE_VELOCITY, moteur_table, speedLimitTable);
 }
 
-void Scara::setSpeedForLinearMov(int jointPos[2], uint8_t speedLimit)
+void Scara::setSpeedForLinearMov(uint16_t jointPos[2], uint8_t speedLimit)
 {
     
     float leftDelta = abs(jointPos[0] - this->getLastCmd()[0]);

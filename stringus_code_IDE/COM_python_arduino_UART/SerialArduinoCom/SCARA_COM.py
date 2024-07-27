@@ -24,7 +24,7 @@ class SCARA_COM:
 
         # TODO CHECK TON CRISSE DE PORT
         port = "COM%i" % COM
-        self.arduino = serial.Serial(port, 115200, timeout=1)
+        self.arduino = serial.Serial(port, 115200, timeout=1, write_timeout=1)
 
         self.seq0 = [
             (2660, 2769),

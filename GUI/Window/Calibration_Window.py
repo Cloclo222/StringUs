@@ -8,6 +8,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import (
     Qt, QObject, pyqtSignal, pyqtSlot, QRunnable, QThreadPool
 )
+
 from PyQt5 import QtCore as qtc
 from stringus_code_IDE.COM_python_arduino_UART.SerialArduinoCom.SCARA_COM import *  # Importation de la classe SCARA_COM depuis un module externe
 
@@ -150,6 +151,15 @@ class Window_Calibration(QMainWindow):
         self.left_buttons_layout.addWidget( self.LeftPositionSeeRoundButton)
         self.left_buttons.append( self.LeftPositionSeeRoundButton)
 
+        self.widget = QCheckBox()
+        self.widget.setCheckState(Qt.Checked)
+
+        self.left_buttons_layout.addWidget(self.widget)
+        # For tristate: widget.setCheckState(Qt.PartiallyChecked)
+        # Or: widget.setTriState(True)
+        self.widget.stateChanged.connect(self.show_state)
+
+
         self.left_layout.addWidget(self.left_group)
         self.horizontal_layout.addLayout(self.left_layout)
 
@@ -161,6 +171,7 @@ class Window_Calibration(QMainWindow):
         self.image_layout.addWidget(self.image_label)
 
         self.horizontal_layout.addLayout(self.image_layout)
+
 
 
         # Right side layout
@@ -207,6 +218,8 @@ class Window_Calibration(QMainWindow):
 
         self.scara_com = SCARA_COM(3)
 
+        self.show_state()
+
 
     def create_group_box(self, title):
         group_box = QGroupBox(title)
@@ -216,33 +229,48 @@ class Window_Calibration(QMainWindow):
     # Méthode pour mettre à jour la progression
     def LeftPositionCalibrationButtonIsPressed(self):
         #print("LeftPositionCalibrationButtonIsPressed")
-        self.scara_com.envoie_commande("{W0}")
+        self.scara_com.envoie_commande('{W0}')
 
     def LeftPositionSeePositionButtonIsPressed(self):
         #print("LeftPositionSeePositionButtonIsPressed")
-        self.scara_com.envoie_commande("{W4}")
+        self.scara_com.envoie_commande('{W4}')
+
+    def show_state(self):
+        self.LibeCheckState = self.widget.checkState()
+
+        if self.LibeCheckState == 0:
+            #print("uncheck")
+            self.scara_com.envoie_commande("{T1}")
+
+        if self.LibeCheckState == 2:
+            #print("check")
+            self.scara_com.envoie_commande("{T0}")
 
     def LeftPositionCalibrationRoundButtonIsPressed(self):
         #print("LeftPositionCalibrationRoundButtonIsPressed")
-        self.scara_com.envoie_commande("{W2}")
+        self.scara_com.envoie_commande('{W4}')
+        self.scara_com.envoie_commande('{T0}')
+        self.scara_com.envoie_commande('{W2}')
 
     def LeftPositionSeeRoundButtonIsPressed(self):
-        #print("LeftPositionSeeRoundButtonIsPressed")
-        self.scara_com.envoie_commande("{W6}")
+        #print('LeftPositionSeeRoundButtonIsPressed')
+        self.scara_com.envoie_commande('{W6}')
 
     def RightPositionCalibrationButtonIsPressed(self):
-        #print("RightPositionCalibrationButtonIsPressed")
-        self.scara_com.envoie_commande("{W1}")
+        #print('RightPositionCalibrationButtonIsPressed')
+        self.scara_com.envoie_commande('{W1}')
 
     def RightPositionSeePositionButtonIsPressed(self):
-        #print("RightPositionSeePositionButtonIsPressed")
-        self.scara_com.envoie_commande("{W5}")
+        #print('RightPositionSeePositionButtonIsPressed')
+        self.scara_com.envoie_commande('{W5}')
 
     def RightPositionCalibrationRoundButtonIsPressed(self):
-        #print("RightPositionCalibrationRoundButtonIsPressed")
-        self.scara_com.envoie_commande("{W3}")
+        #print('RightPositionCalibrationRoundButtonIsPressed')
+        self.scara_com.envoie_commande('{W5}')
+        self.scara_com.envoie_commande('{T0}')
+        self.scara_com.envoie_commande('{W3}')
 
     def RightPositionSeeRoundButtonIsPressed(self):
-        #print("RightPositionSeeRoundButtonIsPressed")
-        self.scara_com.envoie_commande("{W7}")
+        #print('RightPositionSeeRoundButtonIsPressed')
+        self.scara_com.envoie_commande('{W7}')
 

@@ -2,7 +2,6 @@
 #include <Dynamixel2Arduino.h> //Installer par le gestionnaire de librarie Arduino IDE
 #include "src/Scara/Scara.h" //Dans le fichier src, c'est notre propre librarie
 #include "Arduino.h"
-//#include <string>
 #include "Wire.h"
 
 #define DXL_SERIAL   Serial1
@@ -23,37 +22,41 @@ Scara _scara(_dxl);
 
 void serialControl(); 
 void executeCommand(const char* command);
-void updateScaraApproach(uint16_t * array, int address, int i2c_address = EEPROM_I2C_ADDRESS);
-void updateScaraSeq(uint16_t array[SCARA_SEQ_RES][2], int address, int num_pos = SCARA_SEQ_RES, int i2c_address = EEPROM_I2C_ADDRESS);
-void write_uint16_EEPROM(int address, uint16_t val, int i2c_address = EEPROM_I2C_ADDRESS);
-uint16_t read_uint16_EEPROM(int address, int i2c_address = 0x50, int numBytes = 2);
+void updateScaraApproach(uint16_t * array, int address, int i2c_address);
+void updateScaraSeq(uint16_t array[SCARA_SEQ_RES][2], int address, int num_pos, int i2c_address);
+void write_uint16_EEPROM(int address, uint16_t val, int i2c_address);
+uint16_t read_uint16_EEPROM(int address, int i2c_address, int numBytes);
 
 
 
 void setup() {
+    delay(5000);
     Serial.begin(115200);
-    // _dxl.begin(57600);
-    // Serial.println("Baudrate init.");
+    _dxl.begin(57600);
+    Serial.println("Baudrate init.");
 
-    // _scara.init_com();
-    // Serial.println("Comunication init.");
-    // _scara.init_moteur();
-    // Serial.println("Moteur init.");
-
+    _scara.init_com();
+    Serial.println("Comunication init.");
+    _scara.init_moteur();
+    Serial.println("Moteur init.");
+    
     Wire.begin();
-    //Serial.println("I2C init");
+    write_uint16_EEPROM(LEFT_APPROACH_ADDRESS, 2825, EEPROM_I2C_ADDRESS);
+    write_uint16_EEPROM(LEFT_APPROACH_ADDRESS + 2, 1925, EEPROM_I2C_ADDRESS);
+    updateScaraApproach(_scara.LeftApproach, LEFT_APPROACH_ADDRESS, EEPROM_I2C_ADDRESS);
+    updateScaraApproach(_scara.RightApproach, RIGHT_APPROACH_ADDRESS, EEPROM_I2C_ADDRESS);
+    updateScaraSeq(_scara.seqClou[0], LEFT_SEQ_BASE_ADDRESS, SCARA_SEQ_RES, EEPROM_I2C_ADDRESS);
+    updateScaraSeq(_scara.seqClou[1], RIGHT_SEQ_BASE_ADDRESS, SCARA_SEQ_RES, EEPROM_I2C_ADDRESS);
+    Wire.end();
+
     
-    //updateScaraApproach(_scara.LeftApproach, LEFT_APPROACH_ADDRESS, 2);
-    //updateScaraApproach(_scara.RightApproach, RIGHT_APPROACH_ADDRESS, 2);
-    updateScaraSeq(_scara.seqClou[0], LEFT_SEQ_BASE_ADDRESS, SCARA_SEQ_RES);
-    //updateScaraSeq(_scara.seqClou[1], RIGHT_SEQ_BASE_ADDRESS, SCARA_SEQ_RES);
     
-    //delay(2000);
-    // _scara.setAcceleration(15,5);
-    // _scara.homing();
-    // _scara.setSpeed(MAX_SCARA_SPEED, MAX_SCARA_SPEED);
-    // _scara.setTableSpeed(MAX_TABLE_SPEED);
-    // Serial.println("Homing complete.");
+    delay(100);
+    _scara.setAcceleration(15,5);
+    _scara.homing();
+    _scara.setSpeed(MAX_SCARA_SPEED, MAX_SCARA_SPEED);
+    _scara.setTableSpeed(MAX_TABLE_SPEED);
+    Serial.println("Homing complete.");
     
 }
 
@@ -97,7 +100,7 @@ void executeCommand(const char* command) {
         int angle1, angle2;
         sscanf(command + 2, "%d %d", &angle1, &angle2);
         if (sscanf(command + 2, "%d %d", &angle1, &angle2) == 2) { //Regarde s'il y a deux angle
-          int position[2] = {angle1, angle2};
+          uint16_t position[2] = {angle1, angle2};
           _scara.setSpeedForLinearMov(position,MAX_SCARA_SPEED);
           _scara.setScaraPos(position);
           int current_table_pos = _scara.getLastCmd()[2];
@@ -136,14 +139,14 @@ void executeCommand(const char* command) {
         int angleGauche, angleDroite, angleTable;
         if (sscanf(command + 2, "%d %d %d", &angleGauche,  &angleDroite,  &angleTable) == 3) { //Regarde s'il y a 1 angle
           
-          int position[2] = {angleGauche, angleDroite};
+          uint16_t position[2] = {angleGauche, angleDroite};
 
           _scara.setTablePos(angleTable);
 
           _scara.setSpeedForLinearMov(position,MAX_SCARA_SPEED);
           _scara.setScaraPos(position);
 
-          int current_pos[2] = {_scara.getLastCmd()[0],_scara.getLastCmd()[1]};
+          uint16_t current_pos[2] = {_scara.getLastCmd()[0],_scara.getLastCmd()[1]};
           _scara.tableisPos(angleTable);
           _scara.jointisPos(current_pos);
 
@@ -226,10 +229,15 @@ void executeCommand(const char* command) {
         break;
       }
       case 1: {
-        printPos();
+        _scara.toggleTorque(1);
+        Serial.println('1');
         break;
       }
       case 2: {
+        printPos();
+        break;
+      }
+      case 3: {
         int i = 0;
         while(i<SCARA_SEQ_RES){
           if(_dxl.readControlTableItem(MOVING, moteur_gauche) || _dxl.readControlTableItem(MOVING, moteur_droit))
@@ -252,64 +260,78 @@ void executeCommand(const char* command) {
     int command_int = command_char - '0';
     switch (command_int) { // Regarde le chiffre de commande
       case 0: {   // calibrer approche gauche
-        write_uint16_EEPROM(LEFT_APPROACH_ADDRESS, (uint16_t) _scara.getDxlPos(moteur_gauche));
-        write_uint16_EEPROM(LEFT_APPROACH_ADDRESS + 2, (uint16_t) _scara.getDxlPos(moteur_droit));
-        updateScaraApproach(_scara.LeftApproach, LEFT_APPROACH_ADDRESS, 2);
+        Wire.begin();
+        write_uint16_EEPROM(LEFT_APPROACH_ADDRESS, (uint16_t) _scara.getDxlPos(moteur_gauche), EEPROM_I2C_ADDRESS);
+        write_uint16_EEPROM(LEFT_APPROACH_ADDRESS + 2, (uint16_t) _scara.getDxlPos(moteur_droit), EEPROM_I2C_ADDRESS);
+        updateScaraApproach(_scara.LeftApproach, LEFT_APPROACH_ADDRESS, EEPROM_I2C_ADDRESS);
+        Wire.end();
         Serial.println('1');                                                      
         break;
       }
       case 1: { // calibrer approche droite
-        write_uint16_EEPROM(RIGHT_APPROACH_ADDRESS, (uint16_t) _scara.getDxlPos(moteur_gauche));
-        write_uint16_EEPROM(RIGHT_APPROACH_ADDRESS + 2, (uint16_t) _scara.getDxlPos(moteur_droit));      
-        updateScaraApproach(_scara.RightApproach, RIGHT_APPROACH_ADDRESS, 2); 
+        Wire.begin();
+        write_uint16_EEPROM(RIGHT_APPROACH_ADDRESS, (uint16_t) _scara.getDxlPos(moteur_gauche), EEPROM_I2C_ADDRESS);
+        write_uint16_EEPROM(RIGHT_APPROACH_ADDRESS + 2, (uint16_t) _scara.getDxlPos(moteur_droit), EEPROM_I2C_ADDRESS);      
+        updateScaraApproach(_scara.RightApproach, RIGHT_APPROACH_ADDRESS, EEPROM_I2C_ADDRESS); 
+        Wire.end();
         Serial.println('1');    
         break;
       }
       case 2: { // calibrer sequence gauche
+        Wire.begin();
         int i = 0;
         while(i< 4 * SCARA_SEQ_RES){
           while(!_dxl.readControlTableItem(MOVING, moteur_gauche) && !_dxl.readControlTableItem(MOVING, moteur_droit))
           {
           }
-          write_uint16_EEPROM(LEFT_SEQ_BASE_ADDRESS+i, (uint16_t) _scara.getDxlPos(moteur_gauche));
-          write_uint16_EEPROM(LEFT_SEQ_BASE_ADDRESS+i+2, (uint16_t) _scara.getDxlPos(moteur_droit));
+          write_uint16_EEPROM(LEFT_SEQ_BASE_ADDRESS+i, (uint16_t) _scara.getDxlPos(moteur_gauche), EEPROM_I2C_ADDRESS);
+          write_uint16_EEPROM(LEFT_SEQ_BASE_ADDRESS+i+2, (uint16_t) _scara.getDxlPos(moteur_droit), EEPROM_I2C_ADDRESS);
           delay(60);
           i += 4;
         }
         _scara.toggleTorque(1);
-        updateScaraSeq(_scara.seqClou[0], LEFT_SEQ_BASE_ADDRESS);
+        updateScaraSeq(_scara.seqClou[0], LEFT_SEQ_BASE_ADDRESS, SCARA_SEQ_RES, EEPROM_I2C_ADDRESS);
+        Wire.end();
         Serial.println('1');
         break;
       }
       case 3: { // calibrer sequence droite
+        Wire.begin();
         int i = 0;
         while(i< 4 * SCARA_SEQ_RES){
           while(!_dxl.readControlTableItem(MOVING, moteur_gauche) && !_dxl.readControlTableItem(MOVING, moteur_droit))
           {
           }
-          write_uint16_EEPROM(RIGHT_SEQ_BASE_ADDRESS+i, (uint16_t) _scara.getDxlPos(moteur_gauche));
-          write_uint16_EEPROM(RIGHT_SEQ_BASE_ADDRESS+i+2, (uint16_t) _scara.getDxlPos(moteur_droit));
+          write_uint16_EEPROM(RIGHT_SEQ_BASE_ADDRESS+i, (uint16_t) _scara.getDxlPos(moteur_gauche), EEPROM_I2C_ADDRESS);
+          write_uint16_EEPROM(RIGHT_SEQ_BASE_ADDRESS+i+2, (uint16_t) _scara.getDxlPos(moteur_droit), EEPROM_I2C_ADDRESS);
           delay(60);
           i += 4;
         }
         _scara.toggleTorque(1);
-        updateScaraSeq(_scara.seqClou[1], RIGHT_SEQ_BASE_ADDRESS);
+        updateScaraSeq(_scara.seqClou[1], RIGHT_SEQ_BASE_ADDRESS, SCARA_SEQ_RES, EEPROM_I2C_ADDRESS);
+        Wire.end();
         Serial.println('1');
         break;
       }
       case 4: { // playback approche gauche
-        _scara.setScaraPos(_scara.RightApproach);
-        _scara.jointisPos(_scara.RightApproach);
+        Serial.println("Play back left approach");
+        _scara.toggleTorque(1);
+        _scara.setScaraPos(_scara.LeftApproach);
+        _scara.jointisPos(_scara.LeftApproach);
         Serial.println('1');
         break;
       }
       case 5: { // playback approche droite
+        Serial.println("Play back right approach");
+        _scara.toggleTorque(1);
         _scara.setScaraPos(_scara.RightApproach);
         _scara.jointisPos(_scara.RightApproach);
         Serial.println('1');
         break;
       }
       case 6: { // playback approche + sequence gauche
+        Serial.println("Play back left sequence");
+        _scara.toggleTorque(1);
         _scara.setScaraPos(_scara.LeftApproach);
         _scara.jointisPos(_scara.LeftApproach);
         _scara.doSeq(0);
@@ -319,6 +341,8 @@ void executeCommand(const char* command) {
         break;
       }
       case 7: { // playback approche + sequence droite
+        Serial.println("Play back right sequence");
+        _scara.toggleTorque(1);
         _scara.setScaraPos(_scara.RightApproach);
         _scara.jointisPos(_scara.RightApproach);
         _scara.doSeq(1);
@@ -340,12 +364,12 @@ void printPos(){
   Serial.println(table_pos);
 }
 
-void updateScaraApproach(uint16_t * array, int address, int i2c_address = EEPROM_I2C_ADDRESS){
+void updateScaraApproach(uint16_t * array, int address, int i2c_address){
   array[0] = read_uint16_EEPROM(address, i2c_address, 2);
   array[1] = read_uint16_EEPROM(address+2, i2c_address, 2);
 }
 
-void updateScaraSeq(uint16_t array[SCARA_SEQ_RES][2], int address, int num_pos = SCARA_SEQ_RES, int i2c_address = EEPROM_I2C_ADDRESS){
+void updateScaraSeq(uint16_t array[SCARA_SEQ_RES][2], int address, int num_pos, int i2c_address){
   for(int i = 0; i<num_pos; i++){
     array[i][0] = read_uint16_EEPROM(address+(4*i), i2c_address, 2);
     array[i][1] = read_uint16_EEPROM(address+(4*i)+2, i2c_address, 2);

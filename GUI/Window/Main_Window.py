@@ -26,6 +26,7 @@ from .PA_Window import *
 from .Progress_Window import *
 from .GetName_Window import *
 from .Calibration_Window import *
+from .Detection_Window import *
 
 
 class Window(QWidget):
@@ -437,16 +438,22 @@ class Window(QWidget):
 
         fileMenu.addAction(self.LastRunResume)
 
-        fileMenu.addAction(self.Calibration)
+        #fileMenu.addAction(self.Calibration)
 
         # Separator
         fileMenu.addSeparator()
         fileMenu.addAction(self.exitAction)
         # Edit menu
-        editMenu = menuBar.addMenu("&Edit")
-        editMenu.addAction(self.copyAction)
-        editMenu.addAction(self.pasteAction)
-        editMenu.addAction(self.cutAction)
+        #editMenu = menuBar.addMenu("&Edit")
+        #editMenu.addAction(self.copyAction)
+        #editMenu.addAction(self.pasteAction)
+        #editMenu.addAction(self.cutAction)
+
+        # Edit menu
+        ToolsMenu = menuBar.addMenu("&Tools")
+        ToolsMenu.addAction(self.CalibrationAction)
+        ToolsMenu.addAction(self.PortAction)
+
 
     def _createActions(self):
         # File actions
@@ -454,7 +461,7 @@ class Window(QWidget):
         self.saveAction = QAction(QIcon(":file-save.svg"), "&Save", self)
         self.exitAction = QAction("&Exit", self)
         self.LastRunResume = QAction("&Last Run Resume", self)
-        self.Calibration = QAction("&Calibration", self)
+        #self.Calibration = QAction("&Calibration", self)
 
         # String-based key sequences
         self.openAction.setShortcut("Ctrl+O")
@@ -462,13 +469,16 @@ class Window(QWidget):
         self.LastRunResume.setShortcut("Ctrl+L")
 
         # Edit actions
-        self.copyAction = QAction(QIcon(":edit-copy.svg"), "&Copy", self)
-        self.pasteAction = QAction(QIcon(":edit-paste.svg"), "&Paste", self)
-        self.cutAction = QAction(QIcon(":edit-cut.svg"), "C&ut", self)
+        #self.copyAction = QAction(QIcon(":edit-copy.svg"), "&Copy", self)
+        #self.pasteAction = QAction(QIcon(":edit-paste.svg"), "&Paste", self)
+        #self.cutAction = QAction(QIcon(":edit-cut.svg"), "C&ut", self)
         # Standard key sequence
         # self.copyAction.setShortcut(QKeySequence.Copy)
         # self.pasteAction.setShortcut(QKeySequence.Paste)
         # self.cutAction.setShortcut(QKeySequence.Cut)
+
+        self.CalibrationAction = QAction("&Calibration", self)
+        self.PortAction = QAction("&Connection Port", self)
 
     def _connectActions(self):
         # Connect File actions
@@ -476,15 +486,16 @@ class Window(QWidget):
         self.saveAction.triggered.connect(self.saveFile)
         self.exitAction.triggered.connect(self.close)
         self.LastRunResume.triggered.connect(self.last_run_resume)
-        self.Calibration.triggered.connect(self.CalibrationIsTriggered)
+
 
         # Connect Edit actions
-        self.copyAction.triggered.connect(self.copyContent)
-        self.pasteAction.triggered.connect(self.pasteContent)
-        self.cutAction.triggered.connect(self.cutContent)
+        #self.copyAction.triggered.connect(self.copyContent)
+        #self.pasteAction.triggered.connect(self.pasteContent)
+        #self.cutAction.triggered.connect(self.cutContent)
 
         # Slots
-
+        self.CalibrationAction.triggered.connect(self.CalibrationIsTriggered)
+        self.PortAction.triggered.connect(self.PortIsTriggered)
     def last_run_resume(self):
         self.flag_send = True
         self.openFile()
@@ -496,6 +507,10 @@ class Window(QWidget):
     def CalibrationIsTriggered(self):
         self.Cal= Window_Calibration()
         self.Cal.show()
+
+    def PortIsTriggered(self):
+        self.PO = Window_Detection(3)
+        self.PO.show()
 
     def openFile(self):
         valeur = [None] * 15
