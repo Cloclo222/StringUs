@@ -21,6 +21,7 @@ class Window_Detection(QWidget):
 
         self.port = AutoDetectPort  # Variable pour stocker le nom du fichier
 
+
         # Bouton "OK"
         self.EnregistrerButton = QPushButton("Enregistrer")
         self.EnregistrerButton.clicked.connect(

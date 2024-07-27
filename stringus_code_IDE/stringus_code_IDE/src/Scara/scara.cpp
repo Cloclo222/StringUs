@@ -67,12 +67,12 @@ void Scara::doSeq(int side){
   for(int i = 0; i < SCARA_SEQ_RES; i++)
     {
         this->setScaraPos(this->seqClou[side][i]);
-        Serial.print("i = ");
-        Serial.print(i);
-        Serial.print(", val = ");
-        Serial.print(seqClou[side][i][0]);
-        Serial.print(" ");
-        Serial.println(seqClou[side][i][1]);
+//        Serial.print("i = ");
+//        Serial.print(i);
+//        Serial.print(", val = ");
+//        Serial.print(seqClou[side][i][0]);
+//        Serial.print(" ");
+//        Serial.println(seqClou[side][i][1]);
         delay(30);
     }
 

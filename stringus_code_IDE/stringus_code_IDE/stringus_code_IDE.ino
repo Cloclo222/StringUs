@@ -30,7 +30,8 @@ uint16_t read_uint16_EEPROM(int address, int i2c_address, int numBytes);
 
 
 void setup() {
-    delay(5000);
+
+    //delay(5000);
     Serial.begin(115200);
     _dxl.begin(57600);
     Serial.println("Baudrate init.");

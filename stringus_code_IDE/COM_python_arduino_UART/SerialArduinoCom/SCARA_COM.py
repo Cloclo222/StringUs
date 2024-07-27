@@ -35,6 +35,9 @@ class SCARA_COM:
         ]
         self.commandes = []
 
+    def __del__(self):
+        self.arduino.close()
+
 
     def envoie_commande(self, commande):
         print(f"Python: {commande}")

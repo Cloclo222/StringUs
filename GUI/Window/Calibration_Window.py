@@ -14,7 +14,7 @@ from stringus_code_IDE.COM_python_arduino_UART.SerialArduinoCom.SCARA_COM import
 
 # Définition d'une classe pour la fenêtre d'affichage de la progression
 class Window_Calibration(QMainWindow):
-    def __init__(self):
+    def __init__(self, port_number):
         super(Window_Calibration, self).__init__()
 
         # Configuration de la fenêtre
@@ -216,9 +216,18 @@ class Window_Calibration(QMainWindow):
         self.right_layout.addWidget(self.right_group)
         self.horizontal_layout.addLayout(self.right_layout)
 
-        self.scara_com = SCARA_COM(3)
+        self.scara_com = SCARA_COM(port_number)
 
         self.show_state()
+
+    #def __del__(self):
+        # Cleanup code here
+        #print("Widget destroyed")
+    def closeEvent(self, event):
+        print("Widget is closing")
+        self.scara_com.arduino.close()
+        super().closeEvent(event)
+
 
 
     def create_group_box(self, title):

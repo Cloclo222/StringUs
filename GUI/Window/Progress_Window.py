@@ -152,6 +152,11 @@ class Window_Progress(QWidget):
 
         self.TotalLinesCanvas = TotalLinesCanvas  # Assignation du nombre total de lignes du canevas
 
+    def closeEvent(self, event):
+        print("Widget is closing")
+        self.runner.scara_com.arduino.close()
+        super().closeEvent(event)
+
     # Méthode pour mettre à jour la progression
     def update_progress(self, n, color, rgb, index, CurrentNumCsvLines):
         self.progress.setValue(n)  # Définition de la valeur de la barre de progression

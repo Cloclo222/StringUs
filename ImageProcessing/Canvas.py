@@ -452,6 +452,7 @@ class Canvas:
         for i in range(len(self.totalLines)):
             outputDraw.line((self.Coords[self.totalLines[i][0][0]], self.Coords[self.totalLines[i][0][1]]),
                             fill=self.totalLines[i][-1], width=2)
-            output.save("Output/Animation/Animation_%i.jpg" % i)
-            print('2')
+            if i % 2 == 0:
+                output.save("Output/Animation/Animation_%i.jpg" % i)
+
 

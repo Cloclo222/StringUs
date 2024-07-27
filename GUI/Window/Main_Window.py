@@ -37,7 +37,71 @@ class Window(QWidget):
         self.setWindowTitle("STRINGUS")
         self.setGeometry(50, 50, 1, 1)
 
+        # self.setStyleSheet("""
+        #                    QWidget {
+        #                        background-color: lightgrey;
+        #                        color: green;
+        #                    }
+        #                    QLabel {
+        #                        font-family: stylus;
+        #                        color: Black;
+        #                        border-radius: 50px;
+        #
+        #
+        #                    }
+        #                    QLabel#subtitle {
+        #                        color: green;
+        #                    }
+        #                    QLabel#title {
+        #                        color: green;
+        #                    }
+        #                    QLabel#side_label {
+        #                        background-color: green;
+        #                        color: yellow;
+        #                        font-size: 30px;
+        #                        font-weight: bold;
+        #                        padding: 10px;
+        #                        border-radius: 10px;
+        #                        qproperty-alignment: 'AlignCenter';
+        #                        margin-bottom: 10px;
+        #                    }
+        #                    QGroupBox {
+        #                        border: 4px solid green;
+        #                        border-radius: 15px;
+        #                        margin-top: 20px;
+        #                    }
+        #                    QGroupBox::title {
+        #                        subcontrol-origin: margin;
+        #                        subcontrol-position: top left;
+        #                        padding: 0 3px;
+        #                        font-weight: bold;
+        #                        color: green;
+        #                    }
+        #                    QLineEdit, QSpinBox, QCheckBox {
+        #                        background-color: white;
+        #                        color: green;
+        #                        font-family: stylus;
+        #                        border-radius: 10px;
+        #                    }
+        #                    QPushButton {
+        #                        background-color: white;
+        #                        color: black;
+        #                        font-family: Stylus;
+        #                        font-weight: bold;
+        #                        font-size: 21px;
+        #                        border-style: outset;
+        #                        border-width: 2px;
+        #                        border-radius: 10px;
+        #                        border-color: black;
+        #                    }
+        #                    QPushButton:hover {
+        #                        background-color: green;
+        #                        color: gold;
+        #                    }
+        #                """)
+
         self.Titre = QLabel("STRINGUS: Du virtuel au réel")
+        self.Titre.setObjectName("title")
         self.Titre.setFont(QFont('Arial', 30))
 
         self.sous_titre = QLabel("Faites vos selections")
@@ -219,25 +283,25 @@ class Window(QWidget):
         #
         # if not self.fnameImage:
         #     return
-        self.image_path.setText(self.fnameImage)
+        if self.fnameImage:
+            self.image_path.setText(self.fnameImage)
+            self.pixmap = QPixmap(self.resize_image(400, 400, self.fnameImage, "Output/resize_image.png"))
+            self.VOImage.setPixmap(self.pixmap)
 
-        self.pixmap = QPixmap(self.resize_image(400, 400, self.fnameImage, "Output/resize_image.png"))
-        self.VOImage.setPixmap(self.pixmap)
+            self.analyse_image(self.fnameImage)
 
-        self.analyse_image(self.fnameImage)
+            if self.GreyScale:
+                self.pixmap = QPixmap(
+                    self.resize_image(700, 300, 'Input/grey.jpg', 'Input/grey.jpg'))
+                self.DominantImage.setPixmap(self.pixmap)
+            else:
+                self.pixmap = QPixmap(
+                    self.resize_image(700, 300, 'Input/bar.jpg', 'Input/bar.jpg'))
+                self.DominantImage.setPixmap(self.pixmap)
+            self.flag_browse = False
 
-        if self.GreyScale:
-            self.pixmap = QPixmap(
-                self.resize_image(700, 300, 'Input/grey.jpg', 'Input/grey.jpg'))
-            self.DominantImage.setPixmap(self.pixmap)
-        else:
-            self.pixmap = QPixmap(
-                self.resize_image(700, 300, 'Input/bar.jpg', 'Input/bar.jpg'))
-            self.DominantImage.setPixmap(self.pixmap)
-        self.flag_browse = False
-
-        self.RecalculateSequenceButton.setHidden(True)
-        self.SimulationButton.setHidden(True)
+            self.RecalculateSequenceButton.setHidden(True)
+            self.SimulationButton.setHidden(True)
 
     def isRecalculateSequenceButtonClick(self):
 
@@ -324,6 +388,7 @@ class Window(QWidget):
 
     def isSendButtonClick(self):
 
+        self.detect_openRB150()
         if self.flag_calculate and self.portArduino != -1:
 
             if not self.flag_simulation:
@@ -341,7 +406,7 @@ class Window(QWidget):
                                     "Assurer vous d'avoir recalculer si vous avez changé des données depuis le dernier calcul",
                                     QMessageBox.Ok)
 
-        if self.portArduino == -1:
+        elif self.portArduino == -1:
             QMessageBox.information(self, 'ERREUR', "Il n'y a pas d'Arduino de connecté", QMessageBox.Ok)
 
         else:
@@ -505,12 +570,22 @@ class Window(QWidget):
         self.nbclous = int(self.ClousLine.text())
         self.flag_send = False
 
-        self.ProgressBar = Window_Progress("Output/ThreadedCSVFile.csv", self.nbclous, self.TotalNumberLines)
-        self.ProgressBar.show()
+        self.detect_openRB150()
+
+        if self.portArduino == -1:
+            QMessageBox.information(self, 'ERREUR', "Il n'y a pas d'Arduino de connecté", QMessageBox.Ok)
+        else:
+            self.ProgressBar = Window_Progress("Output/ThreadedCSVFile.csv", self.nbclous, self.TotalNumberLines,self.portArduino)
+            self.ProgressBar.show()
 
     def CalibrationIsTriggered(self):
-        self.Cal = Window_Calibration()
-        self.Cal.show()
+        self.detect_openRB150()
+        if self.portArduino == -1:
+            QMessageBox.information(self, 'ERREUR', "Il n'y a pas d'Arduino de connecté", QMessageBox.Ok)
+        else:
+            transit = "COM" + str(self.portArduino)
+            self.Cal = Window_Calibration(self.portArduino)
+            self.Cal.show()
 
     def PortIsTriggered(self):
         self.PO = Window_Detection(self.portArduino)
