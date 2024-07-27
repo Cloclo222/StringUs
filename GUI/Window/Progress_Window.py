@@ -21,7 +21,7 @@ class WorkerSignals(QObject):
 class JobRunner(QRunnable):
     signals = WorkerSignals()  # Instanciation de la classe pour les signaux
 
-    def __init__(self, filename, nb_clous, TotalLinesCanvas):
+    def __init__(self, filename, nb_clous, TotalLinesCanvas, portArduino):
         super().__init__()
 
         # Initialisation des attributs avec les paramètres passés
@@ -29,7 +29,7 @@ class JobRunner(QRunnable):
         self.filename = filename
         self.is_paused = False
         self.is_killed = False
-        self.scara_com = SCARA_COM(3)  # Instanciation de la classe SCARA_COM avec un paramètre
+        self.scara_com = SCARA_COM(portArduino)  # Instanciation de la classe SCARA_COM avec un paramètre
         self.scara_com.readThreadedCSV(filename, nb_clous)  # Lecture du fichier CSV avec la classe SCARA_COM
         self.NumCSVLines = self.scara_com.getNumLinesCSV()  # Obtention du nombre de lignes dans le CSV
         self.need_change = False  # Initialisation d'un drapeau pour indiquer s'il faut changer de couleur
@@ -101,7 +101,7 @@ class JobRunner(QRunnable):
 # Définition d'une classe pour la fenêtre d'affichage de la progression
 class Window_Progress(QWidget):
 
-    def __init__(self, filename, nb_clous, TotalLinesCanvas):
+    def __init__(self, filename, nb_clous, TotalLinesCanvas, portArduino):
         super().__init__()
 
         # Configuration de la fenêtre
@@ -114,7 +114,7 @@ class Window_Progress(QWidget):
         self.sous_titre = QLabel("Information Robot")
         self.sous_titre.setFont(QFont('Arial', 20))
         self.threadpool = QThreadPool()  # Création d'un pool de threads
-        self.runner = JobRunner(filename, nb_clous, TotalLinesCanvas)  # Création d'un travail en arrière-plan
+        self.runner = JobRunner(filename, nb_clous, TotalLinesCanvas,portArduino)  # Création d'un travail en arrière-plan
         self.runner.signals.progress.connect(self.update_progress)  # Connexion du signal de progression à une méthode
         self.threadpool.start(self.runner)  # Démarrage du travail en arrière-plan
         self.Image = QLabel()  # Création d'un label pour afficher une image

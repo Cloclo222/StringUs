@@ -73,6 +73,9 @@ class Window(QWidget):
         self.compteur = 0
         self.TotalNumberLines = 0
         self.offset = 0
+        self.portArduino = -1
+
+        self.detect_openRB150()
 
         # Box Nombre de clous
         self.ClousLine = QLineEdit(str(self.nbclous))
@@ -156,7 +159,6 @@ class Window(QWidget):
         self.GreyBox.setGeometry(qtc.QRect(170, 120, 81, 20))
         self.GreyBox.stateChanged.connect(self.GreyBoxCheck)
 
-
         # Affichage
         layout = QGridLayout()
 
@@ -184,10 +186,9 @@ class Window(QWidget):
 
         layout.addWidget(PAButton, 11, 0, 1, 4)
 
-        layout.addWidget(self.SimulationButton, 12, 0,1,2)
+        layout.addWidget(self.SimulationButton, 12, 0, 1, 2)
 
-
-        layout.addWidget(self.RecalculateSequenceButton, 14, 0,1,2)
+        layout.addWidget(self.RecalculateSequenceButton, 14, 0, 1, 2)
 
         layout.addWidget(CalculateButton, 15, 0, 1, 2)
         layout.addWidget(SendButton, 15, 2, 1, 2)
@@ -203,9 +204,9 @@ class Window(QWidget):
     def isSimulationButtonClick(self):
         self.flag_simulation = True
         self.canvas.animate(fps=60)
-        QMessageBox.information(self, 'Simulation', "La simulation est prête et elle se trouve maintenant dans vos dossiers", QMessageBox.Ok)
-
-
+        QMessageBox.information(self, 'Simulation',
+                                "La simulation est prête et elle se trouve maintenant dans vos dossiers",
+                                QMessageBox.Ok)
 
     def isBrowseButtonClick(self):
 
@@ -245,7 +246,6 @@ class Window(QWidget):
         output = self.canvas.paintCanvas()
         output.save('Output/c0.png')
         WriteThreadedCsvFile("Output/ThreadedCSVFile.csv", self.canvas.totalLines)
-
 
         pixmap = QPixmap(
             self.resize_image(400, 400, 'Output/c0.png', 'Output/c0.png'))
@@ -314,7 +314,6 @@ class Window(QWidget):
                     im = Image.fromarray(np.uint8(self.canvas.img_couleur_sep[keys]))
                     im.save("Output/%s.png" % keys)
 
-
             pixmap = QPixmap(
                 self.resize_image(400, 400, 'Output/c0.png', 'Output/c0.png'))
             self.PreviewImage.setPixmap(pixmap)
@@ -325,7 +324,7 @@ class Window(QWidget):
 
     def isSendButtonClick(self):
 
-        if self.flag_calculate:
+        if self.flag_calculate and self.portArduino != -1:
 
             if not self.flag_simulation:
                 self.canvas.generateImgs()
@@ -333,11 +332,17 @@ class Window(QWidget):
             self.flag_send = True
             self.saveCSV("LastRunResume.csv")
             self.nbclous = int(self.ClousLine.text())
-            self.ProgressBar = Window_Progress("Output/ThreadedCSVFile.csv", self.nbclous, self.TotalNumberLines)
+            self.ProgressBar = Window_Progress("Output/ThreadedCSVFile.csv", self.nbclous, self.TotalNumberLines,
+                                               self.portArduino)
             self.ProgressBar.show()
             self.flag_send = False
 
-            QMessageBox.information(self, 'ENVOYER', "Assurer vous d'avoir recalculer si vous avez changé des données depuis le dernier calcul", QMessageBox.Ok)
+            QMessageBox.information(self, 'ENVOYER',
+                                    "Assurer vous d'avoir recalculer si vous avez changé des données depuis le dernier calcul",
+                                    QMessageBox.Ok)
+
+        if self.portArduino == -1:
+            QMessageBox.information(self, 'ERREUR', "Il n'y a pas d'Arduino de connecté", QMessageBox.Ok)
 
         else:
             QMessageBox.information(self, 'ERREUR', "Il faut calculer avant d'envoyer", QMessageBox.Ok)
@@ -429,8 +434,7 @@ class Window(QWidget):
         fileMenu = QMenu("&File", self)
         menuBar.addMenu(fileMenu)
         fileMenu.addAction(self.openAction)
-        #fileMenu.addAction(self.LastRunResume)
-
+        # fileMenu.addAction(self.LastRunResume)
 
         # Open Recent submenu
         self.openRecentMenu = fileMenu.addMenu("Open Recent")
@@ -438,22 +442,21 @@ class Window(QWidget):
 
         fileMenu.addAction(self.LastRunResume)
 
-        #fileMenu.addAction(self.Calibration)
+        # fileMenu.addAction(self.Calibration)
 
         # Separator
         fileMenu.addSeparator()
         fileMenu.addAction(self.exitAction)
         # Edit menu
-        #editMenu = menuBar.addMenu("&Edit")
-        #editMenu.addAction(self.copyAction)
-        #editMenu.addAction(self.pasteAction)
-        #editMenu.addAction(self.cutAction)
+        # editMenu = menuBar.addMenu("&Edit")
+        # editMenu.addAction(self.copyAction)
+        # editMenu.addAction(self.pasteAction)
+        # editMenu.addAction(self.cutAction)
 
         # Edit menu
         ToolsMenu = menuBar.addMenu("&Tools")
         ToolsMenu.addAction(self.CalibrationAction)
         ToolsMenu.addAction(self.PortAction)
-
 
     def _createActions(self):
         # File actions
@@ -461,7 +464,7 @@ class Window(QWidget):
         self.saveAction = QAction(QIcon(":file-save.svg"), "&Save", self)
         self.exitAction = QAction("&Exit", self)
         self.LastRunResume = QAction("&Last Run Resume", self)
-        #self.Calibration = QAction("&Calibration", self)
+        # self.Calibration = QAction("&Calibration", self)
 
         # String-based key sequences
         self.openAction.setShortcut("Ctrl+O")
@@ -469,9 +472,9 @@ class Window(QWidget):
         self.LastRunResume.setShortcut("Ctrl+L")
 
         # Edit actions
-        #self.copyAction = QAction(QIcon(":edit-copy.svg"), "&Copy", self)
-        #self.pasteAction = QAction(QIcon(":edit-paste.svg"), "&Paste", self)
-        #self.cutAction = QAction(QIcon(":edit-cut.svg"), "C&ut", self)
+        # self.copyAction = QAction(QIcon(":edit-copy.svg"), "&Copy", self)
+        # self.pasteAction = QAction(QIcon(":edit-paste.svg"), "&Paste", self)
+        # self.cutAction = QAction(QIcon(":edit-cut.svg"), "C&ut", self)
         # Standard key sequence
         # self.copyAction.setShortcut(QKeySequence.Copy)
         # self.pasteAction.setShortcut(QKeySequence.Paste)
@@ -487,15 +490,15 @@ class Window(QWidget):
         self.exitAction.triggered.connect(self.close)
         self.LastRunResume.triggered.connect(self.last_run_resume)
 
-
         # Connect Edit actions
-        #self.copyAction.triggered.connect(self.copyContent)
-        #self.pasteAction.triggered.connect(self.pasteContent)
-        #self.cutAction.triggered.connect(self.cutContent)
+        # self.copyAction.triggered.connect(self.copyContent)
+        # self.pasteAction.triggered.connect(self.pasteContent)
+        # self.cutAction.triggered.connect(self.cutContent)
 
         # Slots
         self.CalibrationAction.triggered.connect(self.CalibrationIsTriggered)
         self.PortAction.triggered.connect(self.PortIsTriggered)
+
     def last_run_resume(self):
         self.flag_send = True
         self.openFile()
@@ -504,13 +507,18 @@ class Window(QWidget):
 
         self.ProgressBar = Window_Progress("Output/ThreadedCSVFile.csv", self.nbclous, self.TotalNumberLines)
         self.ProgressBar.show()
+
     def CalibrationIsTriggered(self):
-        self.Cal= Window_Calibration()
+        self.Cal = Window_Calibration()
         self.Cal.show()
 
     def PortIsTriggered(self):
-        self.PO = Window_Detection(3)
+        self.PO = Window_Detection(self.portArduino)
+        self.PO.submitted3.connect(self.UpdateValuesPort)
         self.PO.show()
+
+    def UpdateValuesPort(self, port):
+        self.portArduino = port
 
     def openFile(self):
         valeur = [None] * 15
@@ -570,7 +578,7 @@ class Window(QWidget):
         self.DimLine.setText(valeur[2])
         self.ClousLine.setText(valeur[1])
 
-        #self.analyse_image(self.fnameImage)
+        # self.analyse_image(self.fnameImage)
 
         self.redoBand(self.rgb_values)
 
@@ -752,3 +760,27 @@ class Window(QWidget):
         cv2.imwrite('Input/bar.jpg', img_bar)
 
         cv2.waitKey(0)
+
+    def detect_openRB150(self):
+        """
+        Detect if an openRB-150 is connected to the serial ports.
+        """
+        openRB150_ports = [
+            p.device
+            for p in serial.tools.list_ports.comports()
+            if 'USB Serial Device' in p.description  # Replace with the exact description
+        ]
+
+        if not openRB150_ports:
+            self.portArduino = -1
+            print("No open serial ports")
+            return False
+        else:
+            self.portArduino = self.extract_numbers_and_convert(openRB150_ports[0])
+            return f"openRB-150 found on port(s): {', '.join(openRB150_ports)}"
+
+    def extract_numbers_and_convert(self, string):
+        # Keep only the digits
+        digits = ''.join([char for char in string if char.isdigit()])
+        # Convert the string of digits to an integer
+        return int(digits)
