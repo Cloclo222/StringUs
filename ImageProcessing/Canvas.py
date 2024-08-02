@@ -1,12 +1,15 @@
+import time
+
 import numpy as np
 import sys
 from PIL import Image, ImageDraw, ImageFilter
-import plotly.express as px
+# import plotly.express as px
 import numba
 import cv2
 import imageio.v2
 import os
 import glob
+import concurrent.futures
 
 
 @numba.njit  # Ce décorateur indique que la fonction sera compilée avec le compilateur JIT de Numba pour une exécution plus rapide.
@@ -19,7 +22,8 @@ def LineSum(img, x, y):
 
 @numba.njit
 def linePixels(pin0, pin1):
-    length = int(np.hypot(pin1[0] - pin0[0], pin1[1] - pin0[1]))  # Calcul de la longueur de la ligne utilisant l'hypoténuse
+    length = int(
+        np.hypot(pin1[0] - pin0[0], pin1[1] - pin0[1]))  # Calcul de la longueur de la ligne utilisant l'hypoténuse
     x = np.linspace(pin0[0], pin1[0], length)  # Générer une séquence linéaire de coordonnées x entre pin0 et pin1
     y = np.linspace(pin0[1], pin1[1], length)  # Générer une séquence linéaire de coordonnées y entre pin0 et pin1
     x = np.array([int(x[i]) for i in range(len(x))]) - 1  # Convertir les coordonnées x en entiers et ajuster de -1
@@ -43,7 +47,8 @@ def ditherImg(arr, colors_array):
             distances = np.sqrt(np.sum((colors_array - old_val) ** 2, axis=1))  # Calculer les distances aux couleurs
             closest = np.where(distances == np.amin(distances))[0][0]  # Trouver l'index de la couleur la plus proche
             new_val = colors_array[closest]  # Nouvelle valeur de pixel sélectionnée
-            result_sep[closest, ir, ic] = 255  # Marquer la position de la couleur la plus proche dans l'array de séparation
+            result_sep[
+                closest, ir, ic] = 255  # Marquer la position de la couleur la plus proche dans l'array de séparation
             res_dithered[ir, ic] = new_val  # Affecter la nouvelle valeur de pixel à l'array de résultat
             err = old_val - new_val  # Calculer l'erreur de quantification
 
@@ -51,13 +56,13 @@ def ditherImg(arr, colors_array):
                 arr[ir, ic + 1] += err * 3 / 16  # Diffuser l'erreur à la colonne suivante
             if ir < height - 1:  # Si nous ne sommes pas à la dernière ligne
                 if ic > 0:
-                    arr[ir + 1, ic - 1] += err * 3 / 16  # Diffuser l'erreur à la colonne précédente de la ligne suivante
+                    arr[
+                        ir + 1, ic - 1] += err * 3 / 16  # Diffuser l'erreur à la colonne précédente de la ligne suivante
                 arr[ir + 1, ic] += err * 5 / 16  # Diffuser l'erreur à la ligne suivante
                 if ic < width - 1:
                     arr[ir + 1, ic + 1] += err / 16  # Diffuser l'erreur à la colonne suivante de la ligne suivante
 
     return [res_dithered, result_sep]  # Renvoyer l'array de résultat et l'array de séparation
-
 
 
 def ComputeThreads(img, numLines, numPins, Coords, Angles, initPin=0, minLoop=3, lineWeight=10, lineWidth=10,
@@ -103,7 +108,7 @@ def ComputeThreads(img, numLines, numPins, Coords, Angles, initPin=0, minLoop=3,
 
         # Afficher la progression du calcul
         progress = img / 255
-        cv2.imshow('%s' % colour, cv2.resize(progress, (1000, 1000)))
+        cv2.imshow('%s' % colour, cv2.resize(progress, (400, 400)))
         cv2.waitKey(1)
 
         # Enregistrer la ligne dans les résultats
@@ -117,15 +122,14 @@ def ComputeThreads(img, numLines, numPins, Coords, Angles, initPin=0, minLoop=3,
         oldPin = bestPin  # Mettre à jour la broche de départ pour la prochaine itération
 
         # Afficher la progression
-        sys.stdout.write("\b\b")
-        sys.stdout.write("\r")
-        sys.stdout.write("[+] Calcul de la ligne " + colour + " " + str(line + 1))
-        sys.stdout.flush()
-
-    sys.stdout.write("\n")
+    #     sys.stdout.write("\b\b")
+    #     sys.stdout.write("\r")
+    #     sys.stdout.write("[+] Calcul de la ligne " + colour + " " + str(line + 1))
+    #     sys.stdout.flush()
+    #
+    # sys.stdout.write("\n")
     cv2.destroyAllWindows()  # Fermer toutes les fenêtres d'affichage
     return lines  # Renvoyer les lignes calculées
-
 
 
 def WriteThreadedCsvFile(filename, lines, imgRadius=1000):
@@ -262,6 +266,16 @@ class Canvas:
         self.Coords = coords
         self.Angles = alpha[0:-1]
 
+    def helper(self, colour):
+        return ComputeThreads(self.img_couleur_sep[colour],
+                              numLines=self.numLinesPerColour[colour],
+                              numPins=self.numPins,
+                              Coords=self.Coords,
+                              Angles=self.Angles,
+                              initPin=self.initPin,
+                              lineWidth=self.lineWidth,
+                              lineWeight=self.lineWeight,
+                              colour=colour)
     def buildCanvas(self, numLines=10000, background=(255, 255, 255), excludeBackground=False):
         """
         Méthode pour construire le canvas.
@@ -291,26 +305,34 @@ class Canvas:
             self.totalLines = list(zip(Lines, z))
 
         else:
+            s = time.time()
+            MP = True
+            if MP:
+                with concurrent.futures.ProcessPoolExecutor() as pool:
+                    results = pool.map(self.helper, self.palette.keys())
+                for (key, result) in zip(self.palette.keys(), results):
+                    self.d_couleur_threaded[key] = np.flip(result)
+            else:
+                for key in self.palette.keys():
+                    if self.palette[key] == background and excludeBackground is True:
+                        continue
+                    else:
+                        self.d_couleur_threaded[key] = ComputeThreads(self.img_couleur_sep[key],
+                                                                      numLines=self.numLinesPerColour[key],
+                                                                      numPins=self.numPins,
+                                                                      Coords=self.Coords,
+                                                                      Angles=self.Angles,
+                                                                      initPin=self.initPin,
+                                                                      lineWidth=self.lineWidth,
+                                                                      lineWeight=self.lineWeight,
+                                                                      colour=key)
+                        self.d_couleur_threaded[key] = np.flip(self.d_couleur_threaded[key])
+                        print("Threaded %i %s lines" % (len(self.d_couleur_threaded[key]), key))
 
-            for key in self.palette.keys():
-                if self.palette[key] == background and excludeBackground is True:
-                    continue
-                else:
-                    self.d_couleur_threaded[key] = ComputeThreads(self.img_couleur_sep[key],
-                                                                  numLines=self.numLinesPerColour[key],
-                                                                  numPins=self.numPins,
-                                                                  Coords=self.Coords,
-                                                                  Angles=self.Angles,
-                                                                  initPin=self.initPin,
-                                                                  lineWidth=self.lineWidth,
-                                                                  lineWeight=self.lineWeight,
-                                                                  colour=key)
-                    self.d_couleur_threaded[key] = np.flip(self.d_couleur_threaded[key])
-                    print("Threaded %i %s lines" % (len(self.d_couleur_threaded[key]), key))
-
+            e = time.time()
             self.OrderColours(background, excludeBackground)
 
-            print("[+] Image threaded\n")
+            print(f"[+] Image threaded in {e-s}s\n")
 
     def OrderColours(self, background=(255, 255, 255), excludeBackground=False):
         """
@@ -385,19 +407,19 @@ class Canvas:
         """
         self.np_img = 255 - self.np_img
 
-    def showDitheredImage(self):
-        """
-        Méthode pour afficher l'image dithered.
-        """
-        px.imshow(self.img_dithered, template="plotly_dark").show()
-        fig = px.imshow(
-            np.array(list(self.img_couleur_sep.values())), template="plotly_dark",
-            title="Images par couleur", animation_frame=0, color_continuous_scale="gray"
-        ).update_layout(coloraxis_showscale=False)
-        fig.layout.sliders[0].currentvalue.prefix = "couleur = "
-        for i, color_name in enumerate(self.palette.keys()):
-            fig.layout.sliders[0].steps[i].label = color_name
-        fig.show()
+    # def showDitheredImage(self):
+    #     """
+    #     Méthode pour afficher l'image dithered.
+    #     """
+    #     px.imshow(self.img_dithered, template="plotly_dark").show()
+    #     fig = px.imshow(
+    #         np.array(list(self.img_couleur_sep.values())), template="plotly_dark",
+    #         title="Images par couleur", animation_frame=0, color_continuous_scale="gray"
+    #     ).update_layout(coloraxis_showscale=False)
+    #     fig.layout.sliders[0].currentvalue.prefix = "couleur = "
+    #     for i, color_name in enumerate(self.palette.keys()):
+    #         fig.layout.sliders[0].steps[i].label = color_name
+    #     fig.show()
 
     def getNumLines(self):
         """
@@ -454,5 +476,3 @@ class Canvas:
                             fill=self.totalLines[i][-1], width=2)
             if i % 2 == 0:
                 output.save("Output/Animation/Animation_%i.jpg" % i)
-
-

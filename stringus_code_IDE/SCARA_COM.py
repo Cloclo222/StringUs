@@ -1,9 +1,6 @@
 import pandas as pd
 import serial
-import time
 import numpy as np
-import matplotlib
-import matplotlib.pyplot as plt
 
 
 class SCARA_COM:

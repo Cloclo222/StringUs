@@ -1,27 +1,7 @@
 import ast
-import sys
-import cv2
-import csv
-import numpy as np
-from PIL import Image
-import os
 
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import (
-    Qt, QObject, pyqtSignal, pyqtSlot, QRunnable, QThreadPool
-)
-from PyQt5 import QtCore as qtc
-
-import matplotlib
 # matplotlib.use("TkAgg")
 
-from stringus_code_IDE.COM_python_arduino_UART.SerialArduinoCom.SCARA_COM import *
-
-from .Crop_window1 import *
-from ImageProcessing.Canvas import *
 from .PA_Window import *
 from .Progress_Window import *
 from .GetName_Window import *
@@ -329,9 +309,6 @@ class Window(QWidget):
         else:
             self.flag_calculate = True
 
-            print("Le nombre de clous est de:", self.nbclous)
-            print("Le diametre est de:", data_dim)
-
             Radius = int(self.diam * 2)
             if self.GreyScale is False:
 
@@ -634,6 +611,7 @@ class Window(QWidget):
         string_rgb = str(valeur[10])
         self.rgb_values = ast.literal_eval(string_rgb)
 
+
         self.image_path.setText(self.fnameImage)
 
         _, extension = os.path.splitext(self.fnameImage)
@@ -654,8 +632,11 @@ class Window(QWidget):
         self.ClousLine.setText(valeur[1])
 
         # self.analyse_image(self.fnameImage)
+        rgb = []
+        for t in self.rgb_values:
+            rgb.append(t[::-1])
 
-        self.redoBand(self.rgb_values)
+        self.redoBand(rgb)
 
         self.pixmap = QPixmap(
             self.resize_image(700, 300, 'Input/bar.jpg', 'Input/bar.jpg'))
@@ -728,7 +709,6 @@ class Window(QWidget):
 
         elif self.sizedef == "Crop":
             self.pixmap = QPixmap(self.resize_image(400, 400, self.fnameImage, "Output/resize_image.png"))
-            print("crop")
 
         elif self.sizedef == "Resize":
             self.fnameImage = 'Output/BoxResize.png'

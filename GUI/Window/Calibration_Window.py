@@ -1,16 +1,12 @@
 # Importation des modules nécessaires
-import sys
 # Importation des modules nécessaires
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import *
+from PyQt5 import QtCore, QtGui
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
 from PyQt5.QtCore import (
-    Qt, QObject, pyqtSignal, pyqtSlot, QRunnable, QThreadPool
+    Qt
 )
 
-from PyQt5 import QtCore as qtc
-from stringus_code_IDE.COM_python_arduino_UART.SerialArduinoCom.SCARA_COM import *  # Importation de la classe SCARA_COM depuis un module externe
+from stringus_code_IDE.SCARA_COM import *  # Importation de la classe SCARA_COM depuis un module externe
 
 # Définition d'une classe pour la fenêtre d'affichage de la progression
 class Window_Calibration(QMainWindow):

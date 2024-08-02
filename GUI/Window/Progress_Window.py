@@ -1,13 +1,11 @@
 # Importation des modules nécessaires
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import (
-    Qt, QObject, pyqtSignal, pyqtSlot, QRunnable, QThreadPool
+    QObject, pyqtSlot, QRunnable, QThreadPool
 )
 from PyQt5 import QtCore as qtc
-from stringus_code_IDE.COM_python_arduino_UART.SerialArduinoCom.SCARA_COM import *  # Importation de la classe SCARA_COM depuis un module externe
+from stringus_code_IDE.SCARA_COM import *  # Importation de la classe SCARA_COM depuis un module externe
 from ImageProcessing.Canvas import *  # Importation d'une classe Canvas depuis un module externe
 
 
