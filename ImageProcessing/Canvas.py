@@ -87,9 +87,8 @@ def ComputeThreads(img, numLines, numPins, Coords, Angles, initPin=0, minLoop=3,
             coord = Coords[pin]  # Coordonnées de la broche actuelle
 
             xLine, yLine = linePixels(oldCoord, coord)  # Obtenir les coordonnées des pixels de la ligne
-
             # Calculer la somme des valeurs de pixels le long de la ligne
-            Sum = LineSum(img, xLine, yLine)
+            Sum = LineSum(img, xLine, yLine)/len(xLine)
 
             # Vérifier si la somme est meilleure que la meilleure ligne précédente et si la broche actuelle n'a pas déjà été utilisée
             if (Sum > bestLine) and not (pin in previousPins):
