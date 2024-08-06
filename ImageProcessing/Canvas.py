@@ -10,6 +10,7 @@ import imageio.v2
 import os
 import glob
 import concurrent.futures
+from functools import cache
 
 
 @numba.njit  # Ce décorateur indique que la fonction sera compilée avec le compilateur JIT de Numba pour une exécution plus rapide.
@@ -88,8 +89,7 @@ def ComputeThreads(img, numLines, numPins, Coords, Angles, initPin=0, minLoop=3,
 
             xLine, yLine = linePixels(oldCoord, coord)  # Obtenir les coordonnées des pixels de la ligne
             # Calculer la somme des valeurs de pixels le long de la ligne
-            Sum = LineSum(img, xLine, yLine)/len(xLine)
-
+            Sum = LineSum(img, xLine, yLine) / len(xLine)
             # Vérifier si la somme est meilleure que la meilleure ligne précédente et si la broche actuelle n'a pas déjà été utilisée
             if (Sum > bestLine) and not (pin in previousPins):
                 bestLine = Sum  # Mettre à jour la meilleure ligne
@@ -105,10 +105,11 @@ def ComputeThreads(img, numLines, numPins, Coords, Angles, initPin=0, minLoop=3,
         cv2.line(lineMask, oldCoord, Coords[bestPin], lineWeight, lineWidth)  # Dessiner la ligne sur le masque
         img = np.subtract(img, lineMask)  # Soustraire la ligne de l'image
 
-        # Afficher la progression du calcul
-        progress = img / 255
-        cv2.imshow('%s' % colour, cv2.resize(progress, (400, 400)))
-        cv2.waitKey(1)
+        if i % 16 == 0:
+            # Afficher la progression du calcul
+            progress = img / 255
+            cv2.imshow('%s' % colour, cv2.resize(progress, (400, 400)))
+            cv2.waitKey(1)
 
         # Enregistrer la ligne dans les résultats
         lines.append((oldPin, bestPin))
@@ -136,7 +137,8 @@ def WriteThreadedCsvFile(filename, lines, imgRadius=1000):
     csv_output.write("p1,p2,R,G,B\n".encode('utf8'))  # Écrire l'en-tête du fichier CSV
 
     # Fonction lambda pour formater les lignes de données en CSV
-    csver = lambda p1, p2, R, G, B: "%i" % p1 + "," + "%i" % p2 + "," + "%i" % R + "," + "%i" % G + "," + "%i" % B + "\n"
+    csver = \
+        lambda p1, p2, R, G, B: "%i" % p1 + "," + "%i" % p2 + "," + "%i" % R + "," + "%i" % G + "," + "%i" % B + "\n"
 
     # Boucle sur les lignes de données et écrire dans le fichier CSV
     for l in lines:
@@ -149,7 +151,7 @@ class Canvas:
     def __init__(self,
                  filename,
                  img_radius=1000,
-                 numPins=250,
+                 numPins=150,
                  initPin=0,
                  lineWidth=10,
                  lineWeight=10,
@@ -275,6 +277,7 @@ class Canvas:
                               lineWidth=self.lineWidth,
                               lineWeight=self.lineWeight,
                               colour=colour)
+
     def buildCanvas(self, numLines=10000, background=(255, 255, 255), excludeBackground=False):
         """
         Méthode pour construire le canvas.
@@ -316,6 +319,7 @@ class Canvas:
                     if self.palette[key] == background and excludeBackground is True:
                         continue
                     else:
+                        start = time.time()
                         self.d_couleur_threaded[key] = ComputeThreads(self.img_couleur_sep[key],
                                                                       numLines=self.numLinesPerColour[key],
                                                                       numPins=self.numPins,
@@ -325,13 +329,13 @@ class Canvas:
                                                                       lineWidth=self.lineWidth,
                                                                       lineWeight=self.lineWeight,
                                                                       colour=key)
+                        end = time.time()
                         self.d_couleur_threaded[key] = np.flip(self.d_couleur_threaded[key])
-                        print("Threaded %i %s lines" % (len(self.d_couleur_threaded[key]), key))
+                        print("Threaded %i %s lines in %f s" % (len(self.d_couleur_threaded[key]), key, end - start))
 
             e = time.time()
+            print(f"[+] Image threaded in {e - s}s\n")
             self.OrderColours(background, excludeBackground)
-
-            print(f"[+] Image threaded in {e-s}s\n")
 
     def OrderColours(self, background=(255, 255, 255), excludeBackground=False):
         """
@@ -475,3 +479,10 @@ class Canvas:
                             fill=self.totalLines[i][-1], width=2)
             if i % 2 == 0:
                 output.save("Output/Animation/Animation_%i.jpg" % i)
+
+
+if __name__ == '__main__':
+    palette = {'c1': (1, 0, 0), 'c2': (250, 250, 250), 'c3': (234, 30, 36), 'c4': (249, 204, 31)}
+    canvas = Canvas('C:/Users/guill/OneDrive - USherbrooke/S4GRO/S4Projet/StringUS/GUI/Image_Tests/straw_hats_bbg.png',
+                    palette=palette, group_orders='c1 c2 c3 c4 c5 c1')
+    canvas.buildCanvas()
