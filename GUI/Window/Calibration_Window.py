@@ -214,7 +214,7 @@ class Window_Calibration(QMainWindow):
 
         self.scara_com = SCARA_COM(port_number)
 
-        self.show_state()
+        # self.show_state()
 
     #def __del__(self):
         # Cleanup code here
@@ -241,15 +241,7 @@ class Window_Calibration(QMainWindow):
         self.scara_com.envoie_commande('{W4}')
 
     def show_state(self):
-        self.LibeCheckState = self.widget.checkState()
-
-        if self.LibeCheckState == 0:
-            #print("uncheck")
-            self.scara_com.envoie_commande("{T1}")
-
-        if self.LibeCheckState == 2:
-            #print("check")
-            self.scara_com.envoie_commande("{T0}")
+        self.scara_com.envoie_commande('{T2}')
 
     def LeftPositionCalibrationRoundButtonIsPressed(self):
         #print("LeftPositionCalibrationRoundButtonIsPressed")

@@ -19,24 +19,24 @@ class Window_Detection(QWidget):
         super().__init__()  # Appel du constructeur de la classe mère QWidget
         self.setWindowTitle("Detection du port Arduino")  # Titre de la fenêtre
 
-        self.port = AutoDetectPort  # Variable pour stocker le nom du fichier
+        self.port = AutoDetectPort
 
 
         # Bouton "OK"
         self.EnregistrerButton = QPushButton("Enregistrer")
         self.EnregistrerButton.clicked.connect(
-            self.EnregistrerButtonIsClicked)  # Connecte le clic du bouton à la méthode Ok_clique
+            self.EnregistrerButtonIsClicked)
 
         # Bouton "Cancel"
         self.canc_button = QPushButton("Cancel")
-        self.canc_button.clicked.connect(self.canc_clique)  # Connecte le clic du bouton à la méthode canc_clique
+        self.canc_button.clicked.connect(self.canc_clique)
 
         self.TestButton = QPushButton("Test")
-        self.TestButton.clicked.connect(self.TestButtonClicked)  # Connecte le clic du bouton à la méthode canc_clique
+        self.TestButton.clicked.connect(self.TestButtonClicked)
 
         self.AutoDetectButton = QPushButton("Auto")
         self.AutoDetectButton.clicked.connect(
-            self.AutoDetectButtonClicked)  # Connecte le clic du bouton à la méthode canc_clique
+            self.AutoDetectButtonClicked)
 
         if self.port == -1:
             self.instruction = QLabel("Aucun port n'est disponible")

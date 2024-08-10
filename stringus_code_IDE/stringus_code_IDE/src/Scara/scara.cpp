@@ -142,17 +142,28 @@ float Scara::getDxlPos(int moteur)
     return currentPosGauche;
 }
 
-void Scara::toggleTorque(int i)
+void Scara::toggleTorque()
 {
-    if (i == 0){
+    if (_dxl.readControlTableItem(TORQUE_ENABLE, moteur_droit)){;
         _dxl.torqueOff(moteur_gauche);
         _dxl.torqueOff(moteur_droit);
     }
-    else if (i == 1){
+    else {
         _dxl.torqueOn(moteur_gauche);
         _dxl.torqueOn(moteur_droit);
     }
     
+}
+void Scara::TorqueOff()
+{
+    _dxl.torqueOff(moteur_gauche);
+    _dxl.torqueOff(moteur_droit);
+}
+
+void Scara::TorqueOn()
+{
+    _dxl.torqueOn(moteur_gauche);
+    _dxl.torqueOn(moteur_droit);
 }
 
 void Scara::setSpeed(uint8_t speedLimitLeft, uint8_t speedLimitRight)

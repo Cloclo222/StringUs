@@ -365,7 +365,6 @@ class Window(QWidget):
 
     def isSendButtonClick(self):
 
-        self.detect_openRB150()
         if self.flag_calculate and self.portArduino != -1:
 
             if not self.flag_simulation:
@@ -556,7 +555,6 @@ class Window(QWidget):
             self.ProgressBar.show()
 
     def CalibrationIsTriggered(self):
-        self.detect_openRB150()
         if self.portArduino == -1:
             QMessageBox.information(self, 'ERREUR', "Il n'y a pas d'Arduino de connecté", QMessageBox.Ok)
         else:

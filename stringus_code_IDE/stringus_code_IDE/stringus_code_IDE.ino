@@ -225,17 +225,18 @@ void executeCommand(const char* command) {
     int command_int = command_char - '0';
     switch (command_int) { // Regarde le chiffre de commande
       case 0: {                                                      
-        _scara.toggleTorque(0);
+        _scara.TorqueOff();
         Serial.println('1');    
         break;
       }
       case 1: {
-        _scara.toggleTorque(1);
+        _scara.TorqueOn();
         Serial.println('1');
         break;
       }
       case 2: {
-        printPos();
+        _scara.toggleTorque();
+        Serial.println('1');
         break;
       }
       case 3: {
@@ -251,7 +252,7 @@ void executeCommand(const char* command) {
           }
           delay(30);
         }
-        _scara.toggleTorque(1);
+        _scara.TorqueOn();
         break;
       }
     }
@@ -290,7 +291,7 @@ void executeCommand(const char* command) {
           delay(60);
           i += 4;
         }
-        _scara.toggleTorque(1);
+        _scara.TorqueOn();
         updateScaraSeq(_scara.seqClou[0], LEFT_SEQ_BASE_ADDRESS, SCARA_SEQ_RES, EEPROM_I2C_ADDRESS);
         Wire.end();
         Serial.println('1');
@@ -308,7 +309,7 @@ void executeCommand(const char* command) {
           delay(60);
           i += 4;
         }
-        _scara.toggleTorque(1);
+        _scara.TorqueOn();
         updateScaraSeq(_scara.seqClou[1], RIGHT_SEQ_BASE_ADDRESS, SCARA_SEQ_RES, EEPROM_I2C_ADDRESS);
         Wire.end();
         Serial.println('1');
@@ -316,7 +317,8 @@ void executeCommand(const char* command) {
       }
       case 4: { // playback approche gauche
         Serial.println("Play back left approach");
-        _scara.toggleTorque(1);
+        _scara.TorqueOn();
+        _scara.setTablePos(_scara.range);
         _scara.setScaraPos(_scara.LeftApproach);
         _scara.jointisPos(_scara.LeftApproach);
         Serial.println('1');
@@ -324,7 +326,8 @@ void executeCommand(const char* command) {
       }
       case 5: { // playback approche droite
         Serial.println("Play back right approach");
-        _scara.toggleTorque(1);
+        _scara.TorqueOn();
+        _scara.setTablePos(-(_scara.range));
         _scara.setScaraPos(_scara.RightApproach);
         _scara.jointisPos(_scara.RightApproach);
         Serial.println('1');
@@ -332,7 +335,7 @@ void executeCommand(const char* command) {
       }
       case 6: { // playback approche + sequence gauche
         Serial.println("Play back left sequence");
-        _scara.toggleTorque(1);
+        _scara.TorqueOn();
         _scara.setScaraPos(_scara.LeftApproach);
         _scara.jointisPos(_scara.LeftApproach);
         _scara.doSeq(0);
@@ -343,7 +346,7 @@ void executeCommand(const char* command) {
       }
       case 7: { // playback approche + sequence droite
         Serial.println("Play back right sequence");
-        _scara.toggleTorque(1);
+        _scara.TorqueOn();
         _scara.setScaraPos(_scara.RightApproach);
         _scara.jointisPos(_scara.RightApproach);
         _scara.doSeq(1);

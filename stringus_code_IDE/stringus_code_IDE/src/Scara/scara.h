@@ -27,7 +27,7 @@ private:
     
 
 public:
-    int range = 507; //(4096*nb_clous)/range
+    int range = 512; // 4096 pulses per rotation * 0.125 of full rotation, correct nail will always be offset by 512 pulses
     int seqCalib[100][2];
     uint16_t LeftApproach[2] = {2560, 2560};
     uint16_t RightApproach[2] = {1952, 2800};
@@ -143,7 +143,9 @@ public:
     void tableisPos(int TablePos);
     int* getLastCmd(); 
     float getDxlPos(int moteur);
-    void toggleTorque(int i);
+    void toggleTorque();
+    void TorqueOn();
+    void TorqueOff();
     void move(float cmd[2]);
     bool buildInvJacobienne();
     void printPosition();

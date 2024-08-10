@@ -17,19 +17,10 @@ class SCARA_COM:
 
         self.ActualPos = []
 
-        self.seq0 = [0]
-
         # TODO CHECK TON CRISSE DE PORT
         port = "COM%i" % COM
         self.arduino = serial.Serial(port, 115200, timeout=1, write_timeout=1)
 
-        self.seq0 = [
-            (2660, 2769),
-            (2732, 2855),
-            (2760, 2816),
-            (2710, 2759),
-            (2560, 2560),
-        ]
         self.commandes = []
 
     def __del__(self):
@@ -124,13 +115,13 @@ class SCARA_COM:
 
 
 
-
-if __name__ == "__main__":
-    scara_com = SCARA_COM(3)
-    scara_com.envoie_commande("{C1 2449 3125}")
-    #scara_com.envoie_commande("{C2}")
-    scara_com.calibrate_contour_seq()
-    #scara_com.manual_measure_dxl()
-    # scara_com.readThreadedCSV("GUI/Output/ThreadedCSVFile.csv", 150)
-    # for cmd in scara_com.commandes:
-    # scara_com.envoie_commande(cmd)
+#
+# if __name__ == "__main__":
+#     scara_com = SCARA_COM(3)
+#     scara_com.envoie_commande("{C1 2449 3125}")
+#     #scara_com.envoie_commande("{C2}")
+#     scara_com.calibrate_contour_seq()
+#     #scara_com.manual_measure_dxl()
+#     # scara_com.readThreadedCSV("GUI/Output/ThreadedCSVFile.csv", 150)
+#     # for cmd in scara_com.commandes:
+#     # scara_com.envoie_commande(cmd)
