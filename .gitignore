@@ -3,11 +3,11 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
-/GUI/Parametre
-/GUI/Output
+/GUI/Parametre/
+/GUI/Output/
 /GUI/Input/bar.jpg
-/GUI/Animation
-/GUI/Videos_Animation
+/GUI/Animation/
+/GUI/Videos_Animation/
 *.jpg
 *.jpeg
 *.png
