@@ -37,7 +37,7 @@ class SCARA_COM:
                     break  # Sort de la loop pour envoyer une autre commande
 
     def check_torque(self):
-        self.arduino.write("{T4}")
+        self.arduino.write("{T4}".encode())
         while True:
             if self.arduino.in_waiting > 0:
                 response = self.arduino.readline().decode().strip()

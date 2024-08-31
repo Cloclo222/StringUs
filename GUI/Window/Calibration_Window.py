@@ -154,7 +154,7 @@ class Window_Calibration(QMainWindow):
         self.left_buttons_layout.addWidget(self.TorqueCheckBox)
         # For tristate: widget.setCheckState(Qt.PartiallyChecked)
         # Or: widget.setTriState(True)
-        self.TorqueCheckBox.stateChanged.connect(self.TorqueCheckBoxClicked)
+        self.TorqueCheckBox.clicked.connect(self.TorqueCheckBoxClicked)
 
         self.left_layout.addWidget(self.left_group)
         self.horizontal_layout.addLayout(self.left_layout)
