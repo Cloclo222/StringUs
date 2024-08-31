@@ -10,7 +10,6 @@
 #define moteur_table 3
 #define UP 180
 #define DOWN 0
-#define SCARA_SEQ_RES 50 // number of positions for circle sequence
 
 using namespace ControlTableItem;
 #define DXL_SERIAL   Serial1
@@ -131,6 +130,7 @@ public:
                                    {2560, 2560},
                                    {2560, 2560},
                                    {2560, 2560}}};
+
     Scara(Dynamixel2Arduino &dxl);
     ~Scara();
     void init_com();

@@ -4,21 +4,14 @@
 #include "Arduino.h"
 #include "Wire.h"
 
+
 #define DXL_SERIAL   Serial1
 #define BUFFER_LENGTH 64
 #define MAX_SCARA_SPEED 70
 #define MAX_TABLE_SPEED 60
-#define EEPROM_I2C_ADDRESS 0x50
-#define LEFT_APPROACH_ADDRESS 0 // address to store left scara approach position in EEPROM (2x uint16_t = 4 bytes)
-#define RIGHT_APPROACH_ADDRESS 4 // address to store right scara approach position in EEPROM (2x uint16_t = 4 bytes)
-#define LEFT_SEQ_BASE_ADDRESS 8 // address of first element to store left scara circle sequence in EEPROM (50x2x uint16_t = 200 bytes)
-#define RIGHT_SEQ_BASE_ADDRESS 208 // address of first element to store right scara circle sequence in EEPROM (50x2x uint16_t = 200 bytes)
 
 char serialBuffer[BUFFER_LENGTH]; // Buffer pour les messages Serial
 int bufferIndex = 0;              // Index pour le char dans serialBuffer
-
-Dynamixel2Arduino _dxl(DXL_SERIAL, -1); 
-Scara _scara(_dxl);
 
 void serialControl(); 
 void executeCommand(const char* command);
@@ -27,11 +20,13 @@ void updateScaraSeq(uint16_t array[SCARA_SEQ_RES][2], int address, int num_pos, 
 void write_uint16_EEPROM(int address, uint16_t val, int i2c_address);
 uint16_t read_uint16_EEPROM(int address, int i2c_address, int numBytes);
 
+Dynamixel2Arduino _dxl(DXL_SERIAL, -1); //Si variable définit avec un "_" à l'avant, c'est un objet!
 
+Scara _scara(_dxl);
 
 void setup() {
-
-    //delay(5000);
+  
+    delay(2000);
     Serial.begin(115200);
     _dxl.begin(57600);
     Serial.println("Baudrate init.");
@@ -40,7 +35,6 @@ void setup() {
     Serial.println("Comunication init.");
     _scara.init_moteur();
     Serial.println("Moteur init.");
-    
     Wire.begin();
     write_uint16_EEPROM(LEFT_APPROACH_ADDRESS, 2825, EEPROM_I2C_ADDRESS);
     write_uint16_EEPROM(LEFT_APPROACH_ADDRESS + 2, 1925, EEPROM_I2C_ADDRESS);
@@ -49,10 +43,9 @@ void setup() {
     updateScaraSeq(_scara.seqClou[0], LEFT_SEQ_BASE_ADDRESS, SCARA_SEQ_RES, EEPROM_I2C_ADDRESS);
     updateScaraSeq(_scara.seqClou[1], RIGHT_SEQ_BASE_ADDRESS, SCARA_SEQ_RES, EEPROM_I2C_ADDRESS);
     Wire.end();
-
-    
-    
-    delay(100);
+  
+    delay(2000);
+  
     _scara.setAcceleration(15,5);
     _scara.homing();
     _scara.setSpeed(MAX_SCARA_SPEED, MAX_SCARA_SPEED);
@@ -163,54 +156,51 @@ void executeCommand(const char* command) {
 
       case 4: {
        _scara.doSeq(0);
-     
-      
-        
         break;
       }
       
       case 5: {
         int angle1;
         if (sscanf(command + 2, "%d", &angle1) == 1) { //Regarde s'il y a 1 angle
-          int CE = _scara.getLastCmd()[2]; // Current Encoder position
-          int CRT = floor(CE/4096)*4096 + angle1; // Current Revolution Target
+          int CE = _scara.getLastCmd()[2];
+          int CRT = floor(CE/4096)*4096 + angle1;
           int current_pos[2] = {_scara.getLastCmd()[0],_scara.getLastCmd()[1]};
 
           if(abs(CRT-CE)<2048){
             if(CRT>CE){
               _scara.setTablePos(CRT - _scara.range);
-              _scara.setScaraPos(_scara.LeftApproach);
-              _scara.jointisPos(_scara.LeftApproach);
+              _scara.setScaraPos(_scara.jointDefaultLeft);
+              _scara.jointisPos(_scara.jointDefaultLeft);
               _scara.tableisPos(CRT - _scara.range);
               _scara.doSeq(0);
-              _scara.setScaraPos(_scara.LeftApproach);
-              _scara.jointisPos(_scara.LeftApproach);
+              _scara.setScaraPos(_scara.jointDefaultLeft);
+              _scara.jointisPos(_scara.jointDefaultLeft);
             }else{
                _scara.setTablePos(CRT + _scara.range);
-               _scara.setScaraPos(_scara.RightApproach);
-               _scara.jointisPos(_scara.RightApproach);
+               _scara.setScaraPos(_scara.jointDefaultRight);
+               _scara.jointisPos(_scara.jointDefaultRight);
                _scara.tableisPos(CRT + _scara.range);
                _scara.doSeq(1);
-               _scara.setScaraPos(_scara.RightApproach);
-               _scara.jointisPos(_scara.RightApproach);
+               _scara.setScaraPos(_scara.jointDefaultRight);
+               _scara.jointisPos(_scara.jointDefaultRight);
             } 
           }else{
             if(CRT>CE){
               _scara.setTablePos(CRT - 4096 + _scara.range);
-              _scara.setScaraPos(_scara.RightApproach);
-              _scara.jointisPos(_scara.RightApproach);
+              _scara.setScaraPos(_scara.jointDefaultRight);
+              _scara.jointisPos(_scara.jointDefaultRight);
               _scara.tableisPos(CRT - 4096 + _scara.range);
               _scara.doSeq(1);
-              _scara.setScaraPos(_scara.RightApproach);
-              _scara.jointisPos(_scara.RightApproach);
+              _scara.setScaraPos(_scara.jointDefaultRight);
+              _scara.jointisPos(_scara.jointDefaultRight);
             }else{
                _scara.setTablePos(CRT + 4096 - _scara.range);
-               _scara.setScaraPos(_scara.LeftApproach);
-               _scara.jointisPos(_scara.LeftApproach);
+               _scara.setScaraPos(_scara.jointDefaultLeft);
+               _scara.jointisPos(_scara.jointDefaultLeft);
                _scara.tableisPos(CRT + 4096 - _scara.range);
                _scara.doSeq(0);
-               _scara.setScaraPos(_scara.LeftApproach);
-               _scara.jointisPos(_scara.LeftApproach);
+               _scara.setScaraPos(_scara.jointDefaultLeft);
+               _scara.jointisPos(_scara.jointDefaultLeft);
             } 
           }
         }
@@ -241,7 +231,7 @@ void executeCommand(const char* command) {
       }
       case 3: {
         int i = 0;
-        while(i<SCARA_SEQ_RES){
+        while(i<100){
           if(_dxl.readControlTableItem(MOVING, moteur_gauche) || _dxl.readControlTableItem(MOVING, moteur_droit))
           {
             _scara.seqCalib[i][0] = _scara.getDxlPos(moteur_gauche);
@@ -260,6 +250,7 @@ void executeCommand(const char* command) {
       }
     }
   }
+
   else if (command[0] == 'W') {          
     char command_char = command[1];
     int command_int = command_char - '0';
@@ -444,3 +435,4 @@ uint16_t read_uint16_EEPROM(int address, int i2c_address = EEPROM_I2C_ADDRESS, i
   // Return the data as function output
   return rcvData;
 }
+
