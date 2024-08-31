@@ -26,7 +26,6 @@ class SCARA_COM:
     def __del__(self):
         self.arduino.close()
 
-
     def envoie_commande(self, commande):
         print(f"Python: {commande}")
         self.arduino.write(commande.encode())
@@ -36,6 +35,13 @@ class SCARA_COM:
                 print(f"Arduino : {reponse}")
                 if reponse == '1':  # Attend le signal du arduino
                     break  # Sort de la loop pour envoyer une autre commande
+
+    def check_torque(self):
+        self.arduino.write("{T4}")
+        while True:
+            if self.arduino.in_waiting > 0:
+                response = self.arduino.readline().decode().strip()
+                return int(response)
 
     def readThreadedCSV(self, csvfilepath, numPins):
         self.csvfile = pd.read_csv(csvfilepath)
@@ -53,11 +59,10 @@ class SCARA_COM:
         for pin in self.pinsInPulse[0]:
             self.commandes.append("{C5 %d}" % pin)
 
-
     def getNumLinesCSV(self):
         return len(self.csvfile.p1)
 
-    def readPos(self): #, index
+    def readPos(self):  #, index
         self.arduino.write('{T1}'.encode())
         while True:
             if self.arduino.in_waiting > 0:
@@ -68,7 +73,7 @@ class SCARA_COM:
                 response = self.arduino.readline().decode().strip()
                 print(f"position table : {response}")
                 response = int(response)
-                pin = (response - np.floor(response/4096)*4096)*(125/4096)
+                pin = (response - np.floor(response / 4096) * 4096) * (125 / 4096)
                 self.ActualPos.append(np.round(pin))
                 #erreur = abs(self.ActualPos[index] - self.pins[0][index])
                 #erreur_pulse = self.pinsInPulse[0][index] - response
@@ -112,8 +117,6 @@ class SCARA_COM:
 
         self.envoie_commande(cmd)
         # self.readPos(index)
-
-
 
 #
 # if __name__ == "__main__":

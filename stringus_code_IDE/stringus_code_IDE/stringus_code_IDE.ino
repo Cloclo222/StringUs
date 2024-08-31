@@ -255,6 +255,9 @@ void executeCommand(const char* command) {
         _scara.TorqueOn();
         break;
       }
+      case 4:{
+        Serial.println(_dxl.readControlTableItem(TORQUE_ENABLE, moteur_droit));
+      }
     }
   }
   else if (command[0] == 'W') {          
