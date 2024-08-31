@@ -124,17 +124,18 @@ class Window_Calibration(QMainWindow):
 
         self.left_buttons = []
         #Left Button
+
+        self.LeftPositionSeePositionButton = QPushButton("Envoyer robot a approche gauche")
+        self.LeftPositionSeePositionButton.pressed.connect(self.LeftPositionSeePositionButtonIsPressed)
+        self.LeftPositionSeePositionButton.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.left_buttons_layout.addWidget(self.LeftPositionSeePositionButton)
+        self.left_buttons.append(self.LeftPositionSeePositionButton)
+
         self.LeftPositionCalibrationButton = QPushButton("Calibrer Approche Gauche")
         self.LeftPositionCalibrationButton.pressed.connect(self.LeftPositionCalibrationButtonIsPressed)
         self.LeftPositionCalibrationButton.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.left_buttons_layout.addWidget(self.LeftPositionCalibrationButton)
         self.left_buttons.append(self.LeftPositionCalibrationButton)
-
-        self.LeftPositionSeePositionButton = QPushButton("Check Approche")
-        self.LeftPositionSeePositionButton.pressed.connect(self.LeftPositionSeePositionButtonIsPressed)
-        self.LeftPositionSeePositionButton.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.left_buttons_layout.addWidget(self.LeftPositionSeePositionButton)
-        self.left_buttons.append(self.LeftPositionSeePositionButton)
 
         self.LeftPositionCalibrationRoundButton = QPushButton("Calibrer Cercle Gauche")
         self.LeftPositionCalibrationRoundButton.pressed.connect(self.LeftPositionCalibrationRoundButtonIsPressed)
@@ -148,7 +149,7 @@ class Window_Calibration(QMainWindow):
         self.left_buttons_layout.addWidget(self.LeftPositionSeeRoundButton)
         self.left_buttons.append(self.LeftPositionSeeRoundButton)
 
-        self.TorqueCheckBox = QCheckBox()
+        self.TorqueCheckBox = QCheckBox("Torque moteur activé")
         self.TorqueCheckBox.setCheckState(Qt.Checked)
 
         self.left_buttons_layout.addWidget(self.TorqueCheckBox)
@@ -183,17 +184,17 @@ class Window_Calibration(QMainWindow):
 
         self.right_buttons = []
 
+        self.RightPositionSeePositionButton = QPushButton("Envoyer robot a approche droite")
+        self.RightPositionSeePositionButton.pressed.connect(self.RightPositionSeePositionButtonIsPressed)
+        self.RightPositionSeePositionButton.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.right_buttons_layout.addWidget(self.RightPositionSeePositionButton)
+        self.right_buttons.append(self.RightPositionSeePositionButton)
+
         self.RightPositionCalibrationButton = QPushButton("Calibrer Approche Droite")
         self.RightPositionCalibrationButton.pressed.connect(self.RightPositionCalibrationButtonIsPressed)
         self.RightPositionCalibrationButton.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.right_buttons_layout.addWidget(self.RightPositionCalibrationButton)
         self.right_buttons.append(self.RightPositionCalibrationButton)
-
-        self.RightPositionSeePositionButton = QPushButton("Check Approche")
-        self.RightPositionSeePositionButton.pressed.connect(self.RightPositionSeePositionButtonIsPressed)
-        self.RightPositionSeePositionButton.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.right_buttons_layout.addWidget(self.RightPositionSeePositionButton)
-        self.right_buttons.append(self.RightPositionSeePositionButton)
 
         self.RightPositionCalibrationRoundButton = QPushButton("Calibrer Cercle Droite")
         self.RightPositionCalibrationRoundButton.pressed.connect(self.RightPositionCalibrationRoundButtonIsPressed)
@@ -231,7 +232,14 @@ class Window_Calibration(QMainWindow):
         self.ShowState()
 
     def ShowState(self):
-        self.TorqueCheckBox.setChecked(self.scara_com.check_torque())
+        state = self.scara_com.check_torque()
+        self.TorqueCheckBox.setChecked(state)
+        if state:
+            self.TorqueCheckBox.setText("Torque moteur activé")
+        else:
+            self.TorqueCheckBox.setText("Torque moteur désactivé")
+
+
 
     # Méthode pour mettre à jour la progression
     def LeftPositionCalibrationButtonIsPressed(self):

@@ -821,7 +821,7 @@ class Window(QWidget):
         openRB150_ports = [
             p.device
             for p in serial.tools.list_ports.comports()
-            if 'USB Serial Device' in p.description  # Replace with the exact description
+            if 'USB Serial Device' in p.description or 'Périphérique série USB' in p.description # Replace with the exact description
         ]
 
         if not openRB150_ports:
