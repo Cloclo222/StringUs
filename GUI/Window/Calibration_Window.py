@@ -1,5 +1,7 @@
 # Importation des modules nécessaires
 # Importation des modules nécessaires
+import time
+
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import (
@@ -149,7 +151,7 @@ class Window_Calibration(QMainWindow):
         self.left_buttons_layout.addWidget(self.LeftPositionSeeRoundButton)
         self.left_buttons.append(self.LeftPositionSeeRoundButton)
 
-        self.TorqueCheckBox = QCheckBox("Torque moteur activé")
+        self.TorqueCheckBox = QCheckBox("Torque moteur active")
         self.TorqueCheckBox.setCheckState(Qt.Checked)
 
         self.left_buttons_layout.addWidget(self.TorqueCheckBox)
@@ -213,7 +215,7 @@ class Window_Calibration(QMainWindow):
 
         self.scara_com = SCARA_COM(port_number)
 
-        self.ShowState()
+        #self.ShowState()
 
     #def __del__(self):
     # Cleanup code here
@@ -233,12 +235,13 @@ class Window_Calibration(QMainWindow):
 
     def ShowState(self):
         state = self.scara_com.check_torque()
+        print(f"state :  {state}")
         self.TorqueCheckBox.setChecked(state)
         if state:
-            self.TorqueCheckBox.setText("Torque moteur activé")
+            self.TorqueCheckBox.setText("Torque moteur active")
         else:
-            self.TorqueCheckBox.setText("Torque moteur désactivé")
-
+            self.TorqueCheckBox.setText("Torque moteur désactive")
+        QApplication.processEvents()
 
 
     # Méthode pour mettre à jour la progression
@@ -249,13 +252,16 @@ class Window_Calibration(QMainWindow):
 
     def LeftPositionSeePositionButtonIsPressed(self):
         #print("LeftPositionSeePositionButtonIsPressed")
+        self.scara_com.envoie_commande('{T1}')
         self.scara_com.envoie_commande('{W4}')
         self.ShowState()
 
     def LeftPositionCalibrationRoundButtonIsPressed(self):
         #print("LeftPositionCalibrationRoundButtonIsPressed")
+        self.scara_com.envoie_commande('{T1}')
         self.scara_com.envoie_commande('{W4}')
         self.scara_com.envoie_commande('{T0}')
+        self.ShowState()
         self.scara_com.envoie_commande('{W2}')
         self.ShowState()
 
@@ -271,13 +277,16 @@ class Window_Calibration(QMainWindow):
 
     def RightPositionSeePositionButtonIsPressed(self):
         #print('RightPositionSeePositionButtonIsPressed')
+        self.scara_com.envoie_commande('{T1}')
         self.scara_com.envoie_commande('{W5}')
         self.ShowState()
 
     def RightPositionCalibrationRoundButtonIsPressed(self):
         #print('RightPositionCalibrationRoundButtonIsPressed')
+        self.scara_com.envoie_commande('{T1}')
         self.scara_com.envoie_commande('{W5}')
         self.scara_com.envoie_commande('{T0}')
+        self.ShowState()
         self.scara_com.envoie_commande('{W3}')
         self.ShowState()
 

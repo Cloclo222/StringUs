@@ -324,6 +324,7 @@ void executeCommand(const char* command) {
         _scara.setTablePos(-(_scara.range));
         _scara.setScaraPos(_scara.LeftApproach);
         _scara.jointisPos(_scara.LeftApproach);
+        _scara.tableisPos(-(_scara.range));
         Serial.println('1');
         break;
       }
@@ -333,6 +334,7 @@ void executeCommand(const char* command) {
         _scara.setTablePos((_scara.range));
         _scara.setScaraPos(_scara.RightApproach);
         _scara.jointisPos(_scara.RightApproach);
+        _scara.tableisPos(_scara.range);
         Serial.println('1');
         break;
       }
