@@ -392,8 +392,7 @@ class Window(QWidget):
 
         if self.GreyScale:
             return
-
-        else:
+        if self.flag_calculate:
             self.compteur += 1
             if self.compteur <= self.data_nbcouleur:
                 name = "c" + str(self.compteur) + ".png"
@@ -407,21 +406,29 @@ class Window(QWidget):
             pixmap = QPixmap(
                 self.resize_image(400, 400, filename, filename))
             self.PreviewImage.setPixmap(pixmap)
+        else:
+            QMessageBox.information(self, 'ERREUR', "Il faut calculer avant", QMessageBox.Ok)
 
     def isPrecedantButtonClick(self):
-        self.compteur -= 1
-        if self.compteur >= 0:
-            name = "c" + str(self.compteur) + ".png"
-            filename = "Output/" + name
 
-        if self.compteur < 0:
-            self.compteur = 0
-            name = "c" + str(self.compteur) + ".png"
-            filename = "Output/" + name
+        if self.GreyScale:
+            return
+        if self.flag_calculate:
+            self.compteur -= 1
+            if self.compteur >= 0:
+                name = "c" + str(self.compteur) + ".png"
+                filename = "Output/" + name
 
-        pixmap = QPixmap(
-            self.resize_image(400, 400, filename, filename))
-        self.PreviewImage.setPixmap(pixmap)
+            if self.compteur < 0:
+                self.compteur = 0
+                name = "c" + str(self.compteur) + ".png"
+                filename = "Output/" + name
+
+            pixmap = QPixmap(
+                self.resize_image(400, 400, filename, filename))
+            self.PreviewImage.setPixmap(pixmap)
+        else:
+            QMessageBox.information(self, 'ERREUR', "Il faut calculer avant", QMessageBox.Ok)
 
     def isNbCouleurChange(self):
 
