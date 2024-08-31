@@ -206,7 +206,7 @@ class Adjust(QWidget):
         self.rb = ResizableRubberBand(self)
         self.rb.setGeometry(0, 0, self.img_class.img.shape[1] * self.zoom_factor,
                             self.img_class.img.shape[0] * self.zoom_factor)
-        self.img_class.change_b_c(beta=-40)
+        #self.img_class.change_b_c(beta=-40)
         
 
 

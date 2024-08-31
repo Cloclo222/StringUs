@@ -206,7 +206,6 @@ class Window_PA(QWidget):
             self.ResizeButton.setHidden(True)
             # Affiche le bouton de recadrage
             self.CropButton.setHidden(False)
-            print("Crop")
 
     def checkeReal(self):
         # Cette méthode est appelée lorsque la case à cocher "Real" est activée ou désactivée
@@ -228,7 +227,6 @@ class Window_PA(QWidget):
             self.image_a_imprimer = self.real
             self.pixmap = QPixmap(self.resize_image(400, 400, self.image_a_imprimer, 'Output/resize_image.png'))
             self.Image.setPixmap(self.pixmap)
-            print("Real")
 
     def checkeResize(self):
         # Cette méthode est appelée lorsque la case à cocher "Resize" est activée ou désactivée

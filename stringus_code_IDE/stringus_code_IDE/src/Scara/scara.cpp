@@ -44,7 +44,7 @@ void Scara::init_moteur()
     //_dxl.writeControlTableItem(MIN_POSITION_LIMIT, moteur_droit, 0);
     //_dxl.writeControlTableItem(MAX_POSITION_LIMIT, moteur_droit, 4095);
     _dxl.writeControlTableItem(DRIVE_MODE, moteur_table, 0);
-    _dxl.writeControlTableItem(HOMING_OFFSET, moteur_table, 0);
+    _dxl.writeControlTableItem(HOMING_OFFSET, moteur_table,10);
     _dxl.ledOn(moteur_table);
     _dxl.torqueOn(moteur_table); 
 }
@@ -54,7 +54,7 @@ void Scara::update()
 
 }
 
-void Scara::setScaraPos(int jointPos[2])
+void Scara::setScaraPos(uint16_t jointPos[2])
 {
     _dxl.setGoalPosition(moteur_gauche, jointPos[0]);
     _dxl.setGoalPosition(moteur_droit, jointPos[1]);
@@ -65,12 +65,18 @@ void Scara::setScaraPos(int jointPos[2])
 
 void Scara::doSeq(int side){
 // Serial.println("Je suis entre dans doSeq");
-  for(int i = 0; i < 100; i++)
+  for(int i = 0; i < SCARA_SEQ_RES; i++)
     {
         this->setScaraPos(this->seqClou[side][i]);
-        delay(5);
+//        Serial.print("i = ");
+//        Serial.print(i);
+//        Serial.print(", val = ");
+//        Serial.print(seqClou[side][i][0]);
+//        Serial.print(" ");
+//        Serial.println(seqClou[side][i][1]);
+        delay(30);
     }
-// Serial.println("Je suis sorti de doSeq");
+
 }
 
 void Scara::setTablePos(int TablePos)
@@ -82,7 +88,7 @@ void Scara::setTablePos(int TablePos)
 
 }
 
-void Scara::jointisPos(int jointPos[2]) {
+void Scara::jointisPos(uint16_t jointPos[2]) {
     bool isMoteurGaucheInPosition = false;
     bool isMoteurDroitInPosition = false;
     int marge_erreur = 10;
@@ -120,7 +126,7 @@ return false;
 
 void Scara::sendDefaultPos()
 {
-    int jointPos[2] = {Pos_default[0], Pos_default[1]}; // or replace with your default positions
+    uint16_t jointPos[2] = {Pos_default[0], Pos_default[1]}; // or replace with your default positions
     int TablePos = Pos_default[2];
     this->setScaraPos(jointPos);
     this->setTablePos(TablePos);
@@ -137,17 +143,28 @@ float Scara::getDxlPos(int moteur)
     return currentPosGauche;
 }
 
-void Scara::toggleTorque(int i)
+void Scara::toggleTorque()
 {
-    if (i == 0){
+    if (_dxl.readControlTableItem(TORQUE_ENABLE, moteur_droit)){;
         _dxl.torqueOff(moteur_gauche);
         _dxl.torqueOff(moteur_droit);
     }
-    else if (i == 1){
+    else {
         _dxl.torqueOn(moteur_gauche);
         _dxl.torqueOn(moteur_droit);
     }
     
+}
+void Scara::TorqueOff()
+{
+    _dxl.torqueOff(moteur_gauche);
+    _dxl.torqueOff(moteur_droit);
+}
+
+void Scara::TorqueOn()
+{
+    _dxl.torqueOn(moteur_gauche);
+    _dxl.torqueOn(moteur_droit);
 }
 
 void Scara::setSpeed(uint8_t speedLimitLeft, uint8_t speedLimitRight)
@@ -164,7 +181,7 @@ void Scara::setTableSpeed(uint8_t speedLimitTable)
     _dxl.writeControlTableItem(PROFILE_VELOCITY, moteur_table, speedLimitTable);
 }
 
-void Scara::setSpeedForLinearMov(int jointPos[2], uint8_t speedLimit)
+void Scara::setSpeedForLinearMov(uint16_t jointPos[2], uint8_t speedLimit)
 {
     
     float leftDelta = abs(jointPos[0] - this->getLastCmd()[0]);
