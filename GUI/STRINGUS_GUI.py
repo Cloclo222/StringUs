@@ -13,13 +13,13 @@ import imageio.v2
 import cv2
 import numba
 import glob
-#import pyi_splash
+# import pyi_splash
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = Window()
     window.show()
-    #pyi_splash.close()
+    # pyi_splash.close()
     sys.exit(app.exec_())
 
