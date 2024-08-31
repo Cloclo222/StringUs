@@ -170,9 +170,10 @@ class Window_Progress(QWidget):
 
         # Calcul de l'index réel
         TrueIndex = index + (self.TotalLinesCanvas - CurrentNumCsvLines)
-        path = 'Output/Animation/Animation_%i.jpg' % TrueIndex
-        self.pixmap2 = QPixmap(self.resize_image(800, 800, path, path))  # Chargement de l'animation
-        self.Animation.setPixmap(self.pixmap2)  # Affichage de l'animation
+        if (TrueIndex % 2) == 0:
+            path = 'Output/Animation/Animation_%i.jpg' % TrueIndex
+            self.pixmap2 = QPixmap(self.resize_image(800, 800, path, path))  # Chargement de l'animation
+            self.Animation.setPixmap(self.pixmap2)  # Affichage de l'animation
 
     # Méthode pour créer une image avec une couleur spécifique
     def CreatePicture(self, rgb):
