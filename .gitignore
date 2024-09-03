@@ -4,6 +4,7 @@
 .vscode/launch.json
 .vscode/ipch
 /GUI/Input/bar.jpg
+/build
 *.jpg
 *.jpeg
 *.png
