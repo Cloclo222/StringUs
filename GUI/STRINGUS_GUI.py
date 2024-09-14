@@ -1,3 +1,4 @@
+import multiprocessing
 import sys
 import cv2
 import csv
@@ -20,13 +21,13 @@ except:
 
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = Window()
-    window.show()
-
+    multiprocessing.freeze_support()
     try:
         pyi_splash.close()
     except:
         pass
-    sys.exit(app.exec_())
 
+    app = QApplication(sys.argv)
+    window = Window()
+    window.show()
+    sys.exit(app.exec_())

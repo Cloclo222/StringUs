@@ -5,7 +5,7 @@ a = Analysis(
     ['C:\\Users\\guill\\OneDrive - USherbrooke\\S4GRO\\S4Projet\\StringUS\\GUI\\STRINGUS_GUI.py'],
     pathex=[],
     binaries=[],
-    datas=[('C:\\Users\\guill\\OneDrive - USherbrooke\\S4GRO\\S4Projet\\StringUS\\ImageProcessing', 'ImageProcessing'), ('C:\\Users\\guill\\OneDrive - USherbrooke\\S4GRO\\S4Projet\\StringUS\\stringus_code_IDE', 'stringus_code_IDE'), ('C:\\Users\\guill\\OneDrive - USherbrooke\\S4GRO\\S4Projet\\StringUS\\GUI\\Input', 'Input'), ('.\\StringUS\\GUI\\Output\\', 'Output')],
+    datas=[('C:\\Users\\guill\\OneDrive - USherbrooke\\S4GRO\\S4Projet\\StringUS\\ImageProcessing', 'ImageProcessing'), ('C:\\Users\\guill\\OneDrive - USherbrooke\\S4GRO\\S4Projet\\StringUS\\stringus_code_IDE', 'stringus_code_IDE')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

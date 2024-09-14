@@ -241,7 +241,7 @@ class Window_Calibration(QMainWindow):
             self.TorqueCheckBox.setText("Torque moteur active")
         else:
             self.TorqueCheckBox.setText("Torque moteur désactive")
-        QApplication.processEvents()
+        #QApplication.processEvents()
 
 
     # Méthode pour mettre à jour la progression

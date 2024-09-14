@@ -294,9 +294,15 @@ class Window_PA(QWidget):
 
     def isCropButtonPush(self):
         # Cette méthode est appelée lorsque le bouton de recadrage est cliqué
-        lol = ['Output/resize_image.png']
-        self.window = Crop(lol)
-        self.window.show()
+        # lol = ['Output/resize_image.png']
+        # self.window = Crop(lol)
+        # self.window.show()
+        dlg = QMessageBox(self)
+        dlg.setWindowTitle("oops")
+        dlg.setText("Crop feature not yet implemented :(")
+        button = dlg.exec()
+        if button == QMessageBox.Ok:
+            dlg.close()
 
     def resize_image(self, largeur, hauteur, image_path, save_as):
         # Cette méthode redimensionne une image et la sauvegarde
