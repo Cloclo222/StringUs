@@ -604,52 +604,52 @@ class Window(QWidget):
                         valeur[i] = row[1]
                         i += 1
 
-                self.fnameImage = valeur[3]
-                self.data_nbcouleur = int(valeur[4])
-                self.defautpoid = int(valeur[6])
-                self.defautep = int(valeur[5])
-                self.sequencedefaut = valeur[11]
-                self.sizedef = valeur[8]
-                self.nbclous = int(valeur[1])
-                self.diam = int(valeur[2])
-                self.TotalNumberLines = int(valeur[9])
-                string_rgb = str(valeur[10])
-                self.rgb_values = ast.literal_eval(string_rgb)
+        self.fnameImage = valeur[3]
+        self.data_nbcouleur = int(valeur[4])
+        self.defautpoid = int(valeur[6])
+        self.defautep = int(valeur[5])
+        self.sequencedefaut = valeur[11]
+        self.sizedef = valeur[8]
+        self.nbclous = int(valeur[1])
+        self.diam = int(valeur[2])
+        self.TotalNumberLines = int(valeur[9])
+        string_rgb = str(valeur[10])
+        self.rgb_values = ast.literal_eval(string_rgb)
 
 
-                self.image_path.setText(self.fnameImage)
+        self.image_path.setText(self.fnameImage)
 
-                _, extension = os.path.splitext(self.fnameImage)
+        _, extension = os.path.splitext(self.fnameImage)
 
-                # Vérifier l'extension
-                file_to_save = []
+        # Vérifier l'extension
+        file_to_save = []
 
-                if extension.lower() == '.jpg':
-                    file_to_save = 'Output/parametre.jpg'
-                elif extension.lower() == '.png':
-                    file_to_save = 'Output/parametre.png'
-                elif extension.lower() == '.jpeg':
-                    file_to_save = 'Output/parametre.jpeg'
+        if extension.lower() == '.jpg':
+            file_to_save = 'Output/parametre.jpg'
+        elif extension.lower() == '.png':
+            file_to_save = 'Output/parametre.png'
+        elif extension.lower() == '.jpeg':
+            file_to_save = 'Output/parametre.jpeg'
 
-                self.pixmap = QPixmap(self.resize_image(400, 400, self.fnameImage, file_to_save))
-                self.VOImage.setPixmap(self.pixmap)
-                self.DimLine.setText(valeur[2])
-                self.ClousLine.setText(valeur[1])
+        self.pixmap = QPixmap(self.resize_image(400, 400, self.fnameImage, file_to_save))
+        self.VOImage.setPixmap(self.pixmap)
+        self.DimLine.setText(valeur[2])
+        self.ClousLine.setText(valeur[1])
 
-                # self.analyse_image(self.fnameImage)
-                rgb = []
-                for t in self.rgb_values:
-                    rgb.append(t[::-1])
+        # self.analyse_image(self.fnameImage)
+        rgb = []
+        for t in self.rgb_values:
+            rgb.append(t[::-1])
 
-                self.redoBand(rgb)
+        self.redoBand(rgb)
 
-                self.pixmap = QPixmap(
-                    self.resize_image(700, 300, 'Input/bar.jpg', 'Input/bar.jpg'))
-                self.DominantImage.setPixmap(self.pixmap)
+        self.pixmap = QPixmap(
+            self.resize_image(700, 300, 'Input/bar.jpg', 'Input/bar.jpg'))
+        self.DominantImage.setPixmap(self.pixmap)
 
-                self.flag_OpenCSV = True
-                self.NbCouleurBox.setValue(self.data_nbcouleur)
-                self.flag_OpenCSV = False
+        self.flag_OpenCSV = True
+        self.NbCouleurBox.setValue(self.data_nbcouleur)
+        self.flag_OpenCSV = False
 
     def saveFile(self):
         self.nameFile = None
